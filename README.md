@@ -8,4 +8,14 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 
 **Pipeline:** CuratorKIT → SafeTune → AuditKIT.
 
-[Read the full project specification](SPEC.md).
+## Project documents
+
+- [Research specification](SPEC.md)
+- [Written execution plan](PLAN.md)
+- [Task backlog](BACKLOG.md)
+
+### Task categories
+
+- **Data & Annotation** — sources, counterfactuals, independent labels, Arabic quality, and CuratorKIT.
+- **ML & Evaluation** — Aya runners, SafeTune, baselines, AuditKIT, and analysis.
+- **Frontend & Design** — demo experience, visual communication, and presentation.
