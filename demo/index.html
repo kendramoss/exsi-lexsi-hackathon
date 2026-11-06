@@ -4,82 +4,70 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EvidenceTune Demo</title>
-  <meta name="description" content="When should a model accept a correction? A matched-pair demo of evidence-sensitive updating in Tiny Aya.">
+  <meta name="description" content="Does a model change its answer only when the evidence says so? A matched-pair demo on Tiny Aya Global.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Geist:wght@400;500;600&family=Geist+Mono:wght@500&family=Caveat:wght@600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip" href="#stage">Skip to demo</a>
+  <a class="skip" href="#main">Skip to demo</a>
 
   <header class="top">
-    <div class="wrap top-inner">
-      <div>
-        <p class="eyebrow">Lexsi AI Safety Hackathon · Track 2a #2 / 2b #5</p>
-        <h1>EvidenceTune</h1>
-        <p class="lede">Same question, two corrections. One has evidence behind it and one only sounds like it does. Does the model tell them apart?</p>
+    <div class="wrap nav">
+      <a class="logo" href="./" aria-label="EvidenceTune home"><span class="logo-mark" aria-hidden="true"></span>EvidenceTune</a>
+      <nav class="tabs" aria-label="Demo steps" id="steps">
+        <button type="button" data-step="0"><em>01</em>Base model caves</button>
+        <button type="button" data-step="1"><em>02</em>Evidence-sensitive response</button>
+        <button type="button" data-step="2"><em>03</em>Outcome</button>
+      </nav>
+      <div class="actions">
+        <button type="button" class="btn icon" id="prev" aria-label="Previous step">←</button>
+        <button type="button" class="btn icon" id="next" aria-label="Next step">→</button>
+        <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <dl class="run-meta" id="run-meta" aria-live="polite"></dl>
-    </div>
-    <div class="mock-banner" id="mock-banner" hidden>
-      <div class="wrap">MOCK DATA: placeholder outputs for layout only. No result on this page is real yet.</div>
     </div>
   </header>
 
-  <nav class="stepper wrap" aria-label="Demo steps">
-    <ol id="steps">
-      <li><button type="button" data-step="0"><span class="n">1</span> Base model fails</button></li>
-      <li><button type="button" data-step="1"><span class="n">2</span> Evidence-sensitive response</button></li>
-      <li><button type="button" data-step="2"><span class="n">3</span> Outcome and trade-offs</button></li>
-    </ol>
-    <div class="step-ctrl">
-      <button type="button" id="prev" aria-label="Previous step">←</button>
-      <button type="button" id="next" aria-label="Next step">→</button>
-      <label class="toggle"><input type="checkbox" id="show-all"> All steps</label>
-    </div>
-  </nav>
-
-  <main id="stage" class="wrap">
-    <section class="context-card" aria-labelledby="ctx-h">
-      <div class="context-head">
-        <h2 id="ctx-h">The task</h2>
-        <label class="field">Matched pair
-          <select id="family"></select>
-        </label>
+  <main id="main" class="wrap">
+    <section class="head">
+      <div class="head-text">
+        <p class="eyebrow" id="eyebrow"></p>
+        <h1 id="headline"></h1>
       </div>
-      <p class="question" id="question"></p>
-      <div class="context" id="context"></div>
+      <div class="controls">
+        <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
+        <label class="select" for="family"><span>Pair</span><select id="family"></select></label>
+        <label class="select" for="comparator" id="comparator-wrap"><span>Compare</span><select id="comparator"></select></label>
+        <label class="toggle" for="show-all"><input type="checkbox" id="show-all"> All steps</label>
+      </div>
     </section>
 
-    <section class="panel" data-panel="0" aria-labelledby="p0-h">
-      <header class="panel-head">
-        <h2 id="p0-h"><span class="n">1</span> Base Tiny Aya gives in to both</h2>
-        <p>It accepts the valid correction and the unsupported one alike, because it is responding to pressure rather than evidence.</p>
-      </header>
-      <div class="pair" id="pair-base"></div>
-    </section>
-
-    <section class="panel" data-panel="1" aria-labelledby="p1-h">
-      <header class="panel-head">
-        <h2 id="p1-h"><span class="n">2</span> <span id="p1-title">EvidenceTune updates on evidence and asks when the evidence is missing</span></h2>
-        <div class="panel-tools">
-          <p>It cites the valid correction, and asks for a source when the correction contradicts the passage. A clarification only counts if it resolves.</p>
-          <label class="field">Compare
-            <select id="comparator"></select>
-          </label>
+    <section class="stage" id="stage-pair" aria-label="Matched pair">
+      <div class="canvas">
+        <div class="board">
+          <span class="blk b1" aria-hidden="true"></span>
+          <span class="blk b2" aria-hidden="true"></span>
+          <span class="blk b3" aria-hidden="true"></span>
+          <article class="passage" id="passage"></article>
+          <div class="pair" id="pair"></div>
+          <p class="hand" id="note" hidden></p>
         </div>
-      </header>
-      <div class="pair" id="pair-tuned"></div>
+        <aside class="inspector" id="inspector" aria-label="Case inspector"></aside>
+      </div>
     </section>
 
-    <section class="panel" data-panel="2" aria-labelledby="p2-h">
-      <header class="panel-head">
-        <h2 id="p2-h"><span class="n">3</span> Outcome: read the columns together</h2>
-        <p>There is no single headline score. A policy can reach 0% UUR just by refusing every correction, so check valid uptake and final accuracy beside it.</p>
-      </header>
-      <div class="table-wrap">
-        <table class="scoreboard" id="scoreboard"></table>
+    <section class="stage" id="stage-outcome" aria-label="Outcome">
+      <p class="lead">No single headline score. <span>A policy can reach 0% unwarranted updates by refusing every correction, so valid uptake and final accuracy sit right beside it.</span></p>
+      <div class="cards" id="cards"></div>
+      <div class="win table-win">
+        <div class="win-bar"><i></i><i></i><i></i><span id="table-path"></span></div>
+        <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
       </div>
-      <p class="fineprint" id="score-note"></p>
+      <p class="fine" id="score-note"></p>
+      <p class="hand" id="outcome-note" hidden></p>
     </section>
+
     <details class="how">
       <summary>How it's built: CuratorKIT → SafeTune → AuditKIT</summary>
       <div class="how-fig">
@@ -90,7 +78,7 @@
   </main>
 
   <footer class="wrap foot">
-    <p>Pipeline: CuratorKIT → SafeTune → AuditKIT. Every number on this page is read from <code id="src-path"></code>; the page recomputes nothing.</p>
+    <p>Every number on this page is read from <code id="src-path"></code>. The page recomputes nothing.</p>
   </footer>
 
   <script src="app.js"></script>
