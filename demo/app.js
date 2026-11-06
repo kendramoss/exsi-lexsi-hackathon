@@ -272,15 +272,39 @@
   function renderAll() { renderHead(); renderCompare(); renderOutcome(); }
 
   // Nav: highlight the section in view.
+  // Focus: the section holding the middle of the screen is "in focus"; the others fade back.
+  // Nav + map links bring a section to the centre (or to its top when it is taller than the screen).
   function spy() {
+    const secs = [...document.querySelectorAll(".focusable")];
     const links = [...document.querySelectorAll("#steps a")];
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        links.forEach((a) => { if (a.dataset.sec === e.target.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
-      });
-    }, { rootMargin: "-45% 0px -50% 0px" });
-    ["s1", "s2", "s3"].forEach((id) => io.observe(document.getElementById(id)));
+    let current = null;
+    const update = () => {
+      const mid = innerHeight / 2;
+      let best = secs[0], dist = Infinity;
+      for (const s of secs) {
+        const r = s.getBoundingClientRect();
+        const d = r.top <= mid && r.bottom >= mid ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid));
+        if (d < dist) { dist = d; best = s; }
+      }
+      if (best === current) return;
+      current = best;
+      secs.forEach((s) => s.classList.toggle("is-focus", s === best));
+      document.body.classList.add("focus-on");
+      links.forEach((a) => { if (a.dataset.sec === best.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+    };
+    addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
+    addEventListener("resize", update);
+    update();
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      const t = document.querySelector(a.getAttribute("href"));
+      if (!t) return;
+      e.preventDefault();
+      const tall = t.offsetHeight > innerHeight - 49;
+      t.scrollIntoView({ block: tall ? "start" : "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      history.replaceState(null, "", a.getAttribute("href"));
+    });
   }
   function selectors() {
     const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));

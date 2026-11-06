@@ -110,14 +110,19 @@ html { scroll-behavior: smooth; }
 .flow strong { font: var(--t-title); font-weight: 400; }
 .flow span { font: var(--t-small); color: var(--ink-2); }
 .flow li:not(:last-child) a::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: grid; place-items: center; background: var(--bg); color: var(--ink); font: var(--t-mono); z-index: 1; }
-.sec { padding-top: 88px; scroll-margin-top: 49px; }
+.sec { padding-top: 96px; margin-top: 12vh; border-top: 1px solid var(--line); scroll-margin-top: 49px; }
+/* Focus: only the section in the middle of the screen is at full strength */
+.focusable { transition: opacity .45s ease, filter .45s ease; }
+body.focus-on .focusable:not(.is-focus) { opacity: .18; filter: grayscale(.5); }
+body.focus-on .focusable:not(.is-focus) .canvas, body.focus-on .focusable:not(.is-focus) .hs { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .focusable { transition: none; } }
 .sec-head { display: grid; gap: 14px; margin-bottom: 28px; }
 .kicker { font: var(--t-label); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
 .sec-head h2 { margin: 0; font: 300 calc(var(--d-size) * .82)/1.1 var(--display); letter-spacing: -.02em; text-wrap: balance; }
 .sec-head h2 em { font-style: normal; color: var(--ink-3); }
 .sec-head .controls { margin-top: 6px; }
 .sec-hs { padding-bottom: 0; }
-.sec-hs + .hs { margin-top: 0; }
+.sec-hs .hs { margin-top: 28px; }
 
 /* Canvas: cobalt field with cream panels, inspector strip below */
 .canvas { border-block: 1px solid var(--line); background: var(--surface); margin-inline: calc(-1 * var(--gutter)); }
@@ -279,7 +284,7 @@ mark { background: color-mix(in srgb, var(--cobalt) 14%, var(--cream)); color: i
   .flow li:last-child { border-bottom: 0; }
   .flow li:not(:last-child) a::after { content: "↓"; right: 24px; top: auto; bottom: -11px; transform: none; }
   .hero { padding-block: 40px 32px; }
-  .sec { padding-top: 56px; }
+  .sec { padding-top: 56px; margin-top: 8vh; }
   .nav { flex-wrap: wrap; }
   .tabs { order: 3; width: 100%; border-top: 1px solid var(--line); }
   .tabs button { padding: 14px 14px; }
