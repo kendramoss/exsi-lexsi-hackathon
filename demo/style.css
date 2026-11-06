@@ -123,11 +123,6 @@ body.focus-on .focusable:not(.is-focus) .canvas, body.focus-on .focusable:not(.i
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; scroll-margin-top: var(--nav); }
 .hero.focusable { display: grid; }
 .hero-text { display: grid; gap: 24px; align-content: center; }
-.path { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0; padding: 0; list-style: none; font: var(--t-small); color: var(--ink-2); }
-.path a { text-decoration: none; display: inline-flex; gap: 8px; align-items: baseline; padding-bottom: 2px; border-bottom: 1px solid var(--soft-line); transition: border-color 150ms var(--ease), color 150ms var(--ease); }
-.path a:hover { color: var(--ink); border-color: var(--ink); }
-.path b { font: var(--t-meta); color: var(--ink-3); }
-.path li:not(:last-child)::after { content: "→"; margin-left: 16px; color: var(--ink-3); }
 .hero-vis { margin: 0; background: var(--field); padding: 32px; }
 .verdict { background: var(--cream); color: var(--cobalt); border: 1px solid var(--cobalt); --valid: #157a55; --warn: #b5530f; --bad: #c32a22; }
 .verdict-q { padding: 20px 24px; border-bottom: 1px solid var(--cobalt); display: grid; gap: 8px; }
@@ -422,7 +417,6 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .hb-row.hb-tuned span { font-weight: 500; }
 .hb-row.hb-base i { color: var(--bad-on, #ffa29b); }
 .hb-row span, .hb-row b { color: var(--on-field); }
-.path .pi { width: 18px; height: 18px; flex: none; align-self: center; color: var(--ink); }
 
 
 /* The example as a number line: the passage's dated lines on an axis, answers moving along it */
