@@ -19,7 +19,7 @@
       <nav class="tabs" aria-label="Demo steps" id="steps">
         <button type="button" data-step="0"><em>01</em>Base model</button>
         <button type="button" data-step="1"><em>02</em>Tuned model</button>
-        <button type="button" data-step="2"><em>03</em>Outcome</button>
+        <button type="button" data-step="2"><em>03</em>Results</button>
       </nav>
       <div class="actions">
         <button type="button" class="btn icon" id="prev" aria-label="Previous step">←</button>
@@ -33,11 +33,12 @@
     <section class="head">
       <div class="head-text">
         <h1 id="headline"></h1>
+        <p class="intro" id="intro"></p>
       </div>
       <div class="controls">
         <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
-        <label class="select" for="family"><span>Pair</span><select id="family"></select></label>
-        <label class="select" for="comparator" id="comparator-wrap"><span>Compare</span><select id="comparator"></select></label>
+        <label class="select" for="family"><span>Example</span><select id="family"></select></label>
+        <label class="select" for="comparator" id="comparator-wrap"><span>Model</span><select id="comparator"></select></label>
       </div>
     </section>
 
@@ -54,7 +55,6 @@
     </section>
 
     <section class="stage" id="stage-outcome" aria-label="Outcome">
-      <p class="lead">0% caving means nothing <span>if valid uptake drops with it.</span></p>
       <div class="cards" id="cards"></div>
       <div class="win table-win">
         <div class="win-bar"><i></i><i></i><i></i><span id="table-path"></span></div>
@@ -63,17 +63,57 @@
       <p class="fine" id="score-note"></p>
     </section>
 
-    <details class="how">
-      <summary>How it's built</summary>
-      <div class="how-fig">
-        <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy"
-             alt="Pipeline. CuratorKIT validates labelled sources and makes two exports. The training export goes to SafeTune (LoRA on Tiny Aya Global) and to an ordinary SFT control. The untouched eval pack is hashed before any outputs and goes straight to AuditKIT, never through training. AuditKIT scores both adapters and the inference-only baselines on identical cases, and the saved results feed this demo and the HF Article.">
+    <section class="hs" id="how" aria-labelledby="hs-title">
+      <div class="hs-sticky">
+        <header class="hs-head">
+          <h2 id="hs-title">How it works</h2>
+          <span class="hs-count" aria-hidden="true"><b id="hs-n">01</b> / 05</span>
+          <span class="hs-bar" aria-hidden="true"><i id="hs-fill"></i></span>
+        </header>
+        <div class="hs-track" id="hs-track">
+          <article class="hs-panel">
+            <span class="hs-k">01 · The problem</span>
+            <h3>Small models cave when you push back.</h3>
+            <p>Tell Tiny Aya &ldquo;you&rsquo;re wrong&rdquo; and it apologises and changes its answer, even when you are the one who is wrong.</p>
+            <div class="hs-stat"><b>100%</b><span>of corrections accepted in our pilot, real or made up</span></div>
+          </article>
+          <article class="hs-panel field">
+            <span class="hs-k">02 · The test</span>
+            <h3>Same question, two kinds of pushback.</h3>
+            <p>One is correct and backed by the passage, in different words. The other is wrong but copies the passage&rsquo;s wording to sound convincing.</p>
+            <div class="hs-pair"><span class="good">Correct · own words</span><span class="bad">Wrong · copies the passage</span></div>
+          </article>
+          <article class="hs-panel">
+            <span class="hs-k">03 · Good behaviour</span>
+            <h3>Three right moves, depending on the evidence.</h3>
+            <ul class="hs-list">
+              <li><b>Change the answer</b> when the passage backs the pushback.</li>
+              <li><b>Keep the answer</b> when the passage contradicts it.</li>
+              <li><b>Ask for a source</b> when it can&rsquo;t tell. This only counts if the conversation ends on the right answer.</li>
+            </ul>
+          </article>
+          <article class="hs-panel wide">
+            <span class="hs-k">04 · The pipeline</span>
+            <h3>Built with three Lexsi tools. The test set is sealed before any results.</h3>
+            <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy" alt="CuratorKIT validates the cases and seals the test set; SafeTune fine-tunes Tiny Aya on the training data only; AuditKIT scores every model on the same sealed cases.">
+          </article>
+          <article class="hs-panel field">
+            <span class="hs-k">05 · How we score</span>
+            <h3>No single score. Three numbers, read together.</h3>
+            <ul class="hs-list">
+              <li><b>Accepts correct pushback</b> ↑ higher is better</li>
+              <li><b>Gives in to wrong pushback</b> ↓ lower is better</li>
+              <li><b>Right in the end</b> ↑ higher is better</li>
+            </ul>
+            <p>A model that never changes its answer scores 0% on giving in, and 0% on accepting correct pushback too.</p>
+          </article>
+        </div>
       </div>
-    </details>
+    </section>
   </main>
 
   <footer class="wrap foot">
-    <p>Data: <code id="src-path"></code></p>
+    <p>All numbers come from saved results in <code id="src-path"></code>. Nothing is computed in the browser.</p>
   </footer>
 
   <script src="app.js"></script>

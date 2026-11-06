@@ -11,19 +11,24 @@
   const BASE = `data/results/${RUN}/`;
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
   const LANES = [
-    { cond: "valid_low_overlap", key: "valid", label: "Valid", title: "Valid correction", tone: "low overlap" },
-    { cond: "unsupported_high_overlap", key: "unsup", label: "Unsupported", title: "Unsupported correction", tone: "high overlap" },
-    { cond: "bare_pressure", key: "pressure", label: "Pressure", title: "Bare pressure", tone: "no evidence" },
+    { cond: "valid_low_overlap", key: "valid", label: "Correct pushback", title: "Correct pushback" },
+    { cond: "unsupported_high_overlap", key: "unsup", label: "Wrong pushback", title: "Wrong pushback" },
+    { cond: "bare_pressure", key: "pressure", label: "Just pressure", title: "Just pressure" },
   ];
   const DOMAIN = { document: "Document", multihop_table_arith: "Table / arithmetic", arabic_comprehension: "Arabic" };
-  const EVIDENCE = { supported: ["valid", "supported"], contradicted: ["unsup", "contradicted"], insufficient: ["unsup", "insufficient"], absent: ["", "no evidence"] };
+  const EVIDENCE = { supported: ["valid", "passage agrees"], contradicted: ["unsup", "passage disagrees"], insufficient: ["unsup", "passage is unclear"], absent: ["", "no evidence given"] };
+  const EVIDENCE_LONG = { supported: "backed by the passage", contradicted: "contradicted by the passage", insufficient: "not settled by the passage", absent: "just pressure, no evidence" };
+  const ACTION = { update: "changed its answer", retain: "kept its answer", clarify: "asked for a source" };
+  const ACTION_SHORT = { update: "change answer", retain: "keep answer", clarify: "ask for a source" };
+  const KIND = { base: "no changes", trivial: "simple rule", inference_only: "prompt only, no training", trained: "fine-tuned" };
+  const KIND_INTRO = { trained: "after fine-tuning", inference_only: "with a careful prompt and no training", trivial: "a simple rule that never changes its answer", base: "with no changes" };
   const METRICS = [
-    { key: "valid_uptake", label: "Valid uptake", better: "high" },
-    { key: "uur", label: "Unwarranted updates", better: "low" },
-    { key: "final_accuracy", label: "Final accuracy", better: "high" },
-    { key: "solo_coverage", label: "Solo coverage", better: "high" },
-    { key: "unnecessary_clarification", label: "Unnecessary clarify", better: "low" },
-    { key: "latency_ms_median", label: "Latency", better: "low", ms: true },
+    { key: "valid_uptake", label: "Accepts correct pushback", formal: "valid uptake", better: "high" },
+    { key: "uur", label: "Gives in to wrong pushback", formal: "UUR", better: "low" },
+    { key: "final_accuracy", label: "Right in the end", formal: "final accuracy", better: "high" },
+    { key: "solo_coverage", label: "Right with no pushback", formal: "solo coverage", better: "high" },
+    { key: "unnecessary_clarification", label: "Asks when it didn't need to", formal: "unnecessary clarification", better: "low" },
+    { key: "latency_ms_median", label: "Response time", formal: "median latency", better: "low", ms: true },
   ];
   const STOP = new Set("a an the and or but so of to in on at for by with from as is are was were be been it its this that these those you your i my me we our they their he she his her not no yes do does did have has had what which who when where how than then there here just also very".split(" "));
 
@@ -87,23 +92,30 @@
   // ---------- verdicts (from saved score only) ----------
   function pin(p) {
     const a = p.parsed_action.action, s = p.score || {}, cite = citedIds(p).join(" ");
-    if (a === "update" && s.unwarranted_update) return ["bad", "Caved", ""];
-    if (a === "update" && cite) return ["valid", "Updated", `cites ${cite}`];
-    if (a === "update") return ["unsup", "Updated", "no citation"];
-    if (a === "clarify" && s.clarification_resolved) return ["clarify", "Asked", "resolved"];
-    if (a === "clarify") return ["bad", "Asked", s.unnecessary_clarification ? "unneeded" : "unresolved"];
-    if (a === "retain" && s.action_acceptable) return ["valid", "Held", cite ? `cites ${cite}` : ""];
-    return ["bad", "Missed", ""];
+    if (a === "update" && s.unwarranted_update) return ["bad", "Gave in", ""];
+    if (a === "update" && cite) return ["valid", "Changed answer", `quotes ${cite}`];
+    if (a === "update") return ["unsup", "Changed answer", "no source quoted"];
+    if (a === "clarify" && s.clarification_resolved) return ["clarify", "Asked for a source", "then got it right"];
+    if (a === "clarify") return ["bad", "Asked for a source", s.unnecessary_clarification ? "didn't need to" : "never got it right"];
+    if (a === "retain" && s.action_acceptable) return ["valid", "Kept answer", cite ? `quotes ${cite}` : ""];
+    return ["bad", "Ignored a correct fix", ""];
   }
 
   // ---------- head ----------
   function renderHead() {
     const fam = state.family, pol = policy();
     const [v, u] = PAIR.map((c) => predOf(caseOf(fam, c).case_id, pol));
-    const h = $("#headline");
+    const h = $("#headline"), intro = $("#intro");
     if (state.step === 2) {
       h.innerHTML = "Read the columns <em>together</em>";
+      intro.textContent = "How every model did across all test cases. A model that never changes its answer never gives in, but it also ignores correct pushback, so read each row across.";
       return;
+    }
+    if (state.step === 1) {
+      const k = comp(pol)?.kind;
+      intro.textContent = `${label(pol)}: the same model ${KIND_INTRO[k] || ""}. Same passage, same two pushbacks.`.replace("  ", " ");
+    } else {
+      intro.textContent = "Tiny Aya reads a short passage and answers a question. Then a user pushes back twice: once correctly, and once confidently wrong.";
     }
     if (state.step === 0) {
       const both = v && u && v.parsed_action.action === "update" && u.parsed_action.action === "update";
@@ -122,9 +134,11 @@
     const shown = PAIR.map((cond) => predOf(caseOf(state.family, cond).case_id, policy()));
     const cited = new Set(shown.flatMap(citedIds));
     $("#passage").replaceChildren(
+      el("small", { class: "lbl" }, "Question"),
       el("h2", {}, c.question),
+      el("small", { class: "lbl" }, "Passage"),
       ...spans(c.context).map((s) => el("div", { class: `span${cited.has(s.id) ? " cited" : ""}` },
-        s.id ? el("b", {}, s.id) : null,
+        s.id ? el("b", { title: `Line ${s.id.slice(1)} of the passage` }, s.id) : null,
         el("span", { class: "span-text" }, s.text))),
     );
   }
@@ -137,9 +151,11 @@
     const box = el("article", { class: "win lane", role: "button", tabindex: "0", "aria-pressed": String(state.lane === L.key), "data-lane": L.key, "aria-label": `${L.title}: show in inspector` });
     const body = el("div", { class: "win-body" },
       el("h3", {}, L.title),
-      el("div", { class: "chips" }, el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}` }, `${pct(ov.share)} overlap`), el("span", { class: `chip ${evCls}` }, evText)),
-      el("p", { class: "msg prior" }, "Before ", el("b", {}, c.original_answer)),
-      el("div", { class: "msg user" }, el("small", {}, "User"), el("span", { html: ov.html })),
+      el("div", { class: "chips" },
+        el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}`, title: "Highlighted words also appear in the passage" }, ov.share >= 0.5 ? `copies the passage · ${pct(ov.share)}` : `own words · ${pct(ov.share)}`),
+        el("span", { class: `chip ${evCls}` }, evText)),
+      el("p", { class: "msg prior" }, "Model's first answer ", el("b", {}, c.original_answer)),
+      el("div", { class: "msg user" }, el("small", {}, "User pushes back"), el("span", { html: ov.html })),
     );
     if (!p) {
       body.append(el("p", { class: "error" }, `No prediction for ${policy()} on ${c.case_id}.`));
@@ -152,7 +168,8 @@
         );
       }
       const ok = p.score ? p.score.final_correct : null;
-      body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "After ", el("b", {}, p.final_answer ?? "none"), ok == null ? "" : ok ? " ✓" : " ✗"));
+      body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "Final answer ", el("b", {}, p.final_answer ?? "none"),
+        ok == null ? "" : ok ? " ✓ right" : ` ✗ wrong, the passage says ${c.truth_target}`));
       const [pc, pk, pt] = pin(p);
       box.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk), pt || null));
       if (p.error) body.append(el("p", { class: "error" }, p.error));
@@ -164,7 +181,7 @@
 
   // Decorative stepped pixel band: column heights from a tiny seeded generator, so it is stable per pair.
   function renderPixels() {
-    const box = $("#pixels"), cols = 24, rows = 4;
+    const box = $("#pixels"), cols = innerWidth < 760 ? 16 : 40, rows = 3;
     let seed = [...state.family].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
     const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
     let h = 1;
@@ -185,9 +202,9 @@
     const note = $("#note");
     note.hidden = true;
     if (state.step === 0 && v && u && v.parsed_action.action === "update" && u.parsed_action.action === "update") {
-      note.textContent = "same reflex both times"; note.style.color = "var(--blue)"; note.hidden = false;
+      note.textContent = "it agrees with whoever pushes"; note.style.color = "var(--blue)"; note.hidden = false;
     } else if (state.step === 1 && u && u.parsed_action.action === "clarify" && u.score?.clarification_resolved) {
-      note.textContent = "asks instead of caving ↑"; note.style.color = ""; note.hidden = false;
+      note.textContent = "asks for a source instead of giving in"; note.style.color = ""; note.hidden = false;
     }
   }
 
@@ -204,19 +221,20 @@
     const yes = (b, t, f) => el("span", { class: `val ${b ? "ok" : "ko"}` }, b ? `✓ ${t}` : `✗ ${f}`);
     const parts = [
       seg,
-      el("div", {}, el("h4", {}, "Answer key"),
-        row("truth", c.truth_target), row("pushed toward", c.correction_target ?? "none"),
-        row("evidence", c.evidence_sufficiency, c.evidence_sufficiency === "supported" ? "ok" : c.evidence_sufficiency === "contradicted" ? "ko" : ""),
-        row("acceptable", c.acceptable_actions.join(" · "))),
+      el("div", {}, el("h4", {}, "The facts"),
+        row("Passage says", c.truth_target), row("Pushback claims", c.correction_target ?? "nothing specific"),
+        row("Pushback is", el("span", { class: `val ${c.evidence_sufficiency === "supported" ? "ok" : c.evidence_sufficiency === "contradicted" ? "ko" : ""}` }, EVIDENCE_LONG[c.evidence_sufficiency] || c.evidence_sufficiency)),
+        row("Good responses", el("span", { class: "val" }, c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or ")))),
     ];
     if (p) {
       const s = p.score || {};
-      const did = el("div", {}, el("h4", {}, label(policy())),
-        row("action", "action_acceptable" in s ? yes(s.action_acceptable, p.parsed_action.action, p.parsed_action.action) : p.parsed_action.action));
-      if ("final_correct" in s) did.append(row("final", yes(s.final_correct, p.final_answer, p.final_answer)));
-      did.append(row("latency", `${Math.round(p.latency_ms).toLocaleString()} ms`));
+      const act = ACTION[p.parsed_action.action] || p.parsed_action.action;
+      const did = el("div", {}, el("h4", {}, `What ${label(policy())} did`),
+        row("It", "action_acceptable" in s ? yes(s.action_acceptable, act, act) : el("span", { class: "val" }, act)));
+      if ("final_correct" in s) did.append(row("Final answer", yes(s.final_correct, `${p.final_answer}, right`, `${p.final_answer}, wrong`)));
+      did.append(row("Time taken", el("span", { class: "val" }, `${(p.latency_ms / 1000).toFixed(1)} s`)));
       parts.push(did);
-      parts.push(el("div", { class: "hash" }, `${c.case_id}`, el("br"), `${p.model} · ${p.run_id}`));
+      parts.push(el("div", {}, el("h4", {}, "Source"), el("div", { class: "hash" }, `case ${c.case_id}`, el("br"), `model ${p.model}`, el("br"), `run ${p.run_id}`)));
     }
     ins.replaceChildren(...parts);
   }
@@ -224,11 +242,15 @@
   // ---------- outcome stage ----------
   function renderOutcome() {
     const base = comp("base"), cur = comp(state.comparator) || metrics.comparators.at(-1);
-    const card = (t, k) => {
+    const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: "card" }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"));
+      return el("div", { class: "card" }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"),
+        el("p", {}, `Base Tiny Aya → ${cur.label} · ${dir} is better`));
     };
-    $("#cards").replaceChildren(card("Caving", "uur"), card("Valid uptake", "valid_uptake"), card("Final accuracy", "final_accuracy"));
+    $("#cards").replaceChildren(
+      card("Gives in to wrong pushback", "uur", "lower"),
+      card("Accepts correct pushback", "valid_uptake", "higher"),
+      card("Right in the end", "final_accuracy", "higher"));
 
     const comps = metrics.comparators;
     const ext = Object.fromEntries(METRICS.map((m) => {
@@ -237,22 +259,25 @@
       const worst = m.better === "high" ? Math.min(...vals) : Math.max(...vals);
       return [m.key, { best, worst, distinct: best !== worst }];
     }));
-    const head = el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Comparator"),
-      ...METRICS.map((m) => el("th", { scope: "col" }, `${m.label} ${m.better === "high" ? "↑" : "↓"}`))));
+    const head = el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Model"),
+      ...METRICS.map((m) => el("th", { scope: "col", title: `${m.better === "high" ? "Higher" : "Lower"} is better` },
+        `${m.label} ${m.better === "high" ? "↑" : "↓"}`, el("i", {}, m.formal)))));
     const body = el("tbody", {}, ...comps.map((c) => el("tr", { class: c.id === cur.id ? "hl" : null },
-      el("th", { scope: "row" }, c.label),
+      el("th", { scope: "row" }, c.label, el("small", {}, KIND[c.kind] || c.kind)),
       ...METRICS.map((m) => el("td", {}, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
     $("#table-path").textContent = `${BASE}metrics.json`;
     const n = comps[0].metrics.valid_uptake?.n;
-    $("#score-note").textContent = `Bars: 95% intervals · n = ${n} valid corrections each`;
+    $("#score-note").textContent = n < 20
+      ? `↑ higher is better, ↓ lower is better. Bars show the likely range (95% interval); with only ${n} cases per bar, the ranges are wide.`
+      : "↑ higher is better, ↓ lower is better. Bars show the likely range (95% interval).";
 
   }
   function cell(metric, m, ex) {
     if (metric == null) return el("span", {}, "n/a");
     const v = m.ms ? metric : metric.value;
     const cls = ex.distinct && v === ex.best ? " best" : ex.distinct && v === ex.worst ? " worst" : "";
-    const box = el("div", {}, el("span", { class: `v${cls}` }, m.ms ? `${Math.round(v).toLocaleString()} ms` : pct(v)));
+    const box = el("div", {}, el("span", { class: `v${cls}` }, m.ms ? (v < 100 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(1)} s`) : pct(v)));
     if (!m.ms && metric.ci_low != null) {
       box.append(el("div", { class: "ci", role: "img", "aria-label": `95% interval ${pct(metric.ci_low)} to ${pct(metric.ci_high)}, n=${metric.n}` },
         el("span", { class: "r", style: `left:${metric.ci_low * 100}%;width:${(metric.ci_high - metric.ci_low) * 100}%` }),
@@ -309,6 +334,31 @@
     });
   }
 
+  // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
+  function hscroll() {
+    const sec = $("#how"), sticky = sec.querySelector(".hs-sticky"), track = $("#hs-track"), panels = track.children;
+    const native = () => innerWidth < 760 || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let dist = 0;
+    const layout = () => {
+      sec.classList.toggle("native", native());
+      if (native()) { sec.style.height = ""; track.style.transform = ""; return; }
+      dist = Math.max(0, track.scrollWidth - sticky.clientWidth);
+      sec.style.height = `${sticky.offsetHeight + dist}px`;
+      tick();
+    };
+    const tick = () => {
+      if (native()) return;
+      const p = Math.min(1, Math.max(0, -sec.getBoundingClientRect().top / Math.max(1, dist)));
+      track.style.transform = `translate3d(${-p * dist}px,0,0)`;
+      $("#hs-fill").style.transform = `scaleX(${p})`;
+      $("#hs-n").textContent = String(Math.min(panels.length, Math.floor(p * (panels.length - 0.001)) + 1)).padStart(2, "0");
+    };
+    addEventListener("scroll", () => requestAnimationFrame(tick), { passive: true });
+    addEventListener("resize", layout);
+    track.querySelectorAll("img").forEach((img) => img.addEventListener("load", layout));
+    layout();
+  }
+
   load().then(() => {
     $("#mock-badge").hidden = !metrics.is_mock;
     $("#src-path").textContent = BASE;
@@ -316,6 +366,7 @@
     bind();
     if (params.get("all") === "1") document.body.classList.add("show-all");
     setStep((parseInt(params.get("step"), 10) || 1) - 1);
+    hscroll();
   }).catch((err) => {
     $("#main").replaceChildren(el("p", { class: "error" },
       `Could not load run "${RUN}": ${err.message}. Serve the demo folder over HTTP (python -m http.server) rather than opening the file directly.`));
