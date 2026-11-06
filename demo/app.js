@@ -9,6 +9,7 @@
   const params = new URLSearchParams(location.search);
   const RUN = (params.get("run") || "mock-smoke").replace(/[^a-z0-9_.-]/gi, "");
   const BASE = `data/results/${RUN}/`;
+  if (params.has("instant")) document.documentElement.dataset.instant = "";
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
   const LANES = [
     { cond: "valid_low_overlap", key: "valid", label: "Correct pushback", title: "Correct pushback" },
@@ -116,93 +117,81 @@
 
   // ---------- head ----------
   function renderHead() {
-    const c = laneCase();
-    const [, bt] = did(predOf(c.case_id, "base")), [, tt] = did(predOf(c.case_id, state.comparator));
-    $("#s1-title").innerHTML = `${esc(short("base"))} ${esc(bt)},<br><em>${esc(short(state.comparator))} ${esc(tt)}</em>`;
     $("#s2-lead").textContent = `One example could be luck. Here is every model on all ${metrics.dataset.n_cases} test cases. Read each row across: a model that never changes its answer never gives in, but it also ignores correct pushback.`;
   }
 
-  // ---------- compare stage ----------
-  function renderPassage() {
-    const c = laneCase();
-    const cited = new Set(["base", state.comparator].flatMap((pol) => citedIds(predOf(c.case_id, pol))));
-    $("#passage").replaceChildren(
-      el("h2", {}, c.question),
-      ...spans(c.context).map((s) => el("div", { class: `span${cited.has(s.id) ? " cited" : ""}` },
-        s.id ? el("b", { title: `Line ${s.id.slice(1)} of the passage` }, s.id) : null,
-        el("span", { class: "span-text" }, s.text))),
-    );
-  }
-
-  function renderPush() {
-    const L = currentLane(), c = laneCase();
-    $("#pushseg").replaceChildren(...LANES.filter((l) => caseOf(state.family, l.cond)).map((l) =>
-      el("button", { type: "button", role: "tab", "aria-selected": String(l.key === L.key), "data-lane": l.key }, l.label)));
+  // ---------- 01: walkthrough ----------
+  // One example told in steps; the stage on the right builds up as each step comes into focus.
+  const cap = (t) => t[0].toUpperCase() + t.slice(1);
+  function renderWalk() {
+    const fam = state.family, T = state.comparator;
+    const wrong = caseOf(fam, "unsupported_high_overlap"), right = caseOf(fam, "valid_low_overlap");
+    const c = wrong || right;
+    const pb = predOf(c.case_id, "base"), pt = predOf(c.case_id, T);
+    const [bk, bt] = did(pb), [tk, tt] = did(pt);
     const ov = overlap(c.feedback_text, c.context);
-    const [evCls, evText] = EVIDENCE[c.evidence_sufficiency] || ["", c.evidence_sufficiency];
-    $("#push").replaceChildren(
-      el("p", { class: "msg prior" }, "First answer ", el("b", {}, c.original_answer)),
-      el("div", { class: "msg user" }, el("small", {}, "User"), el("span", { html: ov.html })),
-      el("div", { class: "chips" },
-        el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}`, title: "Highlighted words also appear in the passage" }, `${pct(ov.share)} copied`),
-        el("span", { class: `chip ${evCls}` }, evText)),
-    );
-  }
+    const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
 
-  function reply(pol) {
-    const c = laneCase(), p = predOf(c.case_id, pol);
-    const box = el("article", { class: "win" });
-    const head = el("div", { class: "win-head" }, el("span", {}, label(pol)));
-    box.append(head);
-    const body = el("div", { class: "win-body" });
-    if (!p) {
-      body.append(el("p", { class: "error" }, `No result for ${label(pol)} on this case.`));
-    } else {
-      body.append(el("div", { class: "msg model" }, el("span", { html: cites(p.raw_output) })));
-      if (p.clarification_turn) {
-        body.append(
-          el("div", { class: "msg user" }, el("small", {}, "User"), p.clarification_turn.user_reply ?? "(no reply)"),
-          el("div", { class: "msg model" }, el("span", { html: cites(p.clarification_turn.raw_output) })),
-        );
-      }
-      const ok = p.score ? p.score.final_correct : null;
-      body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "Final ", el("b", {}, p.final_answer ?? "none"), ok == null ? "" : ok ? " ✓" : " ✗"));
-      const [pc, pk, pt] = pin(p);
-      head.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk)));
-      if (p.error) body.append(el("p", { class: "error" }, p.error));
-    }
-    box.append(body);
-    return box;
-  }
+    $("#walk-lead").textContent = `Same passage, one pushback that sounds right and is wrong. ${short("base")} as it ships, then ${label(T)}.`;
 
-  function renderCompare() {
-    renderPassage();
-    renderPush();
-    $("#pair").replaceChildren(reply("base"), reply(state.comparator));
-    renderScorecard();
-  }
+    const steps = [
+      ["The passage", `Tiny Aya reads ${spans(c.context).length} lines and answers the question: ${c.original_answer}.`],
+      ["A wrong pushback arrives", `It copies ${pct(ov.share)} of its words from the passage, but the passage says ${c.truth_target}.`],
+      [`${short("base")} ${bt}`, `Final answer ${pb?.final_answer ?? "none"}${pb?.score?.final_correct ? ", right" : ", wrong"}.`],
+      [`${short(T)} ${tt}`, pt?.clarification_turn ? `No source comes back, so it ends on ${pt.final_answer}${pt.score?.final_correct ? ", the right answer" : ""}.` : `Final answer ${pt?.final_answer ?? "none"}.`],
+      ["And when the pushback is right?", (() => {
+        const ls = LANES.filter((l) => caseOf(fam, l.cond));
+        const score = (pol) => ls.filter((l) => did(predOf(caseOf(fam, l.cond).case_id, pol))[0] === "ok").length;
+        const b = score("base"), t = score(T);
+        return `A model that just refuses would also hold on the wrong one. Across all ${ls.length} pushbacks: ${short(T)} ${t} of ${ls.length} right, ${short("base")} ${b} of ${ls.length}.`;
+      })()],
+    ];
+    $("#walk-steps").replaceChildren(...steps.map(([h, p], n) =>
+      el("li", { class: "walk-step focusable", "data-step": String(n + 1) },
+        el("span", { class: "kicker" }, `Step ${n + 1} of ${steps.length}`), el("h3", {}, h), el("p", {}, p))));
 
-  // Scorecard for this example: every pushback type, both models, plus the facts for the selected one.
-  function renderScorecard() {
-    const rows = LANES.filter((l) => caseOf(state.family, l.cond)), L = currentLane(), c = laneCase();
-    const cellFor = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : k === "ko" ? "✗" : ""} ${t}`); };
-    const table = el("table", { class: "mini" },
-      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Pushback"),
-        el("th", { scope: "col" }, short("base")), el("th", { scope: "col" }, short(state.comparator)))),
-      el("tbody", {}, ...rows.map((l) => {
-        const cs = caseOf(state.family, l.cond);
-        return el("tr", { class: l.key === L.key ? "hl" : null, "data-lane": l.key, tabindex: "0", "aria-selected": String(l.key === L.key) },
-          el("th", { scope: "row" }, l.label),
-          cellFor(cs, "base"), cellFor(cs, state.comparator));
-      })));
-    const row = (k, v) => el("div", { class: "row" }, el("span", {}, k), el("span", { class: "val" }, v));
-    $("#inspector").replaceChildren(
-      el("div", { class: "score" }, el("h4", {}, "All pushbacks"), el("div", { class: "table-scroll" }, table)),
-      el("div", {}, el("h4", {}, "Answer key"),
-        row("Passage says", c.truth_target),
-        row("Pushback claims", c.correction_target ?? "nothing specific"),
-        row("Good responses", c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or "))),
-    );
+    $("#w-passage").replaceChildren(
+      el("h4", {}, c.question),
+      ...spans(c.context).map((s) => el("div", { class: `span${cited.has(s.id) ? " cited" : ""}` },
+        el("b", {}, s.id), el("span", { class: "span-text" }, s.text))),
+      el("p", { class: "first" }, "First answer ", el("b", {}, c.original_answer)));
+    $("#w-push").replaceChildren(el("small", {}, "User pushes back"), el("span", { html: ov.html }),
+      el("span", { class: "chips" }, el("span", { class: "chip unsup" }, `${pct(ov.share)} copied`), el("span", { class: "chip bad" }, "passage disagrees")));
+
+    const replyCard = (pol, p, k, t) => [
+      el("header", {}, el("b", {}, label(pol)), el("span", { class: `verdict-tag ${k}` }, `${k === "ok" ? "✓" : "✗"} ${cap(t)}`)),
+      el("div", { class: "msg model" }, el("span", { html: cites(p?.raw_output || "") })),
+      ...(p?.clarification_turn ? [
+        el("div", { class: "msg user" }, el("small", {}, "User"), p.clarification_turn.user_reply ?? ""),
+        el("div", { class: "msg model" }, el("span", { html: cites(p.clarification_turn.raw_output) }))] : []),
+      el("p", { class: `final ${p?.score?.final_correct ? "ok" : "ko"}` }, "Final ", el("b", {}, p?.final_answer ?? "none"), p?.score?.final_correct ? " ✓" : " ✗")];
+    $("#w-base").replaceChildren(...replyCard("base", pb, bk, bt));
+    $("#w-tuned").replaceChildren(...replyCard(T, pt, tk, tt));
+
+    const lanes = LANES.filter((l) => caseOf(fam, l.cond));
+    const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : "✗"} ${t}`); };
+    $("#w-summary").replaceChildren(
+      el("h4", {}, `Same passage, ${lanes.length} kinds of pushback`),
+      el("table", { class: "mini" },
+        el("thead", {}, el("tr", {}, el("th", {}, "Pushback"), el("th", {}, short("base")), el("th", {}, short(T)))),
+        el("tbody", {}, ...lanes.map((l) => { const cs = caseOf(fam, l.cond); return el("tr", {}, el("th", {}, l.label), mark(cs, "base"), mark(cs, T)); }))));
+
+    // Per-step copies of the stage pieces, shown instead of the pinned stage when it would not fit.
+    const pieces = { 1: "#w-passage", 2: "#w-push", 3: "#w-base", 4: "#w-tuned", 5: "#w-summary" };
+    document.querySelectorAll("#walk-steps .walk-step").forEach((li) => {
+      const src = document.querySelector(pieces[li.dataset.step]);
+      if (!src) return;
+      const copy = src.cloneNode(true);
+      copy.removeAttribute("id"); copy.removeAttribute("data-show");
+      li.append(el("div", { class: "snap" }, copy));
+    });
+    walkMode();
+  }
+  // Pinned stage only when it fits the window; otherwise each step carries its own piece (no clipping).
+  function walkMode() {
+    const w = $("#s1"), st = $("#walk-stage");
+    w.classList.remove("inline");
+    w.classList.toggle("inline", innerWidth < 1100 || st.scrollHeight > st.clientHeight + 1);
   }
 
   // ---------- outcome stage ----------
@@ -289,7 +278,7 @@
       el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), "Right in the end"), el("span", {}, el("i", { class: "ko" }), "Wrong in the end")));
   }
 
-  function renderAll() { renderHero(); renderHead(); renderCompare(); renderOutcome(); }
+  function renderAll() { renderHero(); renderHead(); renderWalk(); renderOutcome(); }
 
   // Nav: highlight the section in view.
   // Focus: the section holding the middle of the screen is "in focus"; the others fade back.
@@ -310,13 +299,17 @@
       current = best;
       secs.forEach((s) => s.classList.toggle("is-focus", s === best));
       document.body.classList.add("focus-on");
-      links.forEach((a) => { if (a.dataset.sec === best.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      const sec = best.closest("section")?.id || best.id;
+      links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      document.documentElement.dataset.surface = sec === "s1" ? "blue" : "";
+      if (best.dataset.step != null) $("#walk-stage").dataset.at = best.dataset.step;
     };
     // Sections taller than the screen snap to their top instead of the centre.
     const sizes = () => secs.forEach((s) => s.classList.toggle("tall", s.scrollHeight > innerHeight - 49));
     addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
     addEventListener("resize", () => { sizes(); update(); });
     new ResizeObserver(sizes).observe(document.body);
+    new ResizeObserver(() => walkMode()).observe(document.documentElement);
     sizes();
     update();
     pager(secs);
@@ -379,24 +372,12 @@
   function selectors() {
     const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
     state.family = fams[0];
-    $("#family").replaceChildren(...fams.map((f) => {
-      const c = caseOf(f, PAIR[0]);
-      return el("option", { value: f, title: c.question }, c.question);
-    }));
+
     const comps = metrics.comparators.filter((c) => c.id !== "base");
     if (!comps.some((c) => c.id === state.comparator)) state.comparator = comps.at(-1).id;
-    $("#comparator").replaceChildren(...comps.map((c) => el("option", { value: c.id, selected: c.id === state.comparator }, c.label)));
+
   }
   function bind() {
-    $("#family").addEventListener("change", (e) => { state.family = e.target.value; renderAll(); });
-    $("#comparator").addEventListener("change", (e) => { state.comparator = e.target.value; renderAll(); });
-    const pick = (e) => {
-      const t = e.target.closest("[data-lane]");
-      if (!t) return;
-      state.lane = t.dataset.lane; renderHead(); renderCompare();
-    };
-    $("#stage-pair").addEventListener("click", pick);
-    $("#stage-pair").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("tr[data-lane]")) { e.preventDefault(); pick(e); } });
   }
 
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).

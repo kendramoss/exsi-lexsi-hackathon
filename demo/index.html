@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,7 +16,7 @@
 
   <header class="top">
     <div class="nav">
-      <a class="logo" href="#top" aria-label="EvidenceTune, back to top">evidence<span>[tune]</span></a>
+      <a class="logo" href="#top" aria-label="EvidenceTune, back to top"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="currentColor"/><g fill="none" stroke="var(--bg)" stroke-linecap="round" stroke-linejoin="round"><path d="M14.00 35.00 H42.00 A14 14 0 1 0 39.03 43.62" stroke-width="7"/><circle cx="49" cy="15" r="6" fill="var(--bg)" stroke="none"/></g></svg><span class="wm">evidence<span>[tune]</span></span></a>
       <nav class="tabs" aria-label="Sections" id="steps">
         <a href="#s1" data-sec="s1"><em>01</em>One example</a>
         <a href="#s2" data-sec="s2"><em>02</em>Every case</a>
@@ -41,26 +42,26 @@
       <figure class="hero-vis" id="hero-vis" aria-label="One wrong pushback, two models"></figure>
     </section>
 
-    <section class="sec focusable" id="s1" aria-labelledby="s1-title">
-      <header class="sec-head">
+    <section class="walk" id="s1" aria-labelledby="s1-title">
+      <div class="walk-intro focusable" data-step="0">
         <span class="kicker">01 · One example</span>
-        <h2 id="s1-title"></h2>
-        <div class="controls">
-          <span class="mock" id="mock-badge" hidden>Mock data</span>
-          <label class="select" for="family"><span>Example</span><select id="family"></select></label>
-          <label class="select" for="comparator" id="comparator-wrap"><span>vs</span><select id="comparator"></select></label>
-        </div>
-      </header>
-      <div class="canvas" id="stage-pair">
-        <div class="board">
-          <article class="passage" id="passage"></article>
-          <div class="pushbox">
-            <div class="seg pushseg" id="pushseg" role="tablist" aria-label="Type of pushback"></div>
-            <article class="push" id="push"></article>
+        <h2 id="s1-title">Watch one wrong pushback</h2>
+        <p class="intro" id="walk-lead"></p>
+        <span class="mock" id="mock-badge" hidden>Mock data</span>
+      </div>
+      <div class="walk-grid">
+        <ol class="walk-steps" id="walk-steps"></ol>
+        <div class="walk-stage" id="walk-stage" data-at="0" aria-live="polite">
+          <article class="sheet passage" id="w-passage"></article>
+          <div class="walk-chat">
+            <div class="msg user" id="w-push" data-show="2"></div>
+            <div class="walk-replies">
+              <article class="sheet reply" id="w-base" data-show="3"></article>
+              <article class="sheet reply" id="w-tuned" data-show="4"></article>
+            </div>
           </div>
-          <div class="pair" id="pair"></div>
+          <article class="sheet summary" id="w-summary" data-show="5"></article>
         </div>
-        <aside class="inspector" id="inspector" aria-label="Scorecard for this example"></aside>
       </div>
     </section>
 
