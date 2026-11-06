@@ -220,7 +220,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 
 /* Stage centring: the inner block slides so whatever is visible sits in the middle; step 5 shows the summary alone */
 .walk-stage { display: block; align-content: normal; }
-.walk-inner { display: grid; gap: 12px; transition: transform 500ms var(--ease), opacity 400ms var(--ease); will-change: transform; }
+.walk-inner { display: grid; gap: 12px; transform-origin: top left; transition: transform 500ms var(--ease), opacity 400ms var(--ease); will-change: transform; }
 .walk-stage[data-at="5"] .walk-inner { opacity: 0; }
 .walk-stage .summary { position: absolute; left: 0; right: 0; top: 50%; inset-block-end: auto; transform: translateY(calc(-50% + 8px)); opacity: 0; pointer-events: none; }
 .walk-stage[data-at="5"] .summary { opacity: 1; transform: translateY(-50%); pointer-events: auto; }
@@ -243,6 +243,9 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .walk.inline .walk-stage { display: none; }
 .walk.inline .walk-step { justify-content: flex-start; padding-block: 12vh; }
 .walk.inline .walk-step .snap { display: grid; gap: 16px; margin-top: 16px; }
+.walk.inline .walk-step[data-step="5"] .snap { display: none; }
+.snap .msg.user { background: var(--cream-2); color: var(--cobalt); border: 1px solid var(--cobalt); display: grid; gap: 8px; --warn: #b5530f; --bad: #c32a22; }
+.snap .msg.user small { color: var(--cobalt-3); }
 .walk.inline .walk-step .snap .walk-replies { grid-template-columns: minmax(0, 1fr); }
 
 /* Scorecard strip */
@@ -381,6 +384,45 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .walk-stage[data-at="1"] .walk-rail li:nth-child(-n+1), .walk-stage[data-at="2"] .walk-rail li:nth-child(-n+2),
 .walk-stage[data-at="3"] .walk-rail li:nth-child(-n+3), .walk-stage[data-at="4"] .walk-rail li:nth-child(-n+4),
 .walk-stage[data-at="5"] .walk-rail li { color: var(--ink); border-color: currentColor; }
+
+
+/* Step glyphs: each step states its point as a small picture */
+.walk-step > div[class^="g-"] { margin-bottom: 8px; }
+.g-doc { display: grid; gap: 8px; width: min(320px, 100%); padding: 16px; border: 1px solid var(--line); }
+.g-doc i { display: block; height: 28px; border: 1px solid var(--soft-line); font: var(--t-meta); font-style: normal; padding: 6px 8px; color: var(--ink-3); }
+.g-doc i.hit { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.g-push { display: grid; gap: 8px; width: min(360px, 100%); }
+.g-bubble { justify-self: start; padding: 12px 16px; border: 1px solid var(--line); font: var(--t-title); position: relative; }
+.g-bubble::after { content: ""; position: absolute; left: 16px; bottom: -8px; width: 12px; height: 12px; background: var(--bg); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transform: rotate(45deg); }
+.g-meter { height: 12px; border: 1px solid var(--line); margin-top: 8px; }
+.g-meter i { display: block; height: 100%; background: #ffb27a; }
+.g-note { font: var(--t-meta); color: var(--ink-2); }
+.g-flip { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.g-flip b { font: 400 40px/1 var(--display); padding: 8px 16px; border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.g-flip .g-arrow { font: var(--t-title); color: var(--ink-3); }
+.g-flip .g-ask { font: var(--t-meta); padding: 8px 12px; border: 1px dashed var(--line); }
+.g-flip em { font: 400 32px/1 var(--display); font-style: normal; }
+.g-flip.g-ko b.changed { background: var(--bad-on, #ffa29b); color: var(--field); border-color: transparent; text-decoration: line-through; text-decoration-thickness: 2px; }
+.g-flip.g-ko em { color: var(--bad-on, #ffa29b); }
+.g-flip.g-ok b:last-of-type { background: var(--ink); color: var(--bg); }
+.g-flip.g-ok em { color: var(--valid-on, #7fe0b8); }
+.g-grid { display: grid; grid-template-columns: auto 72px 72px; gap: 8px 16px; align-items: center; font: var(--t-small); width: min(380px, 100%); }
+.g-grid b { font: var(--t-meta); color: var(--ink-3); text-align: center; }
+.g-grid i { font-style: normal; text-align: center; padding: 6px 0; border: 1px solid var(--line); }
+.g-grid i.g-ok { background: var(--ink); color: var(--bg); }
+.g-grid i.g-ko { color: var(--bad-on, #ffa29b); border-color: var(--bad-on, #ffa29b); }
+.walk-step p { font: var(--t-small); color: var(--ink-3); }
+
+/* Landing: every-case bars under the verdict, icons on the path */
+.hero-bars { margin-top: 24px; display: grid; gap: 8px; color: var(--on-field); }
+.hb-t { font: var(--t-meta); opacity: .8; }
+.hb-row { display: grid; grid-template-columns: 112px minmax(0, 1fr) 48px; gap: 12px; align-items: center; font: var(--t-small); }
+.hb-row i { display: block; height: 16px; border: 1px solid currentColor; background: linear-gradient(90deg, currentColor var(--w), transparent var(--w)); }
+.hb-row b { font: var(--t-meta); text-align: right; }
+.hb-row.hb-tuned span { font-weight: 500; }
+.hb-row.hb-base i { color: var(--bad-on, #ffa29b); }
+.hb-row span, .hb-row b { color: var(--on-field); }
+.path .pi { width: 18px; height: 18px; flex: none; align-self: center; color: var(--ink); }
 
 /* Responsive */
 @media (max-width: 1100px) {

@@ -135,20 +135,35 @@
     $("#walk-lead").textContent = `Same passage, one pushback that sounds right and is wrong. ${short("base")} as it ships, then ${label(T)}.`;
 
     const steps = [
-      ["The passage", `Tiny Aya reads ${spans(c.context).length} lines and answers the question: ${c.original_answer}.`],
-      ["A wrong pushback arrives", `It copies ${pct(ov.share)} of its words from the passage, but the passage says ${c.truth_target}.`],
-      [`${short("base")} ${bt}`, `Final answer ${pb?.final_answer ?? "none"}${pb?.score?.final_correct ? ", right" : ", wrong"}.`],
-      [`${short(T)} ${tt}`, pt?.clarification_turn ? `No source comes back, so it ends on ${pt.final_answer}${pt.score?.final_correct ? ", the right answer" : ""}.` : `Final answer ${pt?.final_answer ?? "none"}.`],
-      ["And when the pushback is right?", (() => {
-        const ls = LANES.filter((l) => caseOf(fam, l.cond));
-        const score = (pol) => ls.filter((l) => did(predOf(caseOf(fam, l.cond).case_id, pol))[0] === "ok").length;
-        const b = score("base"), t = score(T);
-        return `A model that just refuses would also hold on the wrong one. Across all ${ls.length} pushbacks: ${short(T)} ${t} of ${ls.length} right, ${short("base")} ${b} of ${ls.length}.`;
-      })()],
+      ["The passage", `It answers ${c.original_answer}`],
+      ["A wrong pushback arrives", `Copied words, wrong answer`],
+      [`${short("base")} ${bt}`, pb?.score?.final_correct ? "Ends right" : "Ends wrong"],
+      [`${short(T)} ${tt}`, pt?.score?.final_correct ? "Ends right" : "Ends wrong"],
+      ["And when the pushback is right?", "Holding firm isn't enough: it has to accept the right one too"],
+    ];
+    const lanesHere = LANES.filter((l) => caseOf(fam, l.cond));
+    const flip = (p, k) => el("div", { class: `g-flip g-${k}` },
+      el("b", {}, c.original_answer), el("span", { class: "g-arrow" }, "→"),
+      ...(p?.clarification_turn ? [el("span", { class: "g-ask" }, "source?"), el("span", { class: "g-arrow" }, "→")] : []),
+      el("b", { class: p?.final_answer === c.original_answer ? "" : "changed" }, p?.final_answer ?? "?"),
+      el("em", {}, p?.score?.final_correct ? "✓" : "✗"));
+    const glyphs = [
+      el("div", { class: "g-doc", "aria-hidden": "true" },
+        ...spans(c.context).map((s) => el("i", { class: s.id === `S${spans(c.context).length}` || cited.has(s.id) ? "hit" : null }, cited.has(s.id) ? `${s.id} · ${c.truth_target}` : s.id))),
+      el("div", { class: "g-push", "aria-hidden": "true" },
+        el("span", { class: "g-bubble" }, `“… ${c.correction_target ?? ""}”`),
+        el("div", { class: "g-meter" }, el("i", { style: `width:${pct(ov.share)}` })),
+        el("span", { class: "g-note" }, `${pct(ov.share)} copied · passage says ${c.truth_target}`)),
+      flip(pb, bk),
+      flip(pt, tk),
+      el("div", { class: "g-grid", "aria-hidden": "true" },
+        el("span", {}), el("b", {}, short("base")), el("b", {}, short(T)),
+        ...lanesHere.flatMap((l) => { const cs = caseOf(fam, l.cond); const k = (pol) => did(predOf(cs.case_id, pol))[0];
+          return [el("span", {}, l.label), el("i", { class: `g-${k("base")}` }, k("base") === "ok" ? "✓" : "✗"), el("i", { class: `g-${k(T)}` }, k(T) === "ok" ? "✓" : "✗")]; })),
     ];
     $("#walk-steps").replaceChildren(...steps.map(([h, p], n) =>
       el("li", { class: "walk-step focusable", "data-step": String(n + 1) },
-        el("span", { class: "kicker" }, `Step ${n + 1} of ${steps.length}`), el("h3", {}, h), el("p", {}, p))));
+        el("span", { class: "kicker" }, `Step ${n + 1} of ${steps.length}`), glyphs[n], el("h3", {}, h), el("p", {}, p))));
 
     $("#w-passage").replaceChildren(
       el("h4", {}, c.question),
@@ -193,18 +208,25 @@
     const w = $("#s1"), st = $("#walk-stage"), inner = $("#walk-inner");
     w.classList.remove("inline");
     const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
-    w.classList.toggle("inline", innerWidth < 1100 || inner.offsetHeight > room || $("#w-summary").offsetHeight > room);
+    // Scale the conversation down (to 72% at most) to fit shorter windows before giving up on pinning.
+    const s = Math.min(1, room / inner.offsetHeight, room / $("#w-summary").offsetHeight);
+    inner.dataset.s = String(s);
+    $("#w-summary").style.scale = s < 1 ? String(s) : "";
+    w.classList.toggle("inline", innerWidth < 1100 || s < 0.72);
     centerStage();
   }
   // Slide the stage so the pieces visible at this step are centred in it.
   function centerStage() {
     const st = $("#walk-stage"), inner = $("#walk-inner"), at = +st.dataset.at;
-    if ($("#s1").classList.contains("inline") || at >= 5) { inner.style.transform = ""; return; }
+    if ($("#s1").classList.contains("inline") || at >= 5) { inner.style.transform = ""; inner.dataset.cs = "1"; return; }
     const vis = [$("#w-passage"), ...inner.querySelectorAll("[data-show]")].filter((e) => !e.dataset.show || +e.dataset.show <= at);
-    const top = (e) => e.getBoundingClientRect().top - inner.getBoundingClientRect().top;
+    const s = +inner.dataset.s || 1, cur = +inner.dataset.cs || 1;
+    // layout positions inside the inner block, undoing whatever scale is applied right now
+    const top = (e) => (e.getBoundingClientRect().top - inner.getBoundingClientRect().top) / cur;
     const t0 = Math.min(...vis.map(top)), t1 = Math.max(...vis.map((e) => top(e) + e.offsetHeight));
     const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
-    inner.style.transform = `translateY(${Math.max(-t0, (room - (t1 - t0)) / 2 - t0)}px)`;
+    inner.dataset.cs = String(s);
+    inner.style.transform = `translateY(${Math.max(-t0 * s, (room - (t1 - t0) * s) / 2 - t0 * s)}px) scale(${s})`;
   }
 
   // ---------- outcome stage ----------
@@ -280,7 +302,14 @@
         el("div", { class: "verdict-q" }, el("span", { class: "kicker" }, `${c.question} · passage says ${c.truth_target}`),
           el("p", {}, `“${firstSentence(c.feedback_text)}”`)),
         row("base"), row(state.comparator)),
-      el("figcaption", {}, "One wrong pushback that copies the passage’s words"));
+      el("figcaption", {}, "One wrong pushback that copies the passage’s words"),
+      (() => {
+        const bm = comp("base")?.metrics.uur, tm = comp(state.comparator)?.metrics.uur;
+        if (!bm || !tm) return null;
+        const bar = (name, v, cls) => el("div", { class: `hb-row ${cls}` }, el("span", {}, name), el("i", { style: `--w:${Math.round(v * 100)}%` }), el("b", {}, pct(v)));
+        return el("div", { class: "hero-bars" }, el("span", { class: "hb-t" }, `Gives in to wrong pushback, all ${metrics.dataset.n_cases} cases`),
+          bar(short("base"), bm.value, "hb-base"), bar(short(state.comparator), tm.value, "hb-tuned"));
+      })());
   }
 
   // Evidence grid: one square per test case, filled when the model ended on the right answer.
