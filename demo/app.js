@@ -152,8 +152,8 @@
   function reply(pol) {
     const c = laneCase(), p = predOf(c.case_id, pol);
     const box = el("article", { class: "win" });
-    box.append(el("div", { class: "win-bar" }, el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }),
-      el("span", {}, label(pol))));
+    const head = el("div", { class: "win-head" }, el("span", {}, label(pol)));
+    box.append(head);
     const body = el("div", { class: "win-body" });
     if (!p) {
       body.append(el("p", { class: "error" }, `No result for ${label(pol)} on this case.`));
@@ -168,32 +168,16 @@
       const ok = p.score ? p.score.final_correct : null;
       body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "Final ", el("b", {}, p.final_answer ?? "none"), ok == null ? "" : ok ? " ✓" : " ✗"));
       const [pc, pk, pt] = pin(p);
-      box.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk)));
+      head.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk)));
       if (p.error) body.append(el("p", { class: "error" }, p.error));
     }
     box.append(body);
     return box;
   }
 
-  // Decorative stepped pixel band: column heights from a tiny seeded generator, so it is stable per example.
-  function renderPixels() {
-    const box = $("#pixels"), cols = innerWidth < 760 ? 16 : 40, rows = 3;
-    let seed = [...state.family].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
-    const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
-    let h = 1;
-    const cells = [];
-    for (let c = 0; c < cols; c++) {
-      h = Math.max(0, Math.min(rows, h + Math.round(rnd() * 2 - 1)));
-      for (let r = 0; r < rows; r++) cells.push(r >= rows - h ? 1 : rnd() < 0.06 ? 1 : 0);
-    }
-    box.style.setProperty("--cols", cols);
-    box.replaceChildren(...cells.map((on, i) => el("i", { class: on ? "on" : null, style: `grid-column:${(i / rows | 0) + 1};grid-row:${(i % rows) + 1}` })));
-  }
-
   function renderCompare() {
     renderPassage();
     renderPush();
-    renderPixels();
     $("#pair").replaceChildren(reply("base"), reply(state.comparator));
     renderScorecard();
   }
@@ -226,8 +210,8 @@
     const base = comp("base"), cur = comp(state.comparator) || metrics.comparators.at(-1);
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: "card" }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"),
-        el("p", {}, `${dir} is better`));
+      return el("div", { class: `card${k === "uur" ? " lead" : ""}` }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"),
+        el("p", {}, `${short("base")} → ${short(cur.id)}, ${dir} is better`));
     };
     $("#cards").replaceChildren(
       card("Gives in to wrong pushback", "uur", "lower"),
@@ -246,9 +230,10 @@
         `${m.label} ${m.better === "high" ? "↑" : "↓"}`, el("i", {}, m.formal)))));
     const body = el("tbody", {}, ...comps.map((c) => el("tr", { class: c.id === cur.id ? "hl" : null },
       el("th", { scope: "row" }, c.label, el("small", {}, KIND[c.kind] || c.kind)),
-      ...METRICS.map((m) => el("td", {}, cell(c.metrics[m.key], m, ext[m.key]))))));
+      ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
     $("#table-path").textContent = `${BASE}metrics.json`;
+    renderGrid();
     const n = comps[0].metrics.valid_uptake?.n;
     $("#score-note").textContent = n < 20
       ? `Bars: 95% range · ${n} cases each`
@@ -269,7 +254,42 @@
   }
 
   // ---------- step + wiring ----------
-  function renderAll() { renderHead(); renderCompare(); renderOutcome(); }
+  // Hero: the verdict on the wrong pushback of the first example, straight from the saved scores.
+  function renderHero() {
+    const fam = state.family, c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, PAIR[0]);
+    const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
+    const row = (pol) => {
+      const pr = predOf(c.case_id, pol), [k, t] = did(pr);
+      return el("div", { class: "verdict-row" }, el("b", {}, short(pol)),
+        el("div", {}, el("p", { html: cites(firstSentence(pr?.raw_output || "")) }),
+          el("span", { class: `res ${k}` }, `${k === "ok" ? "✓" : "✗"} ${t[0].toUpperCase()}${t.slice(1)} · final ${pr?.final_answer ?? "none"}`)));
+    };
+    $("#hero-vis").replaceChildren(
+      el("div", { class: "verdict" },
+        el("div", { class: "verdict-q" }, el("span", { class: "kicker" }, `${c.question} · passage says ${c.truth_target}`),
+          el("p", {}, `“${firstSentence(c.feedback_text)}”`)),
+        row("base"), row(state.comparator)),
+      el("figcaption", {}, "One wrong pushback that copies the passage’s words"));
+  }
+
+  // Evidence grid: one square per test case, filled when the model ended on the right answer.
+  function renderGrid() {
+    const groups = LANES.map((l) => ({ l, cs: cases.filter((c) => c.feedback_condition === l.cond) })).filter((g) => g.cs.length);
+    const cells = (pol) => el("div", { class: "egrid-cells" }, ...groups.map((g) => el("div", { class: "egrid-group" },
+      ...g.cs.map((c) => {
+        const pr = predOf(c.case_id, pol), ok = pr?.score?.final_correct;
+        return el("i", { class: ok == null ? null : ok ? "ok" : "ko", title: `${g.l.label} · ${c.question} → ${pr?.final_answer ?? "no result"}` });
+      }))));
+    const head = el("div", { class: "egrid-head" }, el("span", {}, `${cases.length} test cases`),
+      el("div", { class: "egrid-cells" }, ...groups.map((g) => el("span", { style: `width:${g.cs.length * 28 - 4}px` }, g.l.label))));
+    $("#egrid").replaceChildren(
+      head,
+      el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === "base" ? " hl" : ""}` },
+        el("span", { class: "egrid-name" }, m.label, el("small", {}, KIND[m.kind] || m.kind)), cells(m.id)))),
+      el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), "Right in the end"), el("span", {}, el("i", { class: "ko" }), "Wrong in the end")));
+  }
+
+  function renderAll() { renderHero(); renderHead(); renderCompare(); renderOutcome(); }
 
   // Nav: highlight the section in view.
   // Focus: the section holding the middle of the screen is "in focus"; the others fade back.
@@ -361,7 +381,7 @@
     state.family = fams[0];
     $("#family").replaceChildren(...fams.map((f) => {
       const c = caseOf(f, PAIR[0]);
-      return el("option", { value: f }, `${DOMAIN[c.domain] || c.domain} · ${c.question}`);
+      return el("option", { value: f, title: c.question }, c.question);
     }));
     const comps = metrics.comparators.filter((c) => c.id !== "base");
     if (!comps.some((c) => c.id === state.comparator)) state.comparator = comps.at(-1).id;
@@ -382,7 +402,7 @@
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
   function hscroll() {
     const sec = $("#how"), sticky = sec.querySelector(".hs-sticky"), track = $("#hs-track"), panels = track.children;
-    const native = () => innerWidth < 760 || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const native = () => innerWidth < 760 || innerHeight < 640 || matchMedia("(prefers-reduced-motion: reduce)").matches;
     let dist = 0;
     const layout = () => {
       sec.classList.toggle("native", native());
@@ -399,8 +419,13 @@
       $("#hs-n").textContent = String(Math.min(panels.length, Math.floor(p * (panels.length - 0.001)) + 1)).padStart(2, "0");
     };
     addEventListener("scroll", () => requestAnimationFrame(tick), { passive: true });
-    addEventListener("resize", layout);
-    track.querySelectorAll("img").forEach((img) => img.addEventListener("load", layout));
+    // Re-measure whenever the window, the sticky frame or the track changes size (resize events alone
+    // can be missed, which left a stale height and cut off the last panels).
+    const relayout = () => layout();
+    addEventListener("resize", relayout);
+    const ro = new ResizeObserver(relayout);
+    ro.observe(document.documentElement); ro.observe(sticky); ro.observe(track);
+    track.querySelectorAll("img").forEach((img) => img.addEventListener("load", relayout));
     layout();
   }
 
