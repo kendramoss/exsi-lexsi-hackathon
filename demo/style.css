@@ -321,9 +321,10 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .hs-bar { flex: 1; height: 1px; background: var(--soft-line); position: relative; }
 .hs-bar i { position: absolute; inset: -1px 0 auto 0; height: 3px; background: var(--ink); transform-origin: left center; transform: scaleX(0); }
 .hs-track { display: flex; height: 100%; will-change: transform; }
+.hs-track::after { content: ""; flex: 0 0 var(--gutter); }
 .hs-panel { flex: 0 0 min(560px, 80vw); display: flex; flex-direction: column; gap: 16px; padding: 40px var(--gutter); border-right: 1px solid var(--line); min-width: 0; }
 .hs-panel.wide { flex-basis: min(980px, 92vw); }
-.hs-panel.field { background: var(--field); color: var(--on-field); --ink-2: color-mix(in srgb, var(--on-field) 80%, transparent); --ink-3: color-mix(in srgb, var(--on-field) 60%, transparent); }
+.hs-panel.field { background: var(--field); color: var(--on-field); --ink: var(--on-field); --ink-2: color-mix(in srgb, var(--on-field) 80%, transparent); --ink-3: color-mix(in srgb, var(--on-field) 60%, transparent); }
 .hs-k { font: var(--t-meta); color: var(--ink-3); }
 .hs-panel h3 { margin: 0; font: 400 clamp(28px, 3vw, 40px)/1.12 var(--display); letter-spacing: -.02em; text-wrap: balance; }
 .hs-panel p { margin: 0; font: var(--t-intro); color: var(--ink-2); max-width: 46ch; }
@@ -346,6 +347,40 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .foot { padding-block: 28px 40px; font: var(--t-meta); color: var(--ink-2); }
 .foot p { margin: 0; }
 .error { border: 1px solid var(--bad); color: var(--bad); padding: 16px; font: var(--t-small); background: var(--surface); }
+
+
+/* Visual explanations in the showcase */
+.viz { margin: auto 0 0; display: grid; gap: 12px; }
+.viz svg { width: 100%; height: auto; max-height: calc(100vh - var(--nav) - 300px); color: currentColor; overflow: visible; }
+.viz figcaption { font: var(--t-small); color: var(--ink-2); }
+.viz .t-s { font: 400 13px var(--sans); fill: currentColor; }
+.viz .t-b { font: 500 15px var(--sans); fill: currentColor; }
+.viz .t-m { font: 400 12px var(--mono); fill: currentColor; }
+.hs-panel.field .viz .inv { fill: var(--field); }
+.hs-panel:not(.field) .viz .inv { fill: var(--bg); }
+.pbars { gap: 20px; }
+.pbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
+.pbar span { font: var(--t-body); }
+.pbar span { grid-column: 1 / -1; }
+.pbar b { font: 400 40px/1 var(--display); grid-column: 2; grid-row: 2; }
+.pbar i { grid-column: 1; grid-row: 2; display: block; height: 24px; background: linear-gradient(90deg, currentColor var(--w), transparent var(--w)); border: 1px solid currentColor; }
+.pbar.bad { color: var(--bad); }
+.pbar.bad span { color: var(--ink); }
+.sbars { gap: 20px; }
+.sbar { display: grid; gap: 6px; }
+.sbar-t { font: var(--t-strong); }
+.sbar-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) 48px; gap: 12px; align-items: center; font: var(--t-small); color: var(--ink-2); }
+.sbar-row i { display: block; height: 12px; border: 1px solid currentColor; background: linear-gradient(90deg, currentColor var(--w), transparent var(--w)); }
+.sbar-row b { font: var(--t-meta); text-align: right; }
+.sbar-row.tuned { color: var(--ink); }
+.sbar-row.tuned span { font-weight: 500; }
+
+/* Walkthrough progress rail */
+.walk-rail { list-style: none; margin: 0 0 16px; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; font: var(--t-meta); color: var(--ink-3); }
+.walk-rail li { border-top: 3px solid color-mix(in srgb, currentColor 40%, transparent); padding-top: 8px; transition: color 300ms var(--ease), border-color 300ms var(--ease); }
+.walk-stage[data-at="1"] .walk-rail li:nth-child(-n+1), .walk-stage[data-at="2"] .walk-rail li:nth-child(-n+2),
+.walk-stage[data-at="3"] .walk-rail li:nth-child(-n+3), .walk-stage[data-at="4"] .walk-rail li:nth-child(-n+4),
+.walk-stage[data-at="5"] .walk-rail li { color: var(--ink); border-color: currentColor; }
 
 /* Responsive */
 @media (max-width: 1100px) {

@@ -192,7 +192,7 @@
   function walkMode() {
     const w = $("#s1"), st = $("#walk-stage"), inner = $("#walk-inner");
     w.classList.remove("inline");
-    const cs = getComputedStyle(st), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
     w.classList.toggle("inline", innerWidth < 1100 || inner.offsetHeight > room || $("#w-summary").offsetHeight > room);
     centerStage();
   }
@@ -203,7 +203,7 @@
     const vis = [$("#w-passage"), ...inner.querySelectorAll("[data-show]")].filter((e) => !e.dataset.show || +e.dataset.show <= at);
     const top = (e) => e.getBoundingClientRect().top - inner.getBoundingClientRect().top;
     const t0 = Math.min(...vis.map(top)), t1 = Math.max(...vis.map((e) => top(e) + e.offsetHeight));
-    const cs = getComputedStyle(st), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
     inner.style.transform = `translateY(${Math.max(-t0, (room - (t1 - t0)) / 2 - t0)}px)`;
   }
 
@@ -236,6 +236,13 @@
     $("#scoreboard").replaceChildren(head, body);
     $("#table-path").textContent = `${BASE}metrics.json`;
     renderGrid();
+    // Showcase panel 05: base vs tuned on the three scores, as bars
+    const sb = $("#hs-score");
+    if (sb) sb.replaceChildren(...[["valid_uptake", "Accepts correct pushback", "↑"], ["uur", "Gives in to wrong pushback", "↓"], ["final_accuracy", "Right in the end", "↑"]].map(([k, t, d]) =>
+      el("div", { class: "sbar" }, el("span", { class: "sbar-t" }, `${t} ${d}`),
+        ...[["base", base], [cur.id, cur]].map(([id, m]) => el("div", { class: `sbar-row${id === cur.id ? " tuned" : ""}` },
+          el("span", {}, short(id)), el("i", { style: `--w:${Math.round((m?.metrics[k]?.value ?? 0) * 100)}%` }), el("b", {}, m?.metrics[k] ? pct(m.metrics[k].value) : "n/a"))))),
+      el("figcaption", {}, `${d_note()}`));
     const n = comps[0].metrics.valid_uptake?.n;
     $("#score-note").textContent = n < 20
       ? `Bars: 95% range · ${n} cases each`
@@ -254,6 +261,8 @@
     }
     return box;
   }
+
+  const d_note = () => `${metrics.dataset.n_cases} test cases · read the three together`;
 
   // ---------- step + wiring ----------
   // Hero: the verdict on the wrong pushback of the first example, straight from the saved scores.
@@ -414,7 +423,11 @@
       const p = Math.min(1, Math.max(0, -sec.getBoundingClientRect().top / Math.max(1, dist)));
       track.style.transform = `translate3d(${-p * dist}px,0,0)`;
       $("#hs-fill").style.transform = `scaleX(${p})`;
-      $("#hs-n").textContent = String(Math.min(panels.length, Math.floor(p * (panels.length - 0.001)) + 1)).padStart(2, "0");
+      // Counter shows the panel nearest the middle of the screen
+      const mid = innerWidth / 2;
+      let best = 0, bd = Infinity;
+      [...panels].forEach((el, i) => { const r = el.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - mid); if (d < bd) { bd = d; best = i; } });
+      $("#hs-n").textContent = String(best + 1).padStart(2, "0");
     };
     addEventListener("scroll", () => requestAnimationFrame(tick), { passive: true });
     // Re-measure whenever the window, the sticky frame or the track changes size (resize events alone
