@@ -206,7 +206,6 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .walk-stage[data-at="2"] [data-show]:not([data-show="2"]),
 .walk-stage[data-at="3"] [data-show="4"], .walk-stage[data-at="3"] [data-show="5"],
 .walk-stage[data-at="4"] [data-show="5"] { opacity: 0; transform: translateY(8px); pointer-events: none; }
-.walk-stage[data-at="5"] .walk-chat { opacity: .25; }
 .walk-chat { display: grid; gap: 16px; transition: opacity 400ms var(--ease); }
 .walk-replies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .sheet { background: var(--cream); color: var(--cobalt); border: 1px solid var(--cobalt); padding: 20px; display: grid; gap: 12px; min-width: 0; --valid: #157a55; --warn: #b5530f; --bad: #c32a22; --ink-2: var(--cobalt-2); --ink-3: var(--cobalt-3); --soft-line: color-mix(in srgb, var(--cobalt) 22%, var(--cream)); --line: var(--cobalt); }
@@ -218,8 +217,17 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .reply header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font: var(--t-strong); }
 .verdict-tag { font: var(--t-small); }
 .verdict-tag.ok { color: var(--valid); } .verdict-tag.ko { color: var(--bad); }
-.summary { position: absolute; inset: auto 0 32px 0; }
-.walk-stage[data-at="5"] .summary { opacity: 1; transform: none; }
+
+/* Stage centring: the inner block slides so whatever is visible sits in the middle; step 5 shows the summary alone */
+.walk-stage { display: block; align-content: normal; }
+.walk-inner { display: grid; gap: 12px; transition: transform 500ms var(--ease), opacity 400ms var(--ease); will-change: transform; }
+.walk-stage[data-at="5"] .walk-inner { opacity: 0; }
+.walk-stage .summary { position: absolute; left: 0; right: 0; top: 50%; inset-block-end: auto; transform: translateY(calc(-50% + 8px)); opacity: 0; pointer-events: none; }
+.walk-stage[data-at="5"] .summary { opacity: 1; transform: translateY(-50%); pointer-events: auto; }
+.stop { min-height: calc(100vh - var(--nav)); display: flex; flex-direction: column; justify-content: center; padding-block: 24px; }
+.stop.tall { justify-content: flex-start; }
+.stop .sec-head { margin-bottom: 32px; }
+.stop .egrid { margin-bottom: 0; }
 
 /* Compact stage so the pinned version fits common laptop heights (about 720px of room) */
 .walk-stage { gap: 12px; padding-block: 16px; }

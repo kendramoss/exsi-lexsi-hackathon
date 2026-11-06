@@ -52,12 +52,14 @@
       <div class="walk-grid">
         <ol class="walk-steps" id="walk-steps"></ol>
         <div class="walk-stage" id="walk-stage" data-at="0" aria-live="polite">
-          <article class="sheet passage" id="w-passage"></article>
-          <div class="walk-chat">
-            <div class="msg user" id="w-push" data-show="2"></div>
-            <div class="walk-replies">
-              <article class="sheet reply" id="w-base" data-show="3"></article>
-              <article class="sheet reply" id="w-tuned" data-show="4"></article>
+          <div class="walk-inner" id="walk-inner">
+            <article class="sheet passage" id="w-passage"></article>
+            <div class="walk-chat">
+              <div class="msg user" id="w-push" data-show="2"></div>
+              <div class="walk-replies">
+                <article class="sheet reply" id="w-base" data-show="3"></article>
+                <article class="sheet reply" id="w-tuned" data-show="4"></article>
+              </div>
             </div>
           </div>
           <article class="sheet summary" id="w-summary" data-show="5"></article>
@@ -65,19 +67,23 @@
       </div>
     </section>
 
-    <section class="sec focusable" id="s2" aria-labelledby="s2-title">
-      <header class="sec-head">
-        <span class="kicker">02 · Every case</span>
-        <h2 id="s2-title">Is it a fluke?</h2>
-        <p class="intro" id="s2-lead"></p>
-      </header>
-      <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
-      <div class="cards" id="cards"></div>
-      <div class="table-win">
-        <div class="tbl-head" id="table-path"></div>
-        <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
+    <section class="sec" id="s2" aria-labelledby="s2-title">
+      <div class="stop focusable">
+        <header class="sec-head">
+          <span class="kicker">02 · Every case</span>
+          <h2 id="s2-title">Is it a fluke?</h2>
+          <p class="intro" id="s2-lead"></p>
+        </header>
+        <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
       </div>
-      <p class="fine" id="score-note"></p>
+      <div class="stop focusable">
+        <div class="cards" id="cards"></div>
+        <div class="table-win">
+          <div class="tbl-head" id="table-path"></div>
+          <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
+        </div>
+        <p class="fine" id="score-note"></p>
+      </div>
     </section>
 
     <section class="sec sec-hs focusable" id="s3" aria-labelledby="s3-title">

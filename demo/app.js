@@ -188,10 +188,23 @@
     walkMode();
   }
   // Pinned stage only when it fits the window; otherwise each step carries its own piece (no clipping).
+  // Measured from layout size (transforms ignored), with every piece taking its space.
   function walkMode() {
-    const w = $("#s1"), st = $("#walk-stage");
+    const w = $("#s1"), st = $("#walk-stage"), inner = $("#walk-inner");
     w.classList.remove("inline");
-    w.classList.toggle("inline", innerWidth < 1100 || st.scrollHeight > st.clientHeight + 1);
+    const cs = getComputedStyle(st), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    w.classList.toggle("inline", innerWidth < 1100 || inner.offsetHeight > room || $("#w-summary").offsetHeight > room);
+    centerStage();
+  }
+  // Slide the stage so the pieces visible at this step are centred in it.
+  function centerStage() {
+    const st = $("#walk-stage"), inner = $("#walk-inner"), at = +st.dataset.at;
+    if ($("#s1").classList.contains("inline") || at >= 5) { inner.style.transform = ""; return; }
+    const vis = [$("#w-passage"), ...inner.querySelectorAll("[data-show]")].filter((e) => !e.dataset.show || +e.dataset.show <= at);
+    const top = (e) => e.getBoundingClientRect().top - inner.getBoundingClientRect().top;
+    const t0 = Math.min(...vis.map(top)), t1 = Math.max(...vis.map((e) => top(e) + e.offsetHeight));
+    const cs = getComputedStyle(st), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    inner.style.transform = `translateY(${Math.max(-t0, (room - (t1 - t0)) / 2 - t0)}px)`;
   }
 
   // ---------- outcome stage ----------
@@ -302,10 +315,12 @@
       const sec = best.closest("section")?.id || best.id;
       links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
       document.documentElement.dataset.surface = sec === "s1" ? "blue" : "";
-      if (best.dataset.step != null) $("#walk-stage").dataset.at = best.dataset.step;
+      if (best.dataset.step != null) { $("#walk-stage").dataset.at = best.dataset.step; centerStage(); }
     };
     // Sections taller than the screen snap to their top instead of the centre.
-    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", s.scrollHeight > innerHeight - 49));
+    // "Tall" means the content (not the padding around it) is taller than the screen.
+    const contentH = (s) => { const cs = getComputedStyle(s); return s.scrollHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); };
+    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) > innerHeight - 49));
     addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
     addEventListener("resize", () => { sizes(); update(); });
     new ResizeObserver(sizes).observe(document.body);
@@ -332,7 +347,8 @@
     const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
     const targetY = (s) => {
       const top = s.getBoundingClientRect().top + scrollY, h = s.offsetHeight, vh = innerHeight - NAV;
-      return Math.max(0, h <= vh ? top + h / 2 - (NAV + vh / 2) : top - NAV);
+      const pad = parseFloat(getComputedStyle(s).paddingTop) || 0;
+      return Math.max(0, !s.classList.contains("tall") ? top + h / 2 - (NAV + vh / 2) : top - NAV + Math.max(0, pad - 32));
     };
     const current = () => {
       const mid = innerHeight / 2;
@@ -347,9 +363,10 @@
       if (innerWidth < 760) return false;
       const now = performance.now();
       if (now < lockUntil || now - quiet < 120) { e?.preventDefault(); quiet = now; return true; }
-      const cur = current(), r = cur.getBoundingClientRect(), i = secs.indexOf(cur);
-      if (dir > 0 && r.bottom > innerHeight + 2) return false;   // more of this section below
-      if (dir < 0 && r.top < NAV - 2) return false;              // more of this section above
+      const cur = current(), r = cur.getBoundingClientRect(), i = secs.indexOf(cur), cs = getComputedStyle(cur);
+      // Only content counts: padding hanging off the edge is not "more to read".
+      if (dir > 0 && r.bottom - parseFloat(cs.paddingBottom) > innerHeight + 2) return false;   // more of this section below
+      if (dir < 0 && r.top + parseFloat(cs.paddingTop) < NAV - 2) return false;                 // more of this section above
       const next = secs[i + dir];
       if (!next) return false;
       e?.preventDefault();
