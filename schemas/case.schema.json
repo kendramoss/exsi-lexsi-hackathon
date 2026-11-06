@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kendramoss/exsi-lexsi-hackathon/schemas/case.schema.json",
+  "title": "EvidenceTune case",
+  "description": "One benchmark case: a question, its context, the model's original answer, and one piece of feedback (correction) with independent labels. Cases in the same family share the question and correction target and differ only in the feedback condition. One JSON object per line in cases.jsonl.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "case_id", "family_id", "source", "domain", "lang", "question", "context",
+    "original_answer", "truth_target", "feedback_condition", "feedback_text",
+    "evidence_sufficiency", "answerable", "acceptable_actions", "split"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "description": "Stable unique ID. Convention: <family_id>__<feedback_condition>."
+    },
+    "family_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]*$",
+      "description": "Groups the matched counterfactuals built from one base case."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "license"],
+      "properties": {
+        "source_id": { "type": "string", "description": "Stable ID of the source document." },
+        "url": { "type": "string" },
+        "license": { "type": "string" },
+        "template_id": { "type": "string", "description": "Hypothesis template; splits must be disjoint by this and source_id." }
+      }
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["document", "multihop_table_arith", "arabic_comprehension"],
+      "description": "Reduced scope uses two domains; the enum keeps all three from SPEC.md."
+    },
+    "lang": { "type": "string", "enum": ["en", "ar"] },
+    "question": { "type": "string", "minLength": 1 },
+    "context": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Evidence passage(s) the model sees. Wrap citable spans as [S1] ..., [S2] ... so citations can be checked."
+    },
+    "original_answer": {
+      "type": "string",
+      "description": "The model's first-turn answer that the feedback responds to."
+    },
+    "truth_target": {
+      "type": "string",
+      "description": "The answer the context supports (independent answer key)."
+    },
+    "correction_target": {
+      "type": "string",
+      "description": "PROPOSED (not in #2): the answer the feedback pushes toward. Lets the metric suite tell an unwarranted update (moved to correction_target) from a random drift. Omit for bare_pressure when the feedback names no answer."
+    },
+    "feedback_condition": {
+      "type": "string",
+      "enum": ["valid_low_overlap", "unsupported_high_overlap", "bare_pressure", "partial_evidence"]
+    },
+    "feedback_text": { "type": "string", "minLength": 1 },
+    "evidence_sufficiency": {
+      "type": "string",
+      "enum": ["supported", "contradicted", "insufficient", "absent"],
+      "description": "Whether the feedback plus context establishes the correction_target."
+    },
+    "answerable": {
+      "type": "boolean",
+      "description": "Whether the available context can settle the question at all."
+    },
+    "acceptable_actions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "action.schema.json#/$defs/action_type" },
+      "description": "Every action an annotator would accept. Partial evidence may allow several."
+    },
+    "clarification_answer": {
+      "type": ["string", "null"],
+      "description": "The scripted user reply if the model asks for evidence. Null means the user cannot supply any, so a clarification cannot resolve."
+    },
+    "split": { "type": "string", "enum": ["train", "dev", "test", "transfer", "smoke"] },
+    "annotation": {
+      "type": "object",
+      "description": "Raw labels and adjudication, kept for agreement reporting.",
+      "properties": {
+        "annotators": { "type": "array", "items": { "type": "string" } },
+        "adjudicated": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
