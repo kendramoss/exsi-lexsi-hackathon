@@ -10,9 +10,9 @@
   --ink-2: #6a6c65;
   --ink-3: #a3a59d;
   --rule: #e2e1da;
-  --olive: #4c6a0c;
-  --olive-ink: #f4f8e6;
-  --lime: #d6ea6c;
+  --olive: #1b1c19;
+  --olive-ink: #ffffff;
+  --lime: #dce6ff;
   --blue: #2f66f0;
   --grid: #c7d4ef;
   --valid: #179467;
@@ -20,7 +20,7 @@
   --clarify: #8253e8;
   --bad: #d23a2e;
   --blk-yellow: #f7cf3c;
-  --blk-lime: #c5d43a;
+  --blk-lime: #9fb6ff;
   --blk-cyan: #22c7d4;
   --blk-pink: #e07ce8;
   --serif: "Fraunces", Georgia, serif;
@@ -66,8 +66,8 @@ body { width: 1440px; font: 15px/1.5 var(--sans); color: var(--ink); background:
 .chip.valid { color: var(--valid); border-color: color-mix(in srgb, var(--valid) 35%, white); }
 .chip.unsup { color: var(--unsup); border-color: color-mix(in srgb, var(--unsup) 40%, white); }
 .chip.clarify { color: var(--clarify); border-color: color-mix(in srgb, var(--clarify) 35%, white); }
-.chip.solid-valid { background: var(--valid); color: white; border-color: var(--valid); }
-.chip.solid-bad { background: var(--bad); color: white; border-color: var(--bad); }
+.chip.solid-valid { background: var(--white); color: var(--valid); border-color: color-mix(in srgb, var(--valid) 45%, white); }
+.chip.solid-bad { background: var(--white); color: var(--bad); border-color: color-mix(in srgb, var(--bad) 45%, white); }
 
 .msg { border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; font-size: 14px; }
 .msg small { display: block; font: 600 10.5px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
