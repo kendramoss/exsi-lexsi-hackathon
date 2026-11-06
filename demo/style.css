@@ -178,3 +178,9 @@ mark { background: var(--mark); color: inherit; border-radius: 2px; padding: 0 1
 .context-head > *, .panel-tools > * { min-width: 0; max-width: 100%; }
 .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 760px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+
+/* Pipeline diagram */
+.how { margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 20px; }
+.how summary { cursor: pointer; font: 600 16px/1.4 var(--serif); }
+.how-fig { overflow-x: auto; margin-top: 14px; }
+.how-fig img { display: block; width: 100%; min-width: 880px; height: auto; border-radius: 6px; }
