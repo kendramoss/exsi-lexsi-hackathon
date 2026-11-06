@@ -119,13 +119,14 @@
     const h = $("#headline"), intro = $("#intro");
     if (state.step === 1) {
       h.innerHTML = "Read the columns <em>together</em>";
-      intro.textContent = "How every model did across all test cases. A model that never changes its answer never gives in, but it also ignores correct pushback, so read each row across.";
+      intro.textContent = "Every model, every test case. Read each row across.";
+      intro.hidden = false;
       return;
     }
-    const c = laneCase(), L = currentLane();
+    const c = laneCase();
     const [, bt] = did(predOf(c.case_id, "base")), [, tt] = did(predOf(c.case_id, state.comparator));
     h.innerHTML = `${esc(short("base"))} ${esc(bt)},<br><em>${esc(short(state.comparator))} ${esc(tt)}</em>`;
-    intro.textContent = `Same passage, same ${L.label.toLowerCase()}. Left: Tiny Aya as it ships. Right: ${label(state.comparator)}, ${KIND_INTRO[comp(state.comparator)?.kind] || ""}.`;
+    intro.hidden = true;
   }
 
   // ---------- compare stage ----------
@@ -133,9 +134,7 @@
     const c = laneCase();
     const cited = new Set(["base", state.comparator].flatMap((pol) => citedIds(predOf(c.case_id, pol))));
     $("#passage").replaceChildren(
-      el("small", { class: "lbl" }, "Question"),
       el("h2", {}, c.question),
-      el("small", { class: "lbl" }, "Passage"),
       ...spans(c.context).map((s) => el("div", { class: `span${cited.has(s.id) ? " cited" : ""}` },
         s.id ? el("b", { title: `Line ${s.id.slice(1)} of the passage` }, s.id) : null,
         el("span", { class: "span-text" }, s.text))),
@@ -149,10 +148,10 @@
     const ov = overlap(c.feedback_text, c.context);
     const [evCls, evText] = EVIDENCE[c.evidence_sufficiency] || ["", c.evidence_sufficiency];
     $("#push").replaceChildren(
-      el("p", { class: "msg prior" }, "Model's first answer ", el("b", {}, c.original_answer)),
-      el("div", { class: "msg user" }, el("small", {}, "User pushes back"), el("span", { html: ov.html })),
+      el("p", { class: "msg prior" }, "First answer ", el("b", {}, c.original_answer)),
+      el("div", { class: "msg user" }, el("small", {}, "User"), el("span", { html: ov.html })),
       el("div", { class: "chips" },
-        el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}`, title: "Highlighted words also appear in the passage" }, ov.share >= 0.5 ? `copies the passage · ${pct(ov.share)}` : `own words · ${pct(ov.share)}`),
+        el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}`, title: "Highlighted words also appear in the passage" }, `${pct(ov.share)} copied`),
         el("span", { class: `chip ${evCls}` }, evText)),
     );
   }
@@ -161,23 +160,22 @@
     const c = laneCase(), p = predOf(c.case_id, pol);
     const box = el("article", { class: "win" });
     box.append(el("div", { class: "win-bar" }, el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }),
-      el("span", {}, `${label(pol)} · ${KIND[comp(pol)?.kind] || ""}`)));
+      el("span", {}, label(pol))));
     const body = el("div", { class: "win-body" });
     if (!p) {
       body.append(el("p", { class: "error" }, `No result for ${label(pol)} on this case.`));
     } else {
-      body.append(el("div", { class: "msg model" }, el("small", {}, `${short(pol)} replies`), el("span", { html: cites(p.raw_output) })));
+      body.append(el("div", { class: "msg model" }, el("span", { html: cites(p.raw_output) })));
       if (p.clarification_turn) {
         body.append(
-          el("div", { class: "msg user" }, el("small", {}, "User replies"), p.clarification_turn.user_reply ?? "(no reply)"),
-          el("div", { class: "msg model" }, el("small", {}, short(pol)), el("span", { html: cites(p.clarification_turn.raw_output) })),
+          el("div", { class: "msg user" }, el("small", {}, "User"), p.clarification_turn.user_reply ?? "(no reply)"),
+          el("div", { class: "msg model" }, el("span", { html: cites(p.clarification_turn.raw_output) })),
         );
       }
       const ok = p.score ? p.score.final_correct : null;
-      body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "Final answer ", el("b", {}, p.final_answer ?? "none"),
-        ok == null ? "" : ok ? " ✓ right" : ` ✗ wrong, the passage says ${c.truth_target}`));
+      body.append(el("p", { class: `final ${ok === false ? "ko" : ok ? "ok" : ""}` }, "Final ", el("b", {}, p.final_answer ?? "none"), ok == null ? "" : ok ? " ✓" : " ✗"));
       const [pc, pk, pt] = pin(p);
-      box.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk), pt || null));
+      box.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk)));
       if (p.error) body.append(el("p", { class: "error" }, p.error));
     }
     box.append(body);
@@ -204,11 +202,6 @@
     renderPush();
     renderPixels();
     $("#pair").replaceChildren(reply("base"), reply(state.comparator));
-    const c = laneCase();
-    const [bc] = did(predOf(c.case_id, "base")), [tc] = did(predOf(c.case_id, state.comparator));
-    const note = $("#note");
-    note.hidden = !(bc && tc);
-    note.textContent = bc === "ko" && tc === "ok" ? "same pushback, different reflex" : bc === "ok" && tc === "ok" ? "both get this one right" : bc === "ok" && tc === "ko" ? "the tuned model does worse here" : "neither gets this one right";
     renderScorecard();
   }
 
@@ -217,22 +210,21 @@
     const rows = LANES.filter((l) => caseOf(state.family, l.cond)), L = currentLane(), c = laneCase();
     const cellFor = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : k === "ko" ? "✗" : ""} ${t}`); };
     const table = el("table", { class: "mini" },
-      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Pushback"), el("th", { scope: "col" }, "Passage"),
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Pushback"),
         el("th", { scope: "col" }, short("base")), el("th", { scope: "col" }, short(state.comparator)))),
       el("tbody", {}, ...rows.map((l) => {
         const cs = caseOf(state.family, l.cond);
         return el("tr", { class: l.key === L.key ? "hl" : null, "data-lane": l.key, tabindex: "0", "aria-selected": String(l.key === L.key) },
-          el("th", { scope: "row" }, l.label), el("td", {}, EVIDENCE_LONG[cs.evidence_sufficiency] || cs.evidence_sufficiency),
+          el("th", { scope: "row" }, l.label),
           cellFor(cs, "base"), cellFor(cs, state.comparator));
       })));
     const row = (k, v) => el("div", { class: "row" }, el("span", {}, k), el("span", { class: "val" }, v));
     $("#inspector").replaceChildren(
-      el("div", { class: "score" }, el("h4", {}, "This example, every pushback"), el("div", { class: "table-scroll" }, table)),
-      el("div", {}, el("h4", {}, `The facts · ${L.label.toLowerCase()}`),
+      el("div", { class: "score" }, el("h4", {}, "All pushbacks"), el("div", { class: "table-scroll" }, table)),
+      el("div", {}, el("h4", {}, "Answer key"),
         row("Passage says", c.truth_target),
         row("Pushback claims", c.correction_target ?? "nothing specific"),
-        row("Good responses", c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or ")),
-        el("p", { class: "hash" }, `case ${c.case_id} · run ${RUN}`)),
+        row("Good responses", c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or "))),
     );
   }
 
@@ -242,7 +234,7 @@
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
       return el("div", { class: "card" }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"),
-        el("p", {}, `Base Tiny Aya → ${cur.label} · ${dir} is better`));
+        el("p", {}, `${dir} is better`));
     };
     $("#cards").replaceChildren(
       card("Gives in to wrong pushback", "uur", "lower"),
@@ -266,8 +258,8 @@
     $("#table-path").textContent = `${BASE}metrics.json`;
     const n = comps[0].metrics.valid_uptake?.n;
     $("#score-note").textContent = n < 20
-      ? `↑ higher is better, ↓ lower is better. Bars show the likely range (95% interval); with only ${n} cases per bar, the ranges are wide.`
-      : "↑ higher is better, ↓ lower is better. Bars show the likely range (95% interval).";
+      ? `Bars: 95% range · ${n} cases each`
+      : "Bars: 95% range";
 
   }
   function cell(metric, m, ex) {

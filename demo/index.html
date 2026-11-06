@@ -37,7 +37,7 @@
       <div class="controls">
         <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
         <label class="select" for="family"><span>Example</span><select id="family"></select></label>
-        <label class="select" for="comparator" id="comparator-wrap"><span>Compare with</span><select id="comparator"></select></label>
+        <label class="select" for="comparator" id="comparator-wrap"><span>vs</span><select id="comparator"></select></label>
       </div>
     </section>
 
@@ -50,7 +50,6 @@
             <article class="push" id="push"></article>
           </div>
           <div class="pair" id="pair"></div>
-          <p class="hand" id="note" hidden></p>
           <div class="pixels" id="pixels" aria-hidden="true"></div>
         </div>
         <aside class="inspector" id="inspector" aria-label="Scorecard for this example"></aside>
@@ -77,38 +76,37 @@
           <article class="hs-panel">
             <span class="hs-k">01 · The problem</span>
             <h3>Small models cave when you push back.</h3>
-            <p>Tell Tiny Aya &ldquo;you&rsquo;re wrong&rdquo; and it apologises and changes its answer, even when you are the one who is wrong.</p>
-            <div class="hs-stat"><b>100%</b><span>of corrections accepted in our pilot, real or made up</span></div>
+            <p>Say &ldquo;you&rsquo;re wrong&rdquo; and Tiny Aya flips, even when you&rsquo;re the one who&rsquo;s wrong.</p>
+            <div class="hs-stat"><b>100%</b><span>of corrections accepted in our pilot</span></div>
           </article>
           <article class="hs-panel field">
             <span class="hs-k">02 · The test</span>
-            <h3>Same question, two kinds of pushback.</h3>
-            <p>One is correct and backed by the passage, in different words. The other is wrong but copies the passage&rsquo;s wording to sound convincing.</p>
-            <div class="hs-pair"><span class="good">Correct · own words</span><span class="bad">Wrong · copies the passage</span></div>
+            <h3>Same question, two pushbacks.</h3>
+            <p>One is right. One is wrong but copies the passage&rsquo;s words.</p>
+            <div class="hs-pair"><span class="good">Right · own words</span><span class="bad">Wrong · copied words</span></div>
           </article>
           <article class="hs-panel">
             <span class="hs-k">03 · Good behaviour</span>
-            <h3>Three right moves, depending on the evidence.</h3>
+            <h3>Three right moves.</h3>
             <ul class="hs-list">
-              <li><b>Change the answer</b> when the passage backs the pushback.</li>
-              <li><b>Keep the answer</b> when the passage contradicts it.</li>
-              <li><b>Ask for a source</b> when it can&rsquo;t tell. This only counts if the conversation ends on the right answer.</li>
+              <li><b>Change</b> when the passage agrees.</li>
+              <li><b>Keep</b> when the passage disagrees.</li>
+              <li><b>Ask for a source</b> when unsure, if it still ends right.</li>
             </ul>
           </article>
           <article class="hs-panel wide">
             <span class="hs-k">04 · The pipeline</span>
-            <h3>Built with three Lexsi tools. The test set is sealed before any results.</h3>
+            <h3>Three Lexsi tools. Test set sealed first.</h3>
             <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy" alt="CuratorKIT validates the cases and seals the test set; SafeTune fine-tunes Tiny Aya on the training data only; AuditKIT scores every model on the same sealed cases.">
           </article>
           <article class="hs-panel field">
             <span class="hs-k">05 · How we score</span>
-            <h3>No single score. Three numbers, read together.</h3>
+            <h3>No single score.</h3>
             <ul class="hs-list">
-              <li><b>Accepts correct pushback</b> ↑ higher is better</li>
-              <li><b>Gives in to wrong pushback</b> ↓ lower is better</li>
-              <li><b>Right in the end</b> ↑ higher is better</li>
+              <li><b>Accepts correct pushback</b> ↑</li>
+              <li><b>Gives in to wrong pushback</b> ↓</li>
+              <li><b>Right in the end</b> ↑</li>
             </ul>
-            <p>A model that never changes its answer scores 0% on giving in, and 0% on accepting correct pushback too.</p>
           </article>
         </div>
       </div>
@@ -116,7 +114,7 @@
   </main>
 
   <footer class="wrap foot">
-    <p>All numbers come from saved results in <code id="src-path"></code>. Nothing is computed in the browser.</p>
+    <p>Data: <code id="src-path"></code></p>
   </footer>
 
   <script src="app.js"></script>
