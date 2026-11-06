@@ -4,93 +4,135 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EvidenceTune Demo</title>
-  <meta name="description" content="When should a model accept a correction? A matched-pair demo of evidence-sensitive updating in Tiny Aya.">
+  <meta name="description" content="Does a model change its answer only when the evidence says so? A matched-pair demo on Tiny Aya Global.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip" href="#stage">Skip to demo</a>
+  <a class="skip" href="#s1">Skip to the example</a>
 
   <header class="top">
-    <div class="wrap top-inner">
-      <div>
-        <p class="eyebrow">Lexsi AI Safety Hackathon · Track 2a #2 / 2b #5</p>
-        <h1>EvidenceTune</h1>
-        <p class="lede">Same question, two corrections. One has evidence behind it and one only sounds like it does. Does the model tell them apart?</p>
+    <div class="nav">
+      <a class="logo" href="#top" aria-label="EvidenceTune, back to top">evidence<span>[tune]</span></a>
+      <nav class="tabs" aria-label="Sections" id="steps">
+        <a href="#s1" data-sec="s1"><em>01</em>One example</a>
+        <a href="#s2" data-sec="s2"><em>02</em>Every case</a>
+        <a href="#s3" data-sec="s3"><em>03</em>How we tested</a>
+      </nav>
+      <div class="actions">
+        <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <dl class="run-meta" id="run-meta" aria-live="polite"></dl>
-    </div>
-    <div class="mock-banner" id="mock-banner" hidden>
-      <div class="wrap">MOCK DATA: placeholder outputs for layout only. No result on this page is real yet.</div>
     </div>
   </header>
 
-  <nav class="stepper wrap" aria-label="Demo steps">
-    <ol id="steps">
-      <li><button type="button" data-step="0"><span class="n">1</span> Base model fails</button></li>
-      <li><button type="button" data-step="1"><span class="n">2</span> Evidence-sensitive response</button></li>
-      <li><button type="button" data-step="2"><span class="n">3</span> Outcome and trade-offs</button></li>
-    </ol>
-    <div class="step-ctrl">
-      <button type="button" id="prev" aria-label="Previous step">←</button>
-      <button type="button" id="next" aria-label="Next step">→</button>
-      <label class="toggle"><input type="checkbox" id="show-all"> All steps</label>
-    </div>
-  </nav>
-
-  <main id="stage" class="wrap">
-    <section class="context-card" aria-labelledby="ctx-h">
-      <div class="context-head">
-        <h2 id="ctx-h">The task</h2>
-        <label class="field">Matched pair
-          <select id="family"></select>
-        </label>
-      </div>
-      <p class="question" id="question"></p>
-      <div class="context" id="context"></div>
+  <main id="main" class="wrap">
+    <section class="hero focusable" id="top" aria-labelledby="hero-title">
+      <h1 id="hero-title">Does the model change its answer <em>for the right reason?</em></h1>
+      <p class="intro">Small models flip when you push back. We test whether safety fine-tuning fixes that.</p>
+      <ol class="flow" aria-label="How this page is organised">
+        <li><a href="#s1"><b>01</b><strong>One example</strong><span>Watch it happen.</span></a></li>
+        <li><a href="#s2"><b>02</b><strong>Every case</strong><span>Is it a fluke?</span></a></li>
+        <li><a href="#s3"><b>03</b><strong>How we tested</strong><span>Is the test fair?</span></a></li>
+      </ol>
     </section>
 
-    <section class="panel" data-panel="0" aria-labelledby="p0-h">
-      <header class="panel-head">
-        <h2 id="p0-h"><span class="n">1</span> Base Tiny Aya gives in to both</h2>
-        <p>It accepts the valid correction and the unsupported one alike, because it is responding to pressure rather than evidence.</p>
-      </header>
-      <div class="pair" id="pair-base"></div>
-    </section>
-
-    <section class="panel" data-panel="1" aria-labelledby="p1-h">
-      <header class="panel-head">
-        <h2 id="p1-h"><span class="n">2</span> <span id="p1-title">EvidenceTune updates on evidence and asks when the evidence is missing</span></h2>
-        <div class="panel-tools">
-          <p>It cites the valid correction, and asks for a source when the correction contradicts the passage. A clarification only counts if it resolves.</p>
-          <label class="field">Compare
-            <select id="comparator"></select>
-          </label>
+    <section class="sec focusable" id="s1" aria-labelledby="s1-title">
+      <header class="sec-head">
+        <span class="kicker">01 · One example</span>
+        <h2 id="s1-title"></h2>
+        <div class="controls">
+          <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
+          <label class="select" for="family"><span>Example</span><select id="family"></select></label>
+          <label class="select" for="comparator" id="comparator-wrap"><span>vs</span><select id="comparator"></select></label>
         </div>
       </header>
-      <div class="pair" id="pair-tuned"></div>
+      <div class="canvas" id="stage-pair">
+        <div class="board">
+          <article class="passage" id="passage"></article>
+          <div class="pushbox">
+            <div class="seg pushseg" id="pushseg" role="tablist" aria-label="Type of pushback"></div>
+            <article class="push" id="push"></article>
+          </div>
+          <div class="pair" id="pair"></div>
+          <div class="pixels" id="pixels" aria-hidden="true"></div>
+        </div>
+        <aside class="inspector" id="inspector" aria-label="Scorecard for this example"></aside>
+      </div>
     </section>
 
-    <section class="panel" data-panel="2" aria-labelledby="p2-h">
-      <header class="panel-head">
-        <h2 id="p2-h"><span class="n">3</span> Outcome: read the columns together</h2>
-        <p>There is no single headline score. A policy can reach 0% UUR just by refusing every correction, so check valid uptake and final accuracy beside it.</p>
+    <section class="sec focusable" id="s2" aria-labelledby="s2-title">
+      <header class="sec-head">
+        <span class="kicker">02 · Every case</span>
+        <h2 id="s2-title">Is it a fluke?</h2>
+        <p class="intro" id="s2-lead"></p>
       </header>
-      <div class="table-wrap">
-        <table class="scoreboard" id="scoreboard"></table>
+      <div class="cards" id="cards"></div>
+      <div class="win table-win">
+        <div class="win-bar"><i></i><i></i><i></i><span id="table-path"></span></div>
+        <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
       </div>
-      <p class="fineprint" id="score-note"></p>
+      <p class="fine" id="score-note"></p>
     </section>
-    <details class="how">
-      <summary>How it's built: CuratorKIT → SafeTune → AuditKIT</summary>
-      <div class="how-fig">
-        <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy"
-             alt="Pipeline. CuratorKIT validates labelled sources and makes two exports. The training export goes to SafeTune (LoRA on Tiny Aya Global) and to an ordinary SFT control. The untouched eval pack is hashed before any outputs and goes straight to AuditKIT, never through training. AuditKIT scores both adapters and the inference-only baselines on identical cases, and the saved results feed this demo and the HF Article.">
+
+    <section class="sec sec-hs focusable" id="s3" aria-labelledby="s3-title">
+      <header class="sec-head">
+        <span class="kicker">03 · How we tested</span>
+        <h2 id="s3-title">Is the test fair?</h2>
+        <p class="intro">Scores only count if no model saw the test. Scroll through how it was built.</p>
+      </header>
+    <section class="hs" id="how" aria-labelledby="s3-title">
+      <div class="hs-sticky">
+        <header class="hs-head">
+          <span class="kicker">Scroll →</span>
+          <span class="hs-count" aria-hidden="true"><b id="hs-n">01</b> / 05</span>
+          <span class="hs-bar" aria-hidden="true"><i id="hs-fill"></i></span>
+        </header>
+        <div class="hs-track" id="hs-track">
+          <article class="hs-panel">
+            <span class="hs-k">01 · The problem</span>
+            <h3>Small models cave when you push back.</h3>
+            <p>Say &ldquo;you&rsquo;re wrong&rdquo; and Tiny Aya flips, even when you&rsquo;re the one who&rsquo;s wrong.</p>
+            <div class="hs-stat"><b>100%</b><span>of corrections accepted in our pilot</span></div>
+          </article>
+          <article class="hs-panel field">
+            <span class="hs-k">02 · The test</span>
+            <h3>Same question, two pushbacks.</h3>
+            <p>One is right. One is wrong but copies the passage&rsquo;s words.</p>
+            <div class="hs-pair"><span class="good">Right · own words</span><span class="bad">Wrong · copied words</span></div>
+          </article>
+          <article class="hs-panel">
+            <span class="hs-k">03 · Good behaviour</span>
+            <h3>Three right moves.</h3>
+            <ul class="hs-list">
+              <li><b>Change</b> when the passage agrees.</li>
+              <li><b>Keep</b> when the passage disagrees.</li>
+              <li><b>Ask for a source</b> when unsure, if it still ends right.</li>
+            </ul>
+          </article>
+          <article class="hs-panel wide">
+            <span class="hs-k">04 · The pipeline</span>
+            <h3>Three Lexsi tools. Test set sealed first.</h3>
+            <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy" alt="CuratorKIT validates the cases and seals the test set; SafeTune fine-tunes Tiny Aya on the training data only; AuditKIT scores every model on the same sealed cases.">
+          </article>
+          <article class="hs-panel field">
+            <span class="hs-k">05 · How we score</span>
+            <h3>No single score.</h3>
+            <ul class="hs-list">
+              <li><b>Accepts correct pushback</b> ↑</li>
+              <li><b>Gives in to wrong pushback</b> ↓</li>
+              <li><b>Right in the end</b> ↑</li>
+            </ul>
+          </article>
+        </div>
       </div>
-    </details>
+    </section>
+    </section>
   </main>
 
   <footer class="wrap foot">
-    <p>Pipeline: CuratorKIT → SafeTune → AuditKIT. Every number on this page is read from <code id="src-path"></code>; the page recomputes nothing.</p>
+    <p>Data: <code id="src-path"></code></p>
   </footer>
 
   <script src="app.js"></script>
