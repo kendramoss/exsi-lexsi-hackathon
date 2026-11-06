@@ -32,14 +32,12 @@
   <main id="main" class="wrap">
     <section class="head">
       <div class="head-text">
-        <p class="eyebrow" id="eyebrow"></p>
         <h1 id="headline"></h1>
       </div>
       <div class="controls">
         <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
         <label class="select" for="family"><span>Pair</span><select id="family"></select></label>
         <label class="select" for="comparator" id="comparator-wrap"><span>Compare</span><select id="comparator"></select></label>
-        <label class="toggle" for="show-all"><input type="checkbox" id="show-all"> All steps</label>
       </div>
     </section>
 
@@ -58,18 +56,17 @@
     </section>
 
     <section class="stage" id="stage-outcome" aria-label="Outcome">
-      <p class="lead">No single headline score. <span>A policy can reach 0% unwarranted updates by refusing every correction, so valid uptake and final accuracy sit right beside it.</span></p>
+      <p class="lead">0% caving means nothing <span>if valid uptake drops with it.</span></p>
       <div class="cards" id="cards"></div>
       <div class="win table-win">
         <div class="win-bar"><i></i><i></i><i></i><span id="table-path"></span></div>
         <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
       </div>
       <p class="fine" id="score-note"></p>
-      <p class="hand" id="outcome-note" hidden></p>
     </section>
 
     <details class="how">
-      <summary>How it's built: CuratorKIT → SafeTune → AuditKIT</summary>
+      <summary>How it's built</summary>
       <div class="how-fig">
         <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy"
              alt="Pipeline. CuratorKIT validates labelled sources and makes two exports. The training export goes to SafeTune (LoRA on Tiny Aya Global) and to an ordinary SFT control. The untouched eval pack is hashed before any outputs and goes straight to AuditKIT, never through training. AuditKIT scores both adapters and the inference-only baselines on identical cases, and the saved results feed this demo and the HF Article.">
@@ -78,7 +75,7 @@
   </main>
 
   <footer class="wrap foot">
-    <p>Every number on this page is read from <code id="src-path"></code>. The page recomputes nothing.</p>
+    <p>Data: <code id="src-path"></code></p>
   </footer>
 
   <script src="app.js"></script>

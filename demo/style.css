@@ -166,6 +166,9 @@ body.show-all #stage-outcome { margin-top: 48px; }
 .msg.model { background: var(--surface); border: 1px solid var(--rule); }
 .msg.prior { padding: 0 2px; color: var(--ink-2); font: var(--t-small); }
 .msg.prior b { font: var(--t-strong); color: var(--ink); }
+.final { margin: 2px 2px 0; font: var(--t-small); color: var(--ink-2); }
+.final b { font: var(--t-strong); color: var(--ink); }
+.final.ok { color: var(--valid); } .final.ko { color: var(--bad); }
 mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
 .cite { font: var(--t-mono); line-height: 1; padding: 2px 5px; border-radius: 4px; background: var(--ink); color: var(--bg); }
 
@@ -196,7 +199,7 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .hash { font: var(--t-mono); color: var(--ink-2); background: var(--paper); padding: 10px; border-radius: 8px; overflow-wrap: anywhere; }
 
 /* Outcome */
-.lead { margin: 0 0 28px; font: var(--t-lead); letter-spacing: -.01em; max-width: 34ch; }
+.lead { margin: 0 0 28px; font: var(--t-lead); letter-spacing: -.01em; }
 .lead span { color: var(--ink-3); }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
 .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 22px; display: grid; gap: 10px; align-content: start; }
@@ -219,7 +222,7 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .ci .r { position: absolute; top: 0; bottom: 0; background: var(--grid); border-radius: 2px; }
 .ci .p { position: absolute; top: -4px; width: 2px; height: 12px; background: var(--ink); }
 .fine { margin: 14px 0 0; font: var(--t-small); color: var(--ink-2); }
-#outcome-note { margin: 18px 0 0 24px; color: var(--blue); }
+.inspector .hash { margin-top: -4px; }
 
 /* Pipeline + footer */
 .how { margin-top: 48px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 22px; }
