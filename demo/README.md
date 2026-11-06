@@ -14,7 +14,7 @@ short_description: When should a model accept a correction?
 
 A static page that reads saved run artifacts and shows a matched pair in three steps: base model caves → evidence-sensitive response → outcome and trade-offs. There are no live model calls, and the page recomputes no metrics.
 
-Layout (design in `design/concepts/`, screen 2): the passage sits on a blueprint canvas with the cited span marked, the two corrections appear as app windows with a status pin each, and a **case inspector** on the right shows the selected case's answer key, what the model did and its provenance. Click a window, or use Valid / Unsupported / Pressure, to inspect a case. Headlines, pins and handwritten notes only appear when the saved `score` fields support them. Light and dark mode follow the system; under 1100px the inspector moves below the canvas.
+Layout (design in `design/concepts/`, screen 2): the passage sits on a blueprint canvas with the cited span marked, the two corrections appear as app windows with a status pin each, and a **case inspector** on the right shows the selected case's answer key, what the model did and its provenance. Click a window, or use Valid / Unsupported / Pressure, to inspect a case. Headlines, pins and handwritten notes only appear when the saved `score` fields support them. Content sits in a centred column two thirds of the screen wide (full width with gutters under 1200px), with the inspector as a strip below the canvas. Light and dark mode follow the system.
 
 The front-matter above is the Hugging Face Space config. To deploy, push this folder as the root of a **static** Space.
 
