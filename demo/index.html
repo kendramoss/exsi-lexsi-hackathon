@@ -11,38 +11,44 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <a class="skip" href="#main">Skip to demo</a>
+  <a class="skip" href="#s1">Skip to the example</a>
 
   <header class="top">
     <div class="nav">
-      <a class="logo" href="./" aria-label="EvidenceTune home">evidence<span>[tune]</span></a>
-      <nav class="tabs" aria-label="Demo steps" id="steps">
-        <button type="button" data-step="0"><em>01</em>Compare</button>
-        <button type="button" data-step="1"><em>02</em>Results</button>
+      <a class="logo" href="#top" aria-label="EvidenceTune, back to top">evidence<span>[tune]</span></a>
+      <nav class="tabs" aria-label="Sections" id="steps">
+        <a href="#s1" data-sec="s1"><em>01</em>One example</a>
+        <a href="#s2" data-sec="s2"><em>02</em>Every case</a>
+        <a href="#s3" data-sec="s3"><em>03</em>How we tested</a>
       </nav>
       <div class="actions">
-        <button type="button" class="btn icon" id="prev" aria-label="Previous step">←</button>
-        <button type="button" class="btn icon" id="next" aria-label="Next step">→</button>
         <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </header>
 
   <main id="main" class="wrap">
-    <section class="head">
-      <div class="head-text">
-        <h1 id="headline"></h1>
-        <p class="intro" id="intro"></p>
-      </div>
-      <div class="controls">
-        <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
-        <label class="select" for="family"><span>Example</span><select id="family"></select></label>
-        <label class="select" for="comparator" id="comparator-wrap"><span>vs</span><select id="comparator"></select></label>
-      </div>
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <h1 id="hero-title">Does the model change its answer <em>for the right reason?</em></h1>
+      <p class="intro">Small models flip when you push back. We test whether safety fine-tuning fixes that.</p>
+      <ol class="flow" aria-label="How this page is organised">
+        <li><a href="#s1"><b>01</b><strong>One example</strong><span>Watch it happen.</span></a></li>
+        <li><a href="#s2"><b>02</b><strong>Every case</strong><span>Is it a fluke?</span></a></li>
+        <li><a href="#s3"><b>03</b><strong>How we tested</strong><span>Is the test fair?</span></a></li>
+      </ol>
     </section>
 
-    <section class="stage" id="stage-pair" aria-label="Compare base and tuned model">
-      <div class="canvas">
+    <section class="sec" id="s1" aria-labelledby="s1-title">
+      <header class="sec-head">
+        <span class="kicker">01 · One example</span>
+        <h2 id="s1-title"></h2>
+        <div class="controls">
+          <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
+          <label class="select" for="family"><span>Example</span><select id="family"></select></label>
+          <label class="select" for="comparator" id="comparator-wrap"><span>vs</span><select id="comparator"></select></label>
+        </div>
+      </header>
+      <div class="canvas" id="stage-pair">
         <div class="board">
           <article class="passage" id="passage"></article>
           <div class="pushbox">
@@ -56,7 +62,12 @@
       </div>
     </section>
 
-    <section class="stage" id="stage-outcome" aria-label="Outcome">
+    <section class="sec" id="s2" aria-labelledby="s2-title">
+      <header class="sec-head">
+        <span class="kicker">02 · Every case</span>
+        <h2 id="s2-title">Is it a fluke?</h2>
+        <p class="intro" id="s2-lead"></p>
+      </header>
       <div class="cards" id="cards"></div>
       <div class="win table-win">
         <div class="win-bar"><i></i><i></i><i></i><span id="table-path"></span></div>
@@ -65,10 +76,18 @@
       <p class="fine" id="score-note"></p>
     </section>
 
-    <section class="hs" id="how" aria-labelledby="hs-title">
+    <section class="sec sec-hs" id="s3" aria-labelledby="s3-title">
+      <header class="sec-head">
+        <span class="kicker">03 · How we tested</span>
+        <h2 id="s3-title">Is the test fair?</h2>
+        <p class="intro">Scores only count if no model saw the test. Scroll through how it was built.</p>
+      </header>
+    </section>
+
+    <section class="hs" id="how" aria-labelledby="s3-title">
       <div class="hs-sticky">
         <header class="hs-head">
-          <h2 id="hs-title">How it works</h2>
+          <span class="kicker">Scroll →</span>
           <span class="hs-count" aria-hidden="true"><b id="hs-n">01</b> / 05</span>
           <span class="hs-bar" aria-hidden="true"><i id="hs-fill"></i></span>
         </header>

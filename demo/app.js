@@ -1,6 +1,6 @@
 // EvidenceTune demo. Reads saved artifacts only:
 //   data/results/<run_id>/cases.jsonl, predictions.jsonl, metrics.json
-// ?run=<run_id> (default mock-smoke), ?step=1|2|3, ?all=1. Never recomputes metrics: per-case verdicts
+// ?run=<run_id> (default mock-smoke), ?step=2|3 jumps to a section. Never recomputes metrics: per-case verdicts
 // come from the `score` block in predictions.jsonl, and every claim on screen is conditional on it.
 
 (() => {
@@ -116,17 +116,10 @@
 
   // ---------- head ----------
   function renderHead() {
-    const h = $("#headline"), intro = $("#intro");
-    if (state.step === 1) {
-      h.innerHTML = "Read the columns <em>together</em>";
-      intro.textContent = "Every model, every test case. Read each row across.";
-      intro.hidden = false;
-      return;
-    }
     const c = laneCase();
     const [, bt] = did(predOf(c.case_id, "base")), [, tt] = did(predOf(c.case_id, state.comparator));
-    h.innerHTML = `${esc(short("base"))} ${esc(bt)},<br><em>${esc(short(state.comparator))} ${esc(tt)}</em>`;
-    intro.hidden = true;
+    $("#s1-title").innerHTML = `${esc(short("base"))} ${esc(bt)},<br><em>${esc(short(state.comparator))} ${esc(tt)}</em>`;
+    $("#s2-lead").textContent = `One example could be luck. Here is every model on all ${metrics.dataset.n_cases} test cases. Read each row across: a model that never changes its answer never gives in, but it also ignores correct pushback.`;
   }
 
   // ---------- compare stage ----------
@@ -277,18 +270,17 @@
 
   // ---------- step + wiring ----------
   function renderAll() { renderHead(); renderCompare(); renderOutcome(); }
-  function setStep(i) {
-    state.step = Math.max(0, Math.min(1, i));
-    $("#stage-pair").classList.toggle("active", state.step === 0);
-    $("#stage-outcome").classList.toggle("active", state.step === 1);
-    document.querySelectorAll("#steps button").forEach((b) => {
-      if (+b.dataset.step === state.step) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
-    });
-    const all = document.body.classList.contains("show-all");
-    $("#family").closest("label").hidden = state.step === 1 && !all;
-    $("#prev").disabled = state.step === 0;
-    $("#next").disabled = state.step === 1;
-    renderAll();
+
+  // Nav: highlight the section in view.
+  function spy() {
+    const links = [...document.querySelectorAll("#steps a")];
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => { if (a.dataset.sec === e.target.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    ["s1", "s2", "s3"].forEach((id) => io.observe(document.getElementById(id)));
   }
   function selectors() {
     const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
@@ -302,9 +294,6 @@
     $("#comparator").replaceChildren(...comps.map((c) => el("option", { value: c.id, selected: c.id === state.comparator }, c.label)));
   }
   function bind() {
-    document.querySelectorAll("#steps button").forEach((b) => b.addEventListener("click", () => setStep(+b.dataset.step)));
-    $("#prev").addEventListener("click", () => setStep(state.step - 1));
-    $("#next").addEventListener("click", () => setStep(state.step + 1));
     $("#family").addEventListener("change", (e) => { state.family = e.target.value; renderAll(); });
     $("#comparator").addEventListener("change", (e) => { state.comparator = e.target.value; renderAll(); });
     const pick = (e) => {
@@ -314,11 +303,6 @@
     };
     $("#stage-pair").addEventListener("click", pick);
     $("#stage-pair").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("tr[data-lane]")) { e.preventDefault(); pick(e); } });
-    document.addEventListener("keydown", (e) => {
-      if (e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
-      if (e.key === "ArrowRight") setStep(state.step + 1);
-      if (e.key === "ArrowLeft") setStep(state.step - 1);
-    });
   }
 
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
@@ -351,9 +335,11 @@
     $("#src-path").textContent = BASE;
     selectors();
     bind();
-    if (params.get("all") === "1") document.body.classList.add("show-all");
-    setStep((parseInt(params.get("step"), 10) || 1) - 1);
+    renderAll();
     hscroll();
+    spy();
+    const jump = { "2": "s2", "3": "s3" }[params.get("step")];
+    if (jump) document.getElementById(jump).scrollIntoView();
   }).catch((err) => {
     $("#main").replaceChildren(el("p", { class: "error" },
       `Could not load run "${RUN}": ${err.message}. Serve the demo folder over HTTP (python -m http.server) rather than opening the file directly.`));
