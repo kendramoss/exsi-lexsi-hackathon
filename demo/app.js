@@ -8,8 +8,6 @@
 
   const params = new URLSearchParams(location.search);
   const RUN = (params.get("run") || "mock-smoke").replace(/[^a-z0-9_.-]/gi, "");
-  const SKIN = ["a", "b", "c"].includes(params.get("skin")) ? params.get("skin") : "a";
-  document.documentElement.dataset.skin = SKIN;
   const BASE = `data/results/${RUN}/`;
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
   const LANES = [
@@ -164,7 +162,23 @@
     return box;
   }
 
+  // Decorative stepped pixel band: column heights from a tiny seeded generator, so it is stable per pair.
+  function renderPixels() {
+    const box = $("#pixels"), cols = 24, rows = 4;
+    let seed = [...state.family].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) >>> 0) / 4294967296);
+    let h = 1;
+    const cells = [];
+    for (let c = 0; c < cols; c++) {
+      h = Math.max(0, Math.min(rows, h + Math.round(rnd() * 2 - 1)));
+      for (let r = 0; r < rows; r++) cells.push(r >= rows - h ? 1 : rnd() < 0.06 ? 1 : 0);
+    }
+    box.style.setProperty("--cols", cols);
+    box.replaceChildren(...cells.map((on, i) => el("i", { class: on ? "on" : null, style: `grid-column:${(i / rows | 0) + 1};grid-row:${(i % rows) + 1}` })));
+  }
+
   function renderPair() {
+    renderPixels();
     $("#pair").replaceChildren(...LANES.filter((L) => PAIR.includes(L.cond)).map(lane));
     const pol = policy();
     const [v, u] = PAIR.map((c) => predOf(caseOf(state.family, c).case_id, pol));

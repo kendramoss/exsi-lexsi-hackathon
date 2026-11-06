@@ -7,15 +7,15 @@
   <meta name="description" content="Does a model change its answer only when the evidence says so? A matched-pair demo on Tiny Aya Global.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Martian+Mono:wght@400;500&family=Hanken+Grotesk:wght@400;500;600&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Figtree:wght@400;500;600&family=DM+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <a class="skip" href="#main">Skip to demo</a>
 
   <header class="top">
-    <div class="wrap nav">
-      <a class="logo" href="./" aria-label="EvidenceTune home"><span class="logo-mark" aria-hidden="true"></span>EvidenceTune</a>
+    <div class="nav">
+      <a class="logo" href="./" aria-label="EvidenceTune home">evidence<span>[tune]</span></a>
       <nav class="tabs" aria-label="Demo steps" id="steps">
         <button type="button" data-step="0"><em>01</em>Base model</button>
         <button type="button" data-step="1"><em>02</em>Tuned model</button>
@@ -47,6 +47,7 @@
           <article class="passage" id="passage"></article>
           <div class="pair" id="pair"></div>
           <p class="hand" id="note" hidden></p>
+          <div class="pixels" id="pixels" aria-hidden="true"></div>
         </div>
         <aside class="inspector" id="inspector" aria-label="Case inspector"></aside>
       </div>
@@ -72,7 +73,7 @@
   </main>
 
   <footer class="wrap foot">
-    <p>Data: <code id="src-path"></code> · Design: <a href="?skin=a">A</a> <a href="?skin=b">B</a> <a href="?skin=c">C</a></p>
+    <p>Data: <code id="src-path"></code></p>
   </footer>
 
   <script src="app.js"></script>
