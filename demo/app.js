@@ -383,6 +383,7 @@
   function pager(secs) {
     const NAV = 49;
     const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     const targetY = (s) => {
       const top = s.getBoundingClientRect().top + scrollY, h = s.offsetHeight, vh = innerHeight - NAV;
       const pad = parseFloat(getComputedStyle(s).paddingTop) || 0;
@@ -392,35 +393,58 @@
       const mid = innerHeight / 2;
       return secs.find((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; }) || secs[0];
     };
-    let lockUntil = 0, quiet = 0;
+    // Can this section still scroll natively in direction dir? (content only; padding hanging off an edge doesn't count)
+    const moreInside = (cur, dir) => {
+      const r = cur.getBoundingClientRect(), cs = getComputedStyle(cur);
+      return dir > 0 ? r.bottom - parseFloat(cs.paddingBottom) > innerHeight + 2 : r.top + parseFloat(cs.paddingTop) < NAV - 2;
+    };
+
+    let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0;
+    const settle = () => { moving = false; };
+    addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
     const go = (s) => {
-      lockUntil = performance.now() + (reduced() ? 150 : 750);
+      moving = true; tail = true;
+      until = performance.now() + (reduced() ? 150 : 1100);         // hard cap if scrollend never fires
+      setTimeout(() => { if (performance.now() >= until) settle(); }, (reduced() ? 150 : 1100) + 20);
       scrollTo({ top: targetY(s), behavior: reduced() ? "instant" : "smooth" });
     };
-    const step = (dir, e) => {
-      if (innerWidth < 760) return false;
-      const now = performance.now();
-      if (now < lockUntil || now - quiet < 120) { e?.preventDefault(); quiet = now; return true; }
-      const cur = current(), r = cur.getBoundingClientRect(), i = secs.indexOf(cur), cs = getComputedStyle(cur);
-      // Only content counts: padding hanging off the edge is not "more to read".
-      if (dir > 0 && r.bottom - parseFloat(cs.paddingBottom) > innerHeight + 2) return false;   // more of this section below
-      if (dir < 0 && r.top + parseFloat(cs.paddingTop) < NAV - 2) return false;                 // more of this section above
-      const next = secs[i + dir];
+    const jump = (dir) => {
+      const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
-      e?.preventDefault();
-      quiet = now;
       go(next);
       return true;
     };
+
     addEventListener("wheel", (e) => {
-      if (Math.abs(e.deltaY) < 3 || e.ctrlKey) return;
-      if (performance.now() < lockUntil) { e.preventDefault(); quiet = performance.now(); return; }
-      step(Math.sign(e.deltaY), e);
+      if (e.ctrlKey || innerWidth < 760) return;
+      const now = performance.now(), gap = now - lastEvt;
+      lastEvt = now;
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
+      if (!dy) return;
+      const dir = Math.sign(dy);
+      // 1. While a jump is animating, swallow everything.
+      if (moving) { e.preventDefault(); return; }
+      // 2. Momentum that keeps arriving right after a jump is the same gesture: swallow it until it pauses.
+      if (tail && gap < 180) { e.preventDefault(); return; }
+      tail = false;
+      // 3. Inside a section taller than the screen, scroll normally until its edge.
+      const cur = current();
+      if (moreInside(cur, dir)) { acc = 0; return; }
+      // 4. Otherwise collect small trackpad steps into one deliberate jump.
+      e.preventDefault();
+      if (dir !== accDir || gap > 300) { acc = 0; accDir = dir; }
+      acc += dy;
+      if (Math.abs(acc) >= 40) { acc = 0; jump(dir); }
     }, { passive: false });
+
     addEventListener("keydown", (e) => {
-      if (e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      if (innerWidth < 760 || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
       const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
-      if (dir) step(dir, e);
+      if (!dir) return;
+      if (moving) { e.preventDefault(); return; }
+      if (moreInside(current(), dir)) return;
+      e.preventDefault();
+      jump(dir);
     });
   }
 
