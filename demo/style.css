@@ -28,22 +28,52 @@
   --mock-ink: #7a5a00;
   --shadow: 0 24px 48px -20px rgba(30, 40, 70, .22), 0 2px 6px rgba(0, 0, 0, .05);
 
-  --serif: "Fraunces", Georgia, serif;
-  --sans: "Geist", "Segoe UI", system-ui, sans-serif;
-  --mono: "Geist Mono", ui-monospace, Consolas, monospace;
-  --hand-font: "Caveat", "Segoe Print", cursive;
-  /* Type scale: the only font styles used. Serif 400 (+ italic); sans 400/500/600; mono 500; hand 600. */
-  --t-display: 400 56px/1.05 var(--serif);
-  --t-lead:    400 28px/1.3 var(--serif);
-  --t-title:   400 24px/1.25 var(--serif);
+  /* Font roles + type scale. Skins (html[data-skin]) override only the role variables below;
+     media queries only change --d-size / --lead-size / --h-size. */
+  --display: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --sans: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --note: var(--mono);
+  --d-weight: 700; --d-size: 56px; --d-scale: .95; --d-track: -.04em; --d-em: normal;
+  --h-weight: 600; --h-size: 20px;
+  --lead-font: var(--sans); --lead-weight: 500; --lead-size: 26px; --lead-scale: 1;
+  --note-weight: 500; --note-size: 14px; --note-rot: 0deg;
+  --r-lg: 12px; --r-md: 10px; --r-pill: 8px;
+  --t-display: var(--d-weight) calc(var(--d-size) * var(--d-scale))/1.06 var(--display);
+  --t-lead:    var(--lead-weight) calc(var(--lead-size) * var(--lead-scale))/1.32 var(--lead-font);
+  --t-title:   var(--h-weight) var(--h-size)/1.25 var(--display);
   --t-body:    400 15px/1.5 var(--sans);
   --t-strong:  600 15px/1.3 var(--sans);
   --t-ui:      500 14px/1 var(--sans);
   --t-small:   400 13px/1.45 var(--sans);
   --t-label:   600 11px/1.2 var(--sans);
   --t-mono:    500 12px/1.4 var(--mono);
-  --t-hand:    600 28px/1.1 var(--hand-font);
+  --t-hand:    var(--note-weight) var(--note-size)/1.3 var(--note);
   color-scheme: light;
+}
+
+/* ---- Design directions (pick one; ?skin=a|b|c) ---- */
+/* A · Grotesk: Swiss, sharp, confident sans headlines. (defaults above) */
+html[data-skin="b"] {   /* B · Lab mono: technical, audit-log feel */
+  --display: "Martian Mono", ui-monospace, Consolas, monospace;
+  --sans: "Hanken Grotesk", "Segoe UI", system-ui, sans-serif;
+  --mono: "Martian Mono", ui-monospace, Consolas, monospace;
+  --d-weight: 500; --d-scale: .68; --d-track: -.03em;
+  --h-weight: 500; --h-size: 17px;
+  --lead-font: var(--sans); --lead-weight: 400; --lead-scale: .92;
+  --note-size: 12px;
+  --r-lg: 6px; --r-md: 4px; --r-pill: 4px;
+}
+html[data-skin="c"] {   /* C · Soft grotesque: friendly, rounded, characterful */
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, Consolas, monospace;
+  --note: var(--display);
+  --d-weight: 700; --d-scale: 1.02; --d-track: -.045em;
+  --h-weight: 600; --h-size: 22px;
+  --lead-font: var(--display); --lead-weight: 500; --lead-scale: .95;
+  --note-weight: 600; --note-size: 20px; --note-rot: -2deg;
+  --r-lg: 22px; --r-md: 18px; --r-pill: 999px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -89,14 +119,14 @@ code { font: var(--t-mono); }
 .tabs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
 .tabs button {
   font: var(--t-ui); color: var(--ink); background: var(--surface); border: 1px solid var(--rule);
-  border-radius: 999px; padding: 12px 18px; cursor: pointer; white-space: nowrap;
+  border-radius: var(--r-pill); padding: 12px 18px; cursor: pointer; white-space: nowrap;
 }
 .tabs button em { font: var(--t-mono); font-style: normal; opacity: .6; margin-right: 6px; }
 .tabs button[aria-current="step"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .actions { display: flex; gap: 8px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: var(--t-ui);
-  padding: 11px 18px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface);
+  padding: 11px 18px; border-radius: var(--r-pill); border: 1px solid var(--rule); background: var(--surface);
   color: var(--ink); text-decoration: none; cursor: pointer;
 }
 .btn.icon { padding: 11px 14px; }
@@ -107,8 +137,8 @@ code { font: var(--t-mono); }
 .head { display: grid; gap: 20px; padding-block: 18px 28px; }
 .head-text { display: grid; gap: 10px; min-width: 0; }
 .eyebrow { margin: 0; font: var(--t-label); letter-spacing: .08em; text-transform: uppercase; color: var(--blue); }
-h1 { margin: 0; font: var(--t-display); letter-spacing: -.03em; text-wrap: balance; }
-h1 em { font-style: italic; color: var(--ink-2); }
+h1 { margin: 0; font: var(--t-display); letter-spacing: var(--d-track); text-wrap: balance; }
+h1 em { font-style: var(--d-em); color: var(--ink-2); }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .controls .mock { order: 9; margin-left: auto; }
 .mock { font: var(--t-mono); letter-spacing: .06em; color: var(--mock-ink); background: var(--mock-bg); border: 1px solid color-mix(in srgb, var(--mock-ink) 25%, transparent); padding: 6px 9px; border-radius: 6px; }
@@ -123,7 +153,7 @@ h1 em { font-style: italic; color: var(--ink-2); }
 body.show-all #stage-outcome { margin-top: 48px; }
 
 /* Canvas: blueprint board + inspector */
-.canvas { display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--grid); border-radius: 16px; overflow: hidden; background: var(--surface); }
+.canvas { display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--grid); border-radius: var(--r-lg); overflow: hidden; background: var(--surface); }
 .board {
   position: relative; padding: 36px 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; min-width: 0;
   background-color: var(--board);
@@ -142,7 +172,7 @@ body.show-all #stage-outcome { margin-top: 48px; }
 .pair { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
 
 /* Windows */
-.win { position: relative; background: var(--paper); border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius: 14px; box-shadow: var(--shadow); min-width: 0; }
+.win { position: relative; background: var(--paper); border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius: var(--r-md); box-shadow: var(--shadow); min-width: 0; }
 .win.lane { cursor: pointer; text-align: left; font: inherit; color: inherit; padding: 0; width: 100%; }
 .win.lane[aria-pressed="true"] { outline: 2px solid var(--blue); outline-offset: 3px; }
 .win-bar { display: flex; align-items: center; gap: 7px; padding: 14px 16px; min-width: 0; }
@@ -152,7 +182,7 @@ body.show-all #stage-outcome { margin-top: 48px; }
 .win-body { padding: 2px 24px 24px; display: grid; gap: 10px; }
 .win h3 { margin: 0; font: var(--t-title); letter-spacing: -.01em; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { font: var(--t-small); line-height: 1; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); white-space: nowrap; }
+.chip { font: var(--t-small); line-height: 1; padding: 6px 10px; border-radius: var(--r-pill); border: 1px solid var(--rule); background: var(--surface); color: var(--ink-2); white-space: nowrap; }
 .chip.valid { color: var(--valid); border-color: color-mix(in srgb, var(--valid) 40%, transparent); }
 .chip.unsup { color: var(--unsup); border-color: color-mix(in srgb, var(--unsup) 45%, transparent); }
 .chip.clarify { color: var(--clarify); border-color: color-mix(in srgb, var(--clarify) 40%, transparent); }
@@ -180,7 +210,7 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .pin::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--blue)); flex: none; }
 .pin .k { font: var(--t-label); letter-spacing: .08em; text-transform: uppercase; color: var(--c, var(--blue)); }
 .pin.inline { position: static; box-shadow: none; padding: 5px 8px; max-width: 100%; }
-.hand { margin: 0; font: var(--t-hand); color: var(--clarify); transform: rotate(-3deg); }
+.hand { margin: 0; font: var(--t-hand); color: var(--clarify); transform: rotate(var(--note-rot)); }
 .hand span { display: block; color: var(--ink-2); }
 .board > .hand { position: relative; z-index: 1; justify-self: end; text-align: right; margin: -6px 12px 0; }
 
@@ -201,7 +231,7 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .lead { margin: 0 0 28px; font: var(--t-lead); letter-spacing: -.01em; }
 .lead span { color: var(--ink-3); }
 .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 32px; }
-.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 22px; display: grid; gap: 10px; align-content: start; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); padding: 22px; display: grid; gap: 10px; align-content: start; }
 .card small { font: var(--t-label); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
 .card b { font: var(--t-title); font-variant-numeric: tabular-nums; }
 .card p { margin: 0; font: var(--t-small); color: var(--ink-2); }
@@ -224,7 +254,7 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 .inspector .hash { margin-top: 19px; }
 
 /* Pipeline + footer */
-.how { margin-top: 48px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 22px; }
+.how { margin-top: 48px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); padding: 16px 22px; }
 .how summary { cursor: pointer; font: var(--t-ui); }
 .how-fig { overflow-x: auto; margin-top: 16px; }
 .how-fig img { display: block; width: 100%; min-width: 880px; height: auto; border-radius: 8px; }
@@ -234,10 +264,10 @@ mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2
 
 /* Responsive */
 @media (max-width: 1100px) {
-  :root { --t-display: 400 46px/1.06 var(--serif); --t-lead: 400 24px/1.3 var(--serif); }
+  :root { --d-size: 46px; --lead-size: 22px; }
 }
 @media (max-width: 760px) {
-  :root { --t-display: 400 38px/1.08 var(--serif); --t-title: 400 21px/1.25 var(--serif); --t-hand: 600 24px/1.1 var(--hand-font); }
+  :root { --d-size: 36px; --lead-size: 20px; }
   .pair { grid-template-columns: minmax(0, 1fr); gap: 28px; }
   .board { padding: 20px 14px 28px; }
   .inspector { grid-template-columns: minmax(0, 1fr); padding: 20px; }

@@ -8,6 +8,8 @@
 
   const params = new URLSearchParams(location.search);
   const RUN = (params.get("run") || "mock-smoke").replace(/[^a-z0-9_.-]/gi, "");
+  const SKIN = ["a", "b", "c"].includes(params.get("skin")) ? params.get("skin") : "a";
+  document.documentElement.dataset.skin = SKIN;
   const BASE = `data/results/${RUN}/`;
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
   const LANES = [
