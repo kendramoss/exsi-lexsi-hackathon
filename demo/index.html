@@ -80,6 +80,13 @@
       </div>
       <p class="fineprint" id="score-note"></p>
     </section>
+    <details class="how">
+      <summary>How it's built: CuratorKIT → SafeTune → AuditKIT</summary>
+      <div class="how-fig">
+        <img src="assets/pipeline.svg" width="1300" height="540" loading="lazy"
+             alt="Pipeline. CuratorKIT validates labelled sources and makes two exports. The training export goes to SafeTune (LoRA on Tiny Aya Global) and to an ordinary SFT control. The untouched eval pack is hashed before any outputs and goes straight to AuditKIT, never through training. AuditKIT scores both adapters and the inference-only baselines on identical cases, and the saved results feed this demo and the HF Article.">
+      </div>
+    </details>
   </main>
 
   <footer class="wrap foot">

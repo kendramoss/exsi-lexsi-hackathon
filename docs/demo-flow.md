@@ -19,3 +19,11 @@ One matched pair: same question and passage, two corrections. Each beat maps to 
 1. Is "Evidence-aware prompt" the right strongest cheap baseline to show, or TF-IDF gate (#8)?
 2. Should bare pressure get its own lane? It's in the data and the metrics but not on screen.
 3. Which pair goes first in the live demo: the document question or the table arithmetic one?
+
+## Visual assets (#13)
+
+| Asset | Files | Use |
+|---|---|---|
+| Pipeline diagram | `docs/assets/pipeline.svg` (follows light/dark), `pipeline.png` / `pipeline-dark.png` (2600×1080) | HF Article, slides, and the demo's "How it's built" section (`demo/assets/pipeline.svg`) |
+
+Its main point is that the eval pack goes straight from CuratorKIT to AuditKIT and never through training. If the pipeline changes, edit the SVG in `demo/assets/`, copy it to `docs/assets/`, and re-export the PNGs.
