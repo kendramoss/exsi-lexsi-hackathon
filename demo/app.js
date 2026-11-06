@@ -299,6 +299,7 @@
     new ResizeObserver(sizes).observe(document.body);
     sizes();
     update();
+    pager(secs);
     document.addEventListener("click", (e) => {
       const a = e.target.closest('a[href^="#"]');
       if (!a) return;
@@ -306,10 +307,55 @@
       if (!t) return;
       e.preventDefault();
       const tall = t.offsetHeight > innerHeight - 49;
-      t.scrollIntoView({ block: tall ? "start" : "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      t.scrollIntoView({ block: tall ? "start" : "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
       history.replaceState(null, "", a.getAttribute("href"));
     });
   }
+  // Hard paging: one wheel flick / key press moves to the next or previous section, centred
+  // (tall sections land with their heading at the top). Inside a tall section, or the sideways
+  // showcase, normal scrolling continues until its edge. Off on phones.
+  function pager(secs) {
+    const NAV = 49;
+    const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const targetY = (s) => {
+      const top = s.getBoundingClientRect().top + scrollY, h = s.offsetHeight, vh = innerHeight - NAV;
+      return Math.max(0, h <= vh ? top + h / 2 - (NAV + vh / 2) : top - NAV);
+    };
+    const current = () => {
+      const mid = innerHeight / 2;
+      return secs.find((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; }) || secs[0];
+    };
+    let lockUntil = 0, quiet = 0;
+    const go = (s) => {
+      lockUntil = performance.now() + (reduced() ? 150 : 750);
+      scrollTo({ top: targetY(s), behavior: reduced() ? "instant" : "smooth" });
+    };
+    const step = (dir, e) => {
+      if (innerWidth < 760) return false;
+      const now = performance.now();
+      if (now < lockUntil || now - quiet < 120) { e?.preventDefault(); quiet = now; return true; }
+      const cur = current(), r = cur.getBoundingClientRect(), i = secs.indexOf(cur);
+      if (dir > 0 && r.bottom > innerHeight + 2) return false;   // more of this section below
+      if (dir < 0 && r.top < NAV - 2) return false;              // more of this section above
+      const next = secs[i + dir];
+      if (!next) return false;
+      e?.preventDefault();
+      quiet = now;
+      go(next);
+      return true;
+    };
+    addEventListener("wheel", (e) => {
+      if (Math.abs(e.deltaY) < 3 || e.ctrlKey) return;
+      if (performance.now() < lockUntil) { e.preventDefault(); quiet = performance.now(); return; }
+      step(Math.sign(e.deltaY), e);
+    }, { passive: false });
+    addEventListener("keydown", (e) => {
+      if (e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
+      if (dir) step(dir, e);
+    });
+  }
+
   function selectors() {
     const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
     state.family = fams[0];
