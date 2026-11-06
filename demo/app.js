@@ -292,8 +292,12 @@
       document.body.classList.add("focus-on");
       links.forEach((a) => { if (a.dataset.sec === best.id) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
     };
+    // Sections taller than the screen snap to their top instead of the centre.
+    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", s.scrollHeight > innerHeight - 49));
     addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
-    addEventListener("resize", update);
+    addEventListener("resize", () => { sizes(); update(); });
+    new ResizeObserver(sizes).observe(document.body);
+    sizes();
     update();
     document.addEventListener("click", (e) => {
       const a = e.target.closest('a[href^="#"]');

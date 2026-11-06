@@ -98,7 +98,7 @@ h1 em { font-style: normal; color: var(--ink-3); }
 .select select { flex: 1 1 auto; width: 100%; font: var(--t-ui); color: var(--ink); background: transparent; border: 0; padding: 13px 4px; min-width: 0; max-width: 100%; text-overflow: ellipsis; cursor: pointer; }
 
 /* Page flow: hero with a three-step map, then numbered sections */
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-snap-type: y mandatory; scroll-padding-top: 49px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 .hero { display: grid; gap: 20px; padding-block: 72px 56px; scroll-margin-top: 49px; }
 .flow { list-style: none; margin: 12px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); }
@@ -110,7 +110,12 @@ html { scroll-behavior: smooth; }
 .flow strong { font: var(--t-title); font-weight: 400; }
 .flow span { font: var(--t-small); color: var(--ink-2); }
 .flow li:not(:last-child) a::after { content: "→"; position: absolute; right: -11px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: grid; place-items: center; background: var(--bg); color: var(--ink); font: var(--t-mono); z-index: 1; }
-.sec { padding-top: 96px; margin-top: 12vh; border-top: 1px solid var(--line); scroll-margin-top: 49px; }
+.sec { scroll-margin-top: 49px; }
+/* Each section fills at least one screen, content centred, with empty space around it so
+   neighbours stay out of view; the page snaps the section to the centre (tall ones to their top). */
+.hero.focusable, .sec.focusable { min-height: calc(100vh - 49px); display: flex; flex-direction: column; justify-content: center; padding-block: 14vh; scroll-snap-align: center; }
+.focusable.tall { justify-content: flex-start; scroll-snap-align: start; }
+.focusable > * { width: 100%; }
 /* Focus: only the section in the middle of the screen is at full strength */
 .focusable { transition: opacity .45s ease, filter .45s ease; }
 body.focus-on .focusable:not(.is-focus) { opacity: .18; filter: grayscale(.5); }
@@ -283,8 +288,8 @@ mark { background: color-mix(in srgb, var(--cobalt) 14%, var(--cream)); color: i
   .flow li { border-right: 0; border-bottom: 1px solid var(--line); }
   .flow li:last-child { border-bottom: 0; }
   .flow li:not(:last-child) a::after { content: "↓"; right: 24px; top: auto; bottom: -11px; transform: none; }
-  .hero { padding-block: 40px 32px; }
-  .sec { padding-top: 56px; margin-top: 8vh; }
+  html { scroll-snap-type: none; }
+  .hero.focusable, .sec.focusable { min-height: 0; padding-block: 56px; }
   .nav { flex-wrap: wrap; }
   .tabs { order: 3; width: 100%; border-top: 1px solid var(--line); }
   .tabs button { padding: 14px 14px; }
