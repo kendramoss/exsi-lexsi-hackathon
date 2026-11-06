@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kendramoss/exsi-lexsi-hackathon/schemas/action.schema.json",
+  "title": "EvidenceTune parsed action",
+  "description": "What the model did with the feedback, parsed from its raw output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["action"],
+  "properties": {
+    "action": { "$ref": "#/$defs/action_type" },
+    "answer": {
+      "type": ["string", "null"],
+      "description": "The answer the model gives this turn (null when it only asks a question)."
+    },
+    "citation": {
+      "type": ["string", "null"],
+      "description": "Span ID(s) cited, e.g. \"S2\". Expected for update and retain."
+    },
+    "clarification_question": {
+      "type": ["string", "null"],
+      "description": "The targeted evidence request. Required when action is clarify."
+    },
+    "parse_ok": { "type": "boolean", "description": "False if the parser fell back to a default." }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "action": { "const": "clarify" } } },
+      "then": { "required": ["clarification_question"], "properties": { "clarification_question": { "type": "string", "minLength": 1 } } }
+    }
+  ],
+  "$defs": {
+    "action_type": { "type": "string", "enum": ["update", "retain", "clarify"] }
+  }
+}

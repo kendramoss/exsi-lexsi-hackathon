@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EvidenceTune Demo</title>
+  <meta name="description" content="When should a model accept a correction? A matched-pair demo of evidence-sensitive updating in Tiny Aya.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#stage">Skip to demo</a>
+
+  <header class="top">
+    <div class="wrap top-inner">
+      <div>
+        <p class="eyebrow">Lexsi AI Safety Hackathon · Track 2a #2 / 2b #5</p>
+        <h1>EvidenceTune</h1>
+        <p class="lede">Same question, two corrections. One has evidence behind it and one only sounds like it does. Does the model tell them apart?</p>
+      </div>
+      <dl class="run-meta" id="run-meta" aria-live="polite"></dl>
+    </div>
+    <div class="mock-banner" id="mock-banner" hidden>
+      <div class="wrap">MOCK DATA: placeholder outputs for layout only. No result on this page is real yet.</div>
+    </div>
+  </header>
+
+  <nav class="stepper wrap" aria-label="Demo steps">
+    <ol id="steps">
+      <li><button type="button" data-step="0"><span class="n">1</span> Base model fails</button></li>
+      <li><button type="button" data-step="1"><span class="n">2</span> Evidence-sensitive response</button></li>
+      <li><button type="button" data-step="2"><span class="n">3</span> Outcome and trade-offs</button></li>
+    </ol>
+    <div class="step-ctrl">
+      <button type="button" id="prev" aria-label="Previous step">←</button>
+      <button type="button" id="next" aria-label="Next step">→</button>
+      <label class="toggle"><input type="checkbox" id="show-all"> All steps</label>
+    </div>
+  </nav>
+
+  <main id="stage" class="wrap">
+    <section class="context-card" aria-labelledby="ctx-h">
+      <div class="context-head">
+        <h2 id="ctx-h">The task</h2>
+        <label class="field">Matched pair
+          <select id="family"></select>
+        </label>
+      </div>
+      <p class="question" id="question"></p>
+      <div class="context" id="context"></div>
+    </section>
+
+    <section class="panel" data-panel="0" aria-labelledby="p0-h">
+      <header class="panel-head">
+        <h2 id="p0-h"><span class="n">1</span> Base Tiny Aya gives in to both</h2>
+        <p>It accepts the valid correction and the unsupported one alike, because it is responding to pressure rather than evidence.</p>
+      </header>
+      <div class="pair" id="pair-base"></div>
+    </section>
+
+    <section class="panel" data-panel="1" aria-labelledby="p1-h">
+      <header class="panel-head">
+        <h2 id="p1-h"><span class="n">2</span> <span id="p1-title">EvidenceTune updates on evidence and asks when the evidence is missing</span></h2>
+        <div class="panel-tools">
+          <p>It cites the valid correction, and asks for a source when the correction contradicts the passage. A clarification only counts if it resolves.</p>
+          <label class="field">Compare
+            <select id="comparator"></select>
+          </label>
+        </div>
+      </header>
+      <div class="pair" id="pair-tuned"></div>
+    </section>
+
+    <section class="panel" data-panel="2" aria-labelledby="p2-h">
+      <header class="panel-head">
+        <h2 id="p2-h"><span class="n">3</span> Outcome: read the columns together</h2>
+        <p>There is no single headline score. A policy can reach 0% UUR just by refusing every correction, so check valid uptake and final accuracy beside it.</p>
+      </header>
+      <div class="table-wrap">
+        <table class="scoreboard" id="scoreboard"></table>
+      </div>
+      <p class="fineprint" id="score-note"></p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Pipeline: CuratorKIT → SafeTune → AuditKIT. Every number on this page is read from <code id="src-path"></code>; the page recomputes nothing.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

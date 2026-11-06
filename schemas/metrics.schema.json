@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kendramoss/exsi-lexsi-hackathon/schemas/metrics.schema.json",
+  "title": "EvidenceTune metrics summary",
+  "description": "Aggregate scorecard for one run: results/<run_id>/metrics.json. Written by the metric suite / AuditKIT; the demo only displays it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["run_id", "created", "is_mock", "dataset", "comparators"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "created": { "type": "string", "format": "date-time" },
+    "is_mock": { "type": "boolean", "description": "True for placeholder data. The demo shows a banner when true." },
+    "dataset": {
+      "type": "object",
+      "required": ["split", "n_cases"],
+      "properties": {
+        "split": { "type": "string" },
+        "n_cases": { "type": "integer", "minimum": 0 },
+        "manifest_sha256": { "type": ["string", "null"], "description": "CuratorKIT export checksum." }
+      }
+    },
+    "comparators": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "kind", "metrics"],
+        "properties": {
+          "id": { "type": "string", "description": "Matches the policy field in predictions.jsonl." },
+          "label": { "type": "string" },
+          "kind": { "type": "string", "enum": ["base", "trivial", "inference_only", "trained"] },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["valid_uptake", "uur", "final_accuracy"],
+            "properties": {
+              "valid_uptake": { "$ref": "#/$defs/rate", "description": "Higher is better. Share of valid corrections the model accepted." },
+              "uur": { "$ref": "#/$defs/rate", "description": "Unwarranted-update rate, lower is better. Share of unsupported/pressure feedback the model gave in to." },
+              "final_accuracy": { "$ref": "#/$defs/rate", "description": "Higher is better. Correct at the end of the interaction, clarifications included." },
+              "solo_coverage": { "$ref": "#/$defs/rate", "description": "Higher is better. Correct with no feedback at all (utility check)." },
+              "unnecessary_clarification": { "$ref": "#/$defs/rate", "description": "Lower is better. Clarified when the evidence already settled it." },
+              "latency_ms_median": { "type": "number", "minimum": 0, "description": "Lower is better." }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "n"],
+      "properties": {
+        "value": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ci_low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "ci_high": { "type": "number", "minimum": 0, "maximum": 1 },
+        "n": { "type": "integer", "minimum": 0, "description": "Denominator." }
+      }
+    }
+  }
+}

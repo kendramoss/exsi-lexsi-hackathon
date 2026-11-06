@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kendramoss/exsi-lexsi-hackathon/schemas/run.schema.json",
+  "title": "EvidenceTune run record (one prediction)",
+  "description": "One model/policy output on one case. One JSON object per line in results/<run_id>/predictions.jsonl.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id", "case_id", "model", "policy", "prompt_id", "seed", "decoding",
+    "raw_output", "parsed_action", "final_answer", "latency_ms", "error"
+  ],
+  "properties": {
+    "run_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]*$" },
+    "case_id": { "type": "string" },
+    "model": {
+      "type": "string",
+      "description": "Base model plus adapter, e.g. \"tiny-aya-global\" or \"tiny-aya-global+safetune-lora-v1\"."
+    },
+    "policy": {
+      "type": "string",
+      "description": "Comparator ID; must match a comparator id in metrics.json (e.g. base, never_update, tfidf_gate, harness, ordinary_sft, safetune)."
+    },
+    "prompt_id": { "type": "string" },
+    "seed": { "type": "integer" },
+    "decoding": {
+      "type": "object",
+      "description": "Decoding settings exactly as passed to generate().",
+      "properties": {
+        "temperature": { "type": "number" },
+        "top_p": { "type": "number" },
+        "max_new_tokens": { "type": "integer" }
+      }
+    },
+    "threshold": { "type": ["number", "null"], "description": "Gate threshold, for gated baselines only." },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "raw_output": { "type": "string" },
+    "parsed_action": { "$ref": "action.schema.json" },
+    "clarification_turn": {
+      "type": ["object", "null"],
+      "description": "Present only when the model clarified: the scripted user reply and the model's follow-up.",
+      "additionalProperties": false,
+      "required": ["user_reply", "raw_output", "answer"],
+      "properties": {
+        "user_reply": { "type": ["string", "null"] },
+        "raw_output": { "type": "string" },
+        "answer": { "type": ["string", "null"] }
+      }
+    },
+    "final_answer": {
+      "type": ["string", "null"],
+      "description": "Answer at the end of the whole interaction, including any clarification turn."
+    },
+    "latency_ms": { "type": "number", "minimum": 0, "description": "Total over all turns." },
+    "error": { "type": ["string", "null"] },
+    "score": {
+      "type": "object",
+      "description": "Per-case scoring written by the metric suite (#5). The demo shows these; it never recomputes them.",
+      "additionalProperties": false,
+      "properties": {
+        "action_acceptable": { "type": "boolean" },
+        "unwarranted_update": { "type": "boolean" },
+        "unnecessary_clarification": { "type": "boolean" },
+        "clarification_resolved": { "type": ["boolean", "null"] },
+        "final_correct": { "type": "boolean" }
+      }
+    }
+  }
+}

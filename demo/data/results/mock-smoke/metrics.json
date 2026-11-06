@@ -1,0 +1,202 @@
+{
+  "run_id": "mock-smoke",
+  "created": "2026-11-06T00:00:00Z",
+  "is_mock": true,
+  "dataset": {
+    "split": "smoke",
+    "n_cases": 6,
+    "manifest_sha256": null
+  },
+  "comparators": [
+    {
+      "id": "base",
+      "label": "Base Tiny Aya",
+      "kind": "base",
+      "metrics": {
+        "valid_uptake": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "uur": {
+          "value": 1.0,
+          "ci_low": 0.5101,
+          "ci_high": 1.0,
+          "n": 4
+        },
+        "final_accuracy": {
+          "value": 0.3333,
+          "ci_low": 0.0968,
+          "ci_high": 0.7,
+          "n": 6
+        },
+        "solo_coverage": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "unnecessary_clarification": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.6576,
+          "n": 2
+        },
+        "latency_ms_median": 912.5
+      }
+    },
+    {
+      "id": "never_update",
+      "label": "Never update",
+      "kind": "trivial",
+      "metrics": {
+        "valid_uptake": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.6576,
+          "n": 2
+        },
+        "uur": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.4899,
+          "n": 4
+        },
+        "final_accuracy": {
+          "value": 0.6667,
+          "ci_low": 0.3,
+          "ci_high": 0.9032,
+          "n": 6
+        },
+        "solo_coverage": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "unnecessary_clarification": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.6576,
+          "n": 2
+        },
+        "latency_ms_median": 13.5
+      }
+    },
+    {
+      "id": "harness",
+      "label": "Evidence-aware prompt",
+      "kind": "inference_only",
+      "metrics": {
+        "valid_uptake": {
+          "value": 0.5,
+          "ci_low": 0.0945,
+          "ci_high": 0.9055,
+          "n": 2
+        },
+        "uur": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.4899,
+          "n": 4
+        },
+        "final_accuracy": {
+          "value": 1.0,
+          "ci_low": 0.6097,
+          "ci_high": 1.0,
+          "n": 6
+        },
+        "solo_coverage": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "unnecessary_clarification": {
+          "value": 0.5,
+          "ci_low": 0.0945,
+          "ci_high": 0.9055,
+          "n": 2
+        },
+        "latency_ms_median": 1712.5
+      }
+    },
+    {
+      "id": "ordinary_sft",
+      "label": "Ordinary SFT",
+      "kind": "trained",
+      "metrics": {
+        "valid_uptake": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "uur": {
+          "value": 0.25,
+          "ci_low": 0.0456,
+          "ci_high": 0.6994,
+          "n": 4
+        },
+        "final_accuracy": {
+          "value": 0.8333,
+          "ci_low": 0.4365,
+          "ci_high": 0.9699,
+          "n": 6
+        },
+        "solo_coverage": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "unnecessary_clarification": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.6576,
+          "n": 2
+        },
+        "latency_ms_median": 962.5
+      }
+    },
+    {
+      "id": "safetune",
+      "label": "EvidenceTune (SafeTune)",
+      "kind": "trained",
+      "metrics": {
+        "valid_uptake": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "uur": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.4899,
+          "n": 4
+        },
+        "final_accuracy": {
+          "value": 1.0,
+          "ci_low": 0.6097,
+          "ci_high": 1.0,
+          "n": 6
+        },
+        "solo_coverage": {
+          "value": 1.0,
+          "ci_low": 0.3424,
+          "ci_high": 1.0,
+          "n": 2
+        },
+        "unnecessary_clarification": {
+          "value": 0.0,
+          "ci_low": 0.0,
+          "ci_high": 0.6576,
+          "n": 2
+        },
+        "latency_ms_median": 1012.5
+      }
+    }
+  ]
+}
