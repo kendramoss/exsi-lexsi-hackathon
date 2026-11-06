@@ -17,9 +17,8 @@
     <div class="nav">
       <a class="logo" href="./" aria-label="EvidenceTune home">evidence<span>[tune]</span></a>
       <nav class="tabs" aria-label="Demo steps" id="steps">
-        <button type="button" data-step="0"><em>01</em>Base model</button>
-        <button type="button" data-step="1"><em>02</em>Tuned model</button>
-        <button type="button" data-step="2"><em>03</em>Results</button>
+        <button type="button" data-step="0"><em>01</em>Compare</button>
+        <button type="button" data-step="1"><em>02</em>Results</button>
       </nav>
       <div class="actions">
         <button type="button" class="btn icon" id="prev" aria-label="Previous step">←</button>
@@ -38,19 +37,23 @@
       <div class="controls">
         <span class="mock" id="mock-badge" hidden>MOCK DATA</span>
         <label class="select" for="family"><span>Example</span><select id="family"></select></label>
-        <label class="select" for="comparator" id="comparator-wrap"><span>Model</span><select id="comparator"></select></label>
+        <label class="select" for="comparator" id="comparator-wrap"><span>Compare with</span><select id="comparator"></select></label>
       </div>
     </section>
 
-    <section class="stage" id="stage-pair" aria-label="Matched pair">
+    <section class="stage" id="stage-pair" aria-label="Compare base and tuned model">
       <div class="canvas">
         <div class="board">
           <article class="passage" id="passage"></article>
+          <div class="pushbox">
+            <div class="seg pushseg" id="pushseg" role="tablist" aria-label="Type of pushback"></div>
+            <article class="push" id="push"></article>
+          </div>
           <div class="pair" id="pair"></div>
           <p class="hand" id="note" hidden></p>
           <div class="pixels" id="pixels" aria-hidden="true"></div>
         </div>
-        <aside class="inspector" id="inspector" aria-label="Case inspector"></aside>
+        <aside class="inspector" id="inspector" aria-label="Scorecard for this example"></aside>
       </div>
     </section>
 

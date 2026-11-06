@@ -203,6 +203,24 @@ mark { background: color-mix(in srgb, var(--cobalt) 14%, var(--cream)); color: i
 .error { border: 1px solid var(--bad); color: var(--bad); padding: 14px; font: var(--t-small); background: var(--surface); }
 
 
+/* Compare view: pushback switch + shared pushback panel, base vs tuned replies, scorecard */
+.pushbox { display: grid; gap: 0; border: 1px solid var(--cobalt); background: var(--cream); color: var(--cobalt); }
+.pushseg { display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--cobalt); }
+.pushseg button { font: var(--t-ui); padding: 14px 18px; border: 0; border-right: 1px solid var(--cobalt); background: transparent; color: var(--cobalt); cursor: pointer; }
+.pushseg button[aria-selected="true"] { background: var(--cobalt); color: var(--cream); }
+.push { display: grid; gap: 12px; padding: 18px 22px 20px; --valid: #157a55; --unsup: #c25a12; }
+.win-bar span { margin-left: 8px; font: var(--t-mono); color: var(--cobalt-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.inspector { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+.mini { width: 100%; min-width: 520px; border-collapse: collapse; font: var(--t-small); }
+.mini th, .mini td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--soft-line); }
+.mini thead th { font: var(--t-label); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); border-bottom: 1px solid var(--line); }
+.mini tbody th { font: var(--t-strong); font-size: 14px; }
+.mini tbody tr { cursor: pointer; }
+.mini tbody tr.hl { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.mini tbody tr:last-child th, .mini tbody tr:last-child td { border-bottom: 0; }
+.mini td.ok { color: var(--valid); } .mini td.ko { color: var(--bad); }
+.inspector .hash { margin: 12px 0 0; }
+
 /* Horizontal showcase */
 .hs { position: relative; margin: 64px calc(-1 * var(--gutter)) 0; border-top: 1px solid var(--line); }
 .hs-sticky { position: sticky; top: 49px; height: calc(100vh - 49px); display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }

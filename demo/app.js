@@ -51,7 +51,6 @@
   const predOf = (id, pol) => preds.find((r) => r.case_id === id && r.policy === pol);
   const comp = (id) => metrics.comparators.find((c) => c.id === id);
   const label = (id) => (comp(id) || { label: id }).label;
-  const policy = () => (state.step === 0 ? "base" : state.comparator);
 
   // ---------- helpers ----------
   function el(tag, attrs = {}, ...kids) {
@@ -90,6 +89,10 @@
   const citedIds = (p) => (p && p.parsed_action.citation ? p.parsed_action.citation.split(/[,\s]+/).filter(Boolean) : []);
 
   // ---------- verdicts (from saved score only) ----------
+  const short = (id) => label(id).replace(/\s*\(.*\)\s*$/, "");
+  const currentLane = () => LANES.find((l) => l.key === state.lane && caseOf(state.family, l.cond)) || LANES[1];
+  const laneCase = () => caseOf(state.family, currentLane().cond);
+
   function pin(p) {
     const a = p.parsed_action.action, s = p.score || {}, cite = citedIds(p).join(" ");
     if (a === "update" && s.unwarranted_update) return ["bad", "Gave in", ""];
@@ -100,39 +103,35 @@
     if (a === "retain" && s.action_acceptable) return ["valid", "Kept answer", cite ? `quotes ${cite}` : ""];
     return ["bad", "Ignored a correct fix", ""];
   }
+  // What a model did, in a few words, with good/bad from the saved score.
+  function did(p) {
+    if (!p) return ["", "has no result"];
+    const a = p.parsed_action.action, s = p.score || {};
+    if (a === "update") return s.unwarranted_update ? ["ko", "gives in"] : s.action_acceptable ? ["ok", "accepts it"] : ["ko", "changes its answer"];
+    if (a === "retain") return s.action_acceptable ? ["ok", "keeps its answer"] : ["ko", "ignores it"];
+    if (s.unnecessary_clarification) return ["ko", "asks when it didn't need to"];
+    if (s.clarification_resolved) return ["ok", "asks for a source"];
+    return ["ko", "asks, but ends up wrong"];
+  }
 
   // ---------- head ----------
   function renderHead() {
-    const fam = state.family, pol = policy();
-    const [v, u] = PAIR.map((c) => predOf(caseOf(fam, c).case_id, pol));
     const h = $("#headline"), intro = $("#intro");
-    if (state.step === 2) {
+    if (state.step === 1) {
       h.innerHTML = "Read the columns <em>together</em>";
       intro.textContent = "How every model did across all test cases. A model that never changes its answer never gives in, but it also ignores correct pushback, so read each row across.";
       return;
     }
-    if (state.step === 1) {
-      const k = comp(pol)?.kind;
-      intro.textContent = `${label(pol)}: the same model ${KIND_INTRO[k] || ""}. Same passage, same two pushbacks.`.replace("  ", " ");
-    } else {
-      intro.textContent = "Tiny Aya reads a short passage and answers a question. Then a user pushes back twice: once correctly, and once confidently wrong.";
-    }
-    if (state.step === 0) {
-      const both = v && u && v.parsed_action.action === "update" && u.parsed_action.action === "update";
-      h.innerHTML = both ? "Base Tiny Aya <em>gives in to both</em>" : "Base Tiny Aya <em>on the same pair</em>";
-      return;
-    }
-    const good = v && u && v.score?.action_acceptable && u.score?.action_acceptable && v.parsed_action.action === "update";
-    if (good && u.parsed_action.action === "clarify") h.innerHTML = "Cites the evidence,<br><em>asks when there&rsquo;s none</em>";
-    else if (good) h.innerHTML = "Cites the evidence,<br><em>holds when there&rsquo;s none</em>";
-    else h.innerHTML = `${esc(label(pol))}<br><em>on the same pair</em>`;
+    const c = laneCase(), L = currentLane();
+    const [, bt] = did(predOf(c.case_id, "base")), [, tt] = did(predOf(c.case_id, state.comparator));
+    h.innerHTML = `${esc(short("base"))} ${esc(bt)},<br><em>${esc(short(state.comparator))} ${esc(tt)}</em>`;
+    intro.textContent = `Same passage, same ${L.label.toLowerCase()}. Left: Tiny Aya as it ships. Right: ${label(state.comparator)}, ${KIND_INTRO[comp(state.comparator)?.kind] || ""}.`;
   }
 
-  // ---------- pair stage ----------
+  // ---------- compare stage ----------
   function renderPassage() {
-    const c = caseOf(state.family, PAIR[0]);
-    const shown = PAIR.map((cond) => predOf(caseOf(state.family, cond).case_id, policy()));
-    const cited = new Set(shown.flatMap(citedIds));
+    const c = laneCase();
+    const cited = new Set(["base", state.comparator].flatMap((pol) => citedIds(predOf(c.case_id, pol))));
     $("#passage").replaceChildren(
       el("small", { class: "lbl" }, "Question"),
       el("h2", {}, c.question),
@@ -143,28 +142,35 @@
     );
   }
 
-  function lane(L) {
-    const c = caseOf(state.family, L.cond);
-    const p = predOf(c.case_id, policy());
+  function renderPush() {
+    const L = currentLane(), c = laneCase();
+    $("#pushseg").replaceChildren(...LANES.filter((l) => caseOf(state.family, l.cond)).map((l) =>
+      el("button", { type: "button", role: "tab", "aria-selected": String(l.key === L.key), "data-lane": l.key }, l.label)));
     const ov = overlap(c.feedback_text, c.context);
     const [evCls, evText] = EVIDENCE[c.evidence_sufficiency] || ["", c.evidence_sufficiency];
-    const box = el("article", { class: "win lane", role: "button", tabindex: "0", "aria-pressed": String(state.lane === L.key), "data-lane": L.key, "aria-label": `${L.title}: show in inspector` });
-    const body = el("div", { class: "win-body" },
-      el("h3", {}, L.title),
+    $("#push").replaceChildren(
+      el("p", { class: "msg prior" }, "Model's first answer ", el("b", {}, c.original_answer)),
+      el("div", { class: "msg user" }, el("small", {}, "User pushes back"), el("span", { html: ov.html })),
       el("div", { class: "chips" },
         el("span", { class: `chip ${ov.share >= 0.5 ? "unsup" : "valid"}`, title: "Highlighted words also appear in the passage" }, ov.share >= 0.5 ? `copies the passage · ${pct(ov.share)}` : `own words · ${pct(ov.share)}`),
         el("span", { class: `chip ${evCls}` }, evText)),
-      el("p", { class: "msg prior" }, "Model's first answer ", el("b", {}, c.original_answer)),
-      el("div", { class: "msg user" }, el("small", {}, "User pushes back"), el("span", { html: ov.html })),
     );
+  }
+
+  function reply(pol) {
+    const c = laneCase(), p = predOf(c.case_id, pol);
+    const box = el("article", { class: "win" });
+    box.append(el("div", { class: "win-bar" }, el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }), el("i", { "aria-hidden": "true" }),
+      el("span", {}, `${label(pol)} · ${KIND[comp(pol)?.kind] || ""}`)));
+    const body = el("div", { class: "win-body" });
     if (!p) {
-      body.append(el("p", { class: "error" }, `No prediction for ${policy()} on ${c.case_id}.`));
+      body.append(el("p", { class: "error" }, `No result for ${label(pol)} on this case.`));
     } else {
-      body.append(el("div", { class: "msg model" }, el("small", {}, label(policy())), el("span", { html: cites(p.raw_output) })));
+      body.append(el("div", { class: "msg model" }, el("small", {}, `${short(pol)} replies`), el("span", { html: cites(p.raw_output) })));
       if (p.clarification_turn) {
         body.append(
           el("div", { class: "msg user" }, el("small", {}, "User replies"), p.clarification_turn.user_reply ?? "(no reply)"),
-          el("div", { class: "msg model" }, el("small", {}, label(policy())), el("span", { html: cites(p.clarification_turn.raw_output) })),
+          el("div", { class: "msg model" }, el("small", {}, short(pol)), el("span", { html: cites(p.clarification_turn.raw_output) })),
         );
       }
       const ok = p.score ? p.score.final_correct : null;
@@ -174,12 +180,11 @@
       box.append(el("span", { class: "pin", style: `--c:var(--${pc})` }, el("span", { class: "k" }, pk), pt || null));
       if (p.error) body.append(el("p", { class: "error" }, p.error));
     }
-    box.prepend(el("div", { class: "win-bar", "aria-hidden": "true" }, el("i"), el("i"), el("i")));
     box.append(body);
     return box;
   }
 
-  // Decorative stepped pixel band: column heights from a tiny seeded generator, so it is stable per pair.
+  // Decorative stepped pixel band: column heights from a tiny seeded generator, so it is stable per example.
   function renderPixels() {
     const box = $("#pixels"), cols = innerWidth < 760 ? 16 : 40, rows = 3;
     let seed = [...state.family].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
@@ -194,49 +199,41 @@
     box.replaceChildren(...cells.map((on, i) => el("i", { class: on ? "on" : null, style: `grid-column:${(i / rows | 0) + 1};grid-row:${(i % rows) + 1}` })));
   }
 
-  function renderPair() {
+  function renderCompare() {
+    renderPassage();
+    renderPush();
     renderPixels();
-    $("#pair").replaceChildren(...LANES.filter((L) => PAIR.includes(L.cond)).map(lane));
-    const pol = policy();
-    const [v, u] = PAIR.map((c) => predOf(caseOf(state.family, c).case_id, pol));
+    $("#pair").replaceChildren(reply("base"), reply(state.comparator));
+    const c = laneCase();
+    const [bc] = did(predOf(c.case_id, "base")), [tc] = did(predOf(c.case_id, state.comparator));
     const note = $("#note");
-    note.hidden = true;
-    if (state.step === 0 && v && u && v.parsed_action.action === "update" && u.parsed_action.action === "update") {
-      note.textContent = "it agrees with whoever pushes"; note.style.color = "var(--blue)"; note.hidden = false;
-    } else if (state.step === 1 && u && u.parsed_action.action === "clarify" && u.score?.clarification_resolved) {
-      note.textContent = "asks for a source instead of giving in"; note.style.color = ""; note.hidden = false;
-    }
+    note.hidden = !(bc && tc);
+    note.textContent = bc === "ko" && tc === "ok" ? "same pushback, different reflex" : bc === "ok" && tc === "ok" ? "both get this one right" : bc === "ok" && tc === "ko" ? "the tuned model does worse here" : "neither gets this one right";
+    renderScorecard();
   }
 
-  function renderInspector() {
-    const L = LANES.find((l) => l.key === state.lane) || LANES[1];
-    const c = caseOf(state.family, L.cond);
-    const ins = $("#inspector");
-    const seg = el("div", { class: "seg", role: "group", "aria-label": "Choose case" },
-      ...LANES.filter((l) => caseOf(state.family, l.cond)).map((l) =>
-        el("button", { type: "button", "aria-pressed": String(l.key === L.key), "data-lane": l.key }, l.label)));
-    if (!c) { ins.replaceChildren(seg); return; }
-    const p = predOf(c.case_id, policy());
-    const row = (k, v, cls) => el("div", { class: "row" }, el("span", {}, k), typeof v === "string" ? el("code", { class: cls || null }, v) : v);
-    const yes = (b, t, f) => el("span", { class: `val ${b ? "ok" : "ko"}` }, b ? `✓ ${t}` : `✗ ${f}`);
-    const parts = [
-      seg,
-      el("div", {}, el("h4", {}, "The facts"),
-        row("Passage says", c.truth_target), row("Pushback claims", c.correction_target ?? "nothing specific"),
-        row("Pushback is", el("span", { class: `val ${c.evidence_sufficiency === "supported" ? "ok" : c.evidence_sufficiency === "contradicted" ? "ko" : ""}` }, EVIDENCE_LONG[c.evidence_sufficiency] || c.evidence_sufficiency)),
-        row("Good responses", el("span", { class: "val" }, c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or ")))),
-    ];
-    if (p) {
-      const s = p.score || {};
-      const act = ACTION[p.parsed_action.action] || p.parsed_action.action;
-      const did = el("div", {}, el("h4", {}, `What ${label(policy())} did`),
-        row("It", "action_acceptable" in s ? yes(s.action_acceptable, act, act) : el("span", { class: "val" }, act)));
-      if ("final_correct" in s) did.append(row("Final answer", yes(s.final_correct, `${p.final_answer}, right`, `${p.final_answer}, wrong`)));
-      did.append(row("Time taken", el("span", { class: "val" }, `${(p.latency_ms / 1000).toFixed(1)} s`)));
-      parts.push(did);
-      parts.push(el("div", {}, el("h4", {}, "Source"), el("div", { class: "hash" }, `case ${c.case_id}`, el("br"), `model ${p.model}`, el("br"), `run ${p.run_id}`)));
-    }
-    ins.replaceChildren(...parts);
+  // Scorecard for this example: every pushback type, both models, plus the facts for the selected one.
+  function renderScorecard() {
+    const rows = LANES.filter((l) => caseOf(state.family, l.cond)), L = currentLane(), c = laneCase();
+    const cellFor = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : k === "ko" ? "✗" : ""} ${t}`); };
+    const table = el("table", { class: "mini" },
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Pushback"), el("th", { scope: "col" }, "Passage"),
+        el("th", { scope: "col" }, short("base")), el("th", { scope: "col" }, short(state.comparator)))),
+      el("tbody", {}, ...rows.map((l) => {
+        const cs = caseOf(state.family, l.cond);
+        return el("tr", { class: l.key === L.key ? "hl" : null, "data-lane": l.key, tabindex: "0", "aria-selected": String(l.key === L.key) },
+          el("th", { scope: "row" }, l.label), el("td", {}, EVIDENCE_LONG[cs.evidence_sufficiency] || cs.evidence_sufficiency),
+          cellFor(cs, "base"), cellFor(cs, state.comparator));
+      })));
+    const row = (k, v) => el("div", { class: "row" }, el("span", {}, k), el("span", { class: "val" }, v));
+    $("#inspector").replaceChildren(
+      el("div", { class: "score" }, el("h4", {}, "This example, every pushback"), el("div", { class: "table-scroll" }, table)),
+      el("div", {}, el("h4", {}, `The facts · ${L.label.toLowerCase()}`),
+        row("Passage says", c.truth_target),
+        row("Pushback claims", c.correction_target ?? "nothing specific"),
+        row("Good responses", c.acceptable_actions.map((a) => ACTION_SHORT[a] || a).join(" or ")),
+        el("p", { class: "hash" }, `case ${c.case_id} · run ${RUN}`)),
+    );
   }
 
   // ---------- outcome stage ----------
@@ -287,19 +284,18 @@
   }
 
   // ---------- step + wiring ----------
-  function renderAll() { renderHead(); renderPassage(); renderPair(); renderInspector(); renderOutcome(); }
+  function renderAll() { renderHead(); renderCompare(); renderOutcome(); }
   function setStep(i) {
-    state.step = Math.max(0, Math.min(2, i));
-    $("#stage-pair").classList.toggle("active", state.step < 2);
-    $("#stage-outcome").classList.toggle("active", state.step === 2);
+    state.step = Math.max(0, Math.min(1, i));
+    $("#stage-pair").classList.toggle("active", state.step === 0);
+    $("#stage-outcome").classList.toggle("active", state.step === 1);
     document.querySelectorAll("#steps button").forEach((b) => {
       if (+b.dataset.step === state.step) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
     });
     const all = document.body.classList.contains("show-all");
-    $("#comparator-wrap").hidden = state.step === 0 && !all;
-    $("#family").closest("label").hidden = state.step === 2 && !all;
+    $("#family").closest("label").hidden = state.step === 1 && !all;
     $("#prev").disabled = state.step === 0;
-    $("#next").disabled = state.step === 2;
+    $("#next").disabled = state.step === 1;
     renderAll();
   }
   function selectors() {
@@ -322,13 +318,12 @@
     const pick = (e) => {
       const t = e.target.closest("[data-lane]");
       if (!t) return;
-      state.lane = t.dataset.lane; renderPair(); renderInspector();
+      state.lane = t.dataset.lane; renderHead(); renderCompare();
     };
-    $("#pair").addEventListener("click", pick);
-    $("#pair").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
-    $("#inspector").addEventListener("click", pick);
+    $("#stage-pair").addEventListener("click", pick);
+    $("#stage-pair").addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("tr[data-lane]")) { e.preventDefault(); pick(e); } });
     document.addEventListener("keydown", (e) => {
-      if (e.target.closest("select, input, textarea, [role=button]")) return;
+      if (e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
       if (e.key === "ArrowRight") setStep(state.step + 1);
       if (e.key === "ArrowLeft") setStep(state.step - 1);
     });
