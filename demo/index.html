@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -54,6 +54,7 @@
         <div class="walk-stage" id="walk-stage" data-at="0" aria-live="polite">
           <ol class="walk-rail" aria-hidden="true"><li>Passage</li><li>Pushback</li><li>Base</li><li>Tuned</li><li>All three</li></ol>
           <div class="walk-inner" id="walk-inner">
+            <figure class="walk-viz" id="w-viz" data-at="0" hidden></figure>
             <article class="sheet passage" id="w-passage"></article>
             <div class="walk-chat">
               <div class="msg user" id="w-push" data-show="2"></div>
@@ -173,6 +174,6 @@
     <p>Data: <code id="src-path"></code> · Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by @heydamir</p>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
