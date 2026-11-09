@@ -134,6 +134,11 @@
     const fileName = `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
 
     $("#walk-lead").textContent = "You ask with a document attached, then push back with the wrong answer. Watch where they split.";
+    const [kb] = did(pb), [kt] = did(pt);
+    const ending = kb === "ko" && kt === "ok" ? "Only EvidenceTune holds" : "See who holds";
+    const tl = $("#convo-tl");
+    if (tl) tl.replaceChildren(...["Ask, with a PDF", `AI answers ${c.original_answer}`, `You insist: ${c.correction_target}`, "The two AIs split", ending]
+      .map((t, i) => el("li", { "data-step": i + 1 }, t)));
 
     const row = (who, ...kids) => el("div", { class: `chat-row ${who}` }, el("i", { class: "av", "aria-hidden": "true" }), el("div", { class: "bubbles" }, ...kids));
     const bubble = (cls, ...kids) => el("div", { class: `bubble ${cls}` }, ...kids);
@@ -158,7 +163,7 @@
     const branch = (pol, p, who) => {
       const [k, t] = did(p);
       const list = el("div", { class: "branch-list" });
-      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none"));
+      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), el("span", {}, `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none")));
       const node = el("div", { class: `branch ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
         el("header", { class: "branch-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }), el("b", {}, label(pol))), list, verdict);
       return { node, list, verdict, msgs: replies(p) };
@@ -171,6 +176,18 @@
     convoWins = { trunk, fork, shared, branches: [bL, bR] };
     $("#convo").classList.add("flow");
     $("#convo").replaceChildren(trunk, fork, el("div", { class: "branches" }, bL.node, bR.node));
+    // Centre the chat while it fits; once it overflows, anchor it to the bottom and fade the top, like a phone.
+    const box = $("#convo");
+    if (!box._fit) {
+      const fit = () => {
+        const used = [...box.children].reduce((a, ch) => a + ch.getBoundingClientRect().height, 0) + 24;
+        box.classList.toggle("fits", used <= box.getBoundingClientRect().height);
+      };
+      box._fit = new MutationObserver(() => requestAnimationFrame(fit));
+      addEventListener("resize", fit);
+      box._fit.observe(box, { childList: true, subtree: true });
+      box.addEventListener("animationend", fit);   // re-measure once a new message has finished opening its room
+    }
     convoShow(Math.max(1, convoStepAt));
 
     // "It still listens": one full-width band per kind of pushback
@@ -192,22 +209,60 @@
   //   4 the split, each AI's first reply · 5 the rest of each thread and the verdicts
   const CONVO_STEPS = 5;
   let convoStepAt = 0;
-  function convoShow(n) {
+  // A typing bubble on the sender's side: three dots, like a real chat.
+  const typingRow = (who) => el("div", { class: `chat-row ${who} typing-row` }, el("i", { class: "av", "aria-hidden": "true" }),
+    el("div", { class: "bubbles" }, el("div", { class: `bubble ${who === "ai" ? "a" : "q"} typing`, "aria-label": "typing" }, el("i"), el("i"), el("i"))));
+
+  function convoShow(n, wait = 0) {
     const W = convoWins;
     if (!W.trunk) return;
     convoTimers.forEach(clearTimeout); convoTimers = [];
     const prev = convoStepAt;
     convoStepAt = n; convoPlayed = true;
-    const fresh = (node, step) => { if (step > prev) node.classList.add("fresh"); return node; };
-    W.trunk.replaceChildren(...W.shared.slice(0, Math.min(n, 3)).map((m, i) => fresh(m.make(), i + 1)));
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
+    // Messages already seen appear at once; new ones are typed (dots), then sent (a short rise and fade in).
+    const deliver = (list, items, t0 = 0) => {
+      list.replaceChildren();
+      let t = t0;
+      items.forEach(({ m, step }) => {
+        if (still || step <= prev) { list.append(m.make()); return; }
+        const who = m.from === "ai" ? "ai" : "user";
+        // no typing dots: each message pops in, a beat apart, like a chat app
+        t += step === 1 ? 300 : who === "ai" ? 700 : 450;
+        at(t, () => { const node = m.make(); node.classList.add("sent"); list.append(node); });
+        t += 200;
+      });
+      return t;
+    };
+    deliver(W.trunk, W.shared.slice(0, Math.min(n, 3)).map((m, i) => ({ m, step: i + 1 })), wait);
     const split = n >= 4;
+    // Arriving at the split, play it in order instead of all at once:
+    // the earlier messages fold away, then the fork draws, then the two columns rise in, then the replies pop.
+    const staged = split && prev < 4 && !still;
+    const convoEl = $("#convo");
     W.trunk.classList.toggle("past", split);
-    W.fork.classList.toggle("show", split);
+    if (staged) {
+      convoEl.classList.remove("split"); W.fork.classList.remove("show");
+      W.branches.forEach((b) => b.node.classList.remove("show"));
+      at(500, () => { convoEl.classList.add("split"); W.fork.classList.add("show"); });
+      at(1100, () => W.branches.forEach((b) => b.node.classList.add("show")));
+    } else {
+      convoEl.classList.toggle("split", split);
+      W.fork.classList.toggle("show", split);
+    }
     W.branches.forEach((b) => {
-      b.node.classList.toggle("show", split);
+      if (!staged) b.node.classList.toggle("show", split);
       const count = n >= 5 ? b.msgs.length : split ? 1 : 0;
-      b.list.replaceChildren(...b.msgs.slice(0, count).map((m, i) => fresh(m.make(), i === 0 ? 4 : 5)));
-      b.verdict.classList.toggle("show", n >= 5);
+      const end = deliver(b.list, b.msgs.slice(0, count).map((m, i) => ({ m, step: i === 0 ? 4 : 5 })), staged ? 1500 : 0);
+      b.verdict.classList.remove("show");
+      if (n >= 5) { if (still || prev >= 5) b.verdict.classList.add("show"); else at(end + 200, () => b.verdict.classList.add("show")); }
+    });
+    document.querySelectorAll("#convo-tl li").forEach((li) => {
+      const k = +li.dataset.step;
+      li.classList.toggle("done", k < n);
+      li.classList.toggle("now", k === n);
+      if (k === n) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
     });
     const hint = $("#convo-step");
     if (hint) hint.textContent = n < CONVO_STEPS ? `Scroll to continue · ${n} / ${CONVO_STEPS}` : "Scroll on for Chapter 02 ↓";
@@ -221,27 +276,23 @@
     const W = convoWins;
     if (!W.trunk) return;
     const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
-    const typing = () => el("div", { class: "chat-row ai typing-row" }, el("i", { class: "av", "aria-hidden": "true" }),
-      el("div", { class: "bubbles" }, el("div", { class: "bubble a typing", "aria-label": "typing" }, el("i"), el("i"), el("i"))));
-    W.trunk.replaceChildren(); W.trunk.classList.remove("past"); W.fork.classList.remove("show");
+    W.trunk.replaceChildren(); W.trunk.classList.remove("past"); $("#convo").classList.remove("split"); W.fork.classList.remove("show");
     W.branches.forEach((b) => { b.list.replaceChildren(); b.verdict.classList.remove("show"); b.node.classList.remove("show"); });
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      W.shared.forEach((m) => W.trunk.append(m.make())); W.fork.classList.add("show");
+      W.shared.forEach((m) => W.trunk.append(m.make())); $("#convo").classList.add("split"); W.fork.classList.add("show");
       W.branches.forEach((b) => { b.node.classList.add("show"); b.msgs.forEach((m) => b.list.append(m.make())); b.verdict.classList.add("show"); });
       return;
     }
     // people's messages pop in; the AI shows typing dots first
     const play = (list, msgs, t) => {
       msgs.forEach((m) => {
-        if (m.from === "ai") {
-          at(t, () => list.append(typing())); t += 1100;
-          at(t, () => { list.querySelector(".typing-row")?.remove(); list.append(m.make()); }); t += 1000;
-        } else { at(t, () => list.append(m.make())); t += 1500; }
+        const who = m.from === "ai" ? "ai" : "user";
+        at(t, () => { const node = m.make(); node.classList.add("sent"); list.append(node); }); t += who === "ai" ? 1200 : 900;
       });
       return t;
     };
     let t = play(W.trunk, W.shared, 400);
-    at(t, () => { W.trunk.classList.add("past"); W.fork.classList.add("show"); }); t += 900;
+    at(t, () => { W.trunk.classList.add("past"); $("#convo").classList.add("split"); W.fork.classList.add("show"); }); t += 900;
     at(t, () => W.branches.forEach((b) => b.node.classList.add("show"))); t += 300;
     W.branches.forEach((b) => { const end = play(b.list, b.msgs, t); at(end, () => b.verdict.classList.add("show")); });
   }
@@ -339,11 +390,14 @@
 
   function clock(c, pr) {
     const at = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [80 + r * Math.cos(a), 80 + r * Math.sin(a)]; };
-    const A = -50, B = 50; // first answer at ten to, the pushback's answer at ten past
-    const face = svg("svg", { viewBox: "0 0 160 160", class: "clock", "aria-hidden": "true" });
-    face.append(svg("circle", { cx: 80, cy: 80, r: 74, class: "c-rim" }));
-    for (let t = 0; t < 12; t++) {
-      const [x1, y1] = at(t * 30, 64), [x2, y2] = at(t * 30, 72);
+    // A half-circle scale: the right answer on the left of the arc, the pushback on the right, the needle pivots at the bottom.
+    const A = -60, B = 60;
+    const face = svg("svg", { viewBox: "0 0 160 90", class: "clock gauge", "aria-hidden": "true" });
+    face.append(svg("path", { d: "M6 80 A74 74 0 0 1 154 80", class: "c-rim" }),
+      svg("line", { x1: 6, y1: 80, x2: 154, y2: 80, class: "c-base" }));
+    // only two marks on the face: where the right answer sits and where the pushback sits
+    for (const deg of [A, B]) {
+      const [x1, y1] = at(deg, 67), [x2, y2] = at(deg, 73);
       face.append(svg("line", { x1, y1, x2, y2, class: "c-tick big" }));
     }
     const mark = (deg, text, cls, tag) => {
@@ -357,9 +411,9 @@
     const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
     if (hasPush) mark(B, c.correction_target, "push", "wrong");
     const final = pr?.final_answer;
-    const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 180;
-    if (end === 180 && final != null) mark(180, final, "");
-    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 90, x2: 80, y2: 60 }), svg("polygon", { points: "73.5,61 80,47 86.5,61" }));
+    const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 0;
+    if (end === 0 && final != null) mark(0, final, "");
+    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 84, x2: 80, y2: 58 }), svg("polygon", { points: "73.5,59 80,45 86.5,59" }));
     face.append(hand, svg("circle", { cx: 80, cy: 80, r: 6, class: "c-hub" }));
     return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
   }
@@ -441,7 +495,7 @@
       el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
         el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
     const slips = cases.filter((cs) => did(predOf(cs.case_id, "base"))[0] === "ko").length;
-    $("#clock-cap").textContent = `The hand points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
+    $("#clock-cap").textContent = `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
     animateClocks(fig, items);
   }
 
@@ -537,13 +591,15 @@
     addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
     // Between two side-rail screens the frame stays put: the blue panel and progress blocks hold still,
     // only the words and the visual fade out, the page swaps underneath, and the next screen fades in.
-    const FADE = 320;
+    const FADE = 450, FADE_IN = 900;
     const crossfade = (from, to) => {
       moving = true; tail = true;
-      until = performance.now() + FADE * 2 + 400;
+      until = performance.now() + FADE + FADE_IN + 400;
       from.classList.add("xf-hide");
       setTimeout(() => {
-        to.classList.add("xf-hide");
+        to.classList.add("xf-instant", "xf-hide");                     // start the new screen fully hidden (no transition)
+        void to.offsetHeight;
+        to.classList.remove("xf-instant");
         const was = [...from.querySelectorAll(".prog-blocks i")].map((i) => i.className);
         const blocks = [...to.querySelectorAll(".prog-blocks i")];
         const now = blocks.map((i) => i.className);
@@ -553,12 +609,13 @@
         to.classList.add("is-focus");
         scrollTo({ top: targetY(to), behavior: "instant" });
         from.classList.remove("xf-hide");
-        requestAnimationFrame(() => requestAnimationFrame(() => {
+        void to.offsetHeight;
+        setTimeout(() => {
           document.body.classList.remove("xf");
           to.classList.remove("xf-hide");
           blocks.forEach((i, k) => (i.className = now[k]));
-          setTimeout(settle, FADE + 60);
-        }));
+          setTimeout(settle, FADE_IN);
+        }, 40);
       }, FADE);
     };
     const go = (s, from) => {
@@ -571,7 +628,7 @@
     const jump = (dir) => {
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
-      if (next.id === "s1") convoShow(dir > 0 ? 1 : CONVO_STEPS);   // arrive at the start going down, at the end going up
+      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 1400 : 0); }   // start going down (after the fade-in), end going up
       go(next, cur);
       return true;
     };
