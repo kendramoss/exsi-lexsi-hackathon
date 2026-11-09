@@ -1147,3 +1147,11 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 }
 .stage .cue { justify-self: center; }
 #s2 .panel .egrid { overflow: visible; border-radius: 0; }
+
+/* Screen 1 background: pale blocks settle along the bottom edge (decorative) */
+#top .blocks { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+#top .stage { position: relative; z-index: 1; }
+.blocks i { position: absolute; width: 36px; height: 36px; border-radius: 3px; background: #d3e2f7; }
+.blocks i.drop { background: #a9c8f5; }
+#top .stage .cue { background: #f5f9ff; position: relative; z-index: 1; }
+#top .cue .chev { display: inline-block; margin-left: 6px; vertical-align: middle; }

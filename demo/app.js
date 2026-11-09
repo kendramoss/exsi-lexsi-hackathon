@@ -586,6 +586,86 @@
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
   }
 
+  // Screen 1 background: a low skyline of pale blocks; one piece at a time drops into a gap.
+  function blocks() {
+    const box = $("#top .blocks");
+    if (!box) return;
+    const C = 40;
+    const SHAPES = [
+      [[0,0],[1,0],[2,0],[3,0]],          // line
+      [[0,0],[1,0],[0,1],[1,1]],          // square
+      [[0,0],[1,0],[2,0],[1,1]],          // tee
+      [[0,0],[1,0],[2,0],[0,1]],          // ell
+    ];
+    let h = [], cap = [], timer = 0, dropped = [];
+    const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cellAt = (c, row, cls) => {
+      const i = document.createElement("i");
+      if (cls) i.className = cls;
+      i.style.left = `${c * C + 2}px`;
+      i.style.bottom = `${row * C + 2}px`;
+      return i;
+    };
+    // How high each column may stack: under the text only up to the button, at the sides about half the screen.
+    function caps(cols) {
+      const b = box.getBoundingClientRect();
+      const cue = $("#top .cue").getBoundingClientRect();
+      const words = [...box.parentElement.querySelectorAll(".stage > *")].map((e) => e.getBoundingClientRect());
+      const left = Math.min(...words.map((r) => r.left)) - b.left - 24;
+      const right = Math.max(...words.map((r) => r.right)) - b.left + 24;
+      const low = Math.max(1, Math.floor((b.bottom - cue.bottom - 24) / C));
+      const high = Math.max(low, Math.floor(b.height * 0.5 / C));
+      return Array.from({ length: cols }, (_, c) => (c * C + C > left && c * C < right ? low : high));
+    }
+    function build() {
+      clearTimeout(timer);
+      box.replaceChildren();
+      dropped = [];
+      const cols = Math.ceil(box.clientWidth / C);
+      cap = caps(cols);
+      let seed = 7;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      h = cap.map((m) => Math.min(m - 1, 1 + Math.floor(rnd() * Math.ceil(m * 0.55))));
+      for (let c = 0; c < cols; c++) for (let r = 0; r < h[c]; r++) box.append(cellAt(c, r));
+      if (!still()) timer = setTimeout(drop, 600);
+    }
+    function fits(shape) {
+      const w = Math.max(...shape.map(([x]) => x)) + 1;
+      const spots = [];
+      for (let c = 0; c + w <= h.length; c++) {
+        const base = h[c];
+        const flat = shape.filter(([, y]) => y === 0).every(([x]) => h[c + x] === base);
+        const room = shape.every(([x, y]) => base + y < cap[c + x]);
+        if (flat && room) spots.push([c, base]);
+      }
+      return spots;
+    }
+    function drop() {
+      const order = SHAPES.map((s) => [Math.random(), s]).sort((a, b) => a[0] - b[0]).map(([, s]) => s);
+      for (const shape of order) {
+        const spots = fits(shape);
+        if (!spots.length) continue;
+        const [c, base] = spots[Math.floor(Math.random() * spots.length)];
+        const g = document.createElement("div");
+        g.style.cssText = "position:absolute;inset:0";
+        for (const [x, y] of shape) g.append(cellAt(c + x, base + y, "drop"));
+        box.append(g);
+        dropped.push(g);
+        g.animate([{ transform: `translateY(${-(box.clientHeight + 4 * C)}px)` }, { transform: "translateY(0)" }],
+          { duration: 1900, easing: "cubic-bezier(.45,0,.85,.4)" });
+        for (const [x, y] of shape) h[c + x] = Math.max(h[c + x], base + y + 1);
+        timer = setTimeout(drop, 1400);
+        return;
+      }
+      // nowhere left to land: fade the dropped pieces out and start over
+      const gone = dropped.map((g) => g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, fill: "forwards" }).finished);
+      Promise.all(gone).then(build);
+    }
+    let rt = 0;
+    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 250); });
+    build();
+  }
+
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
   function hscroll() {
     const sec = $("#how");
@@ -629,6 +709,7 @@
     bind();
     renderAll();
     hscroll();
+    blocks();
     convoWatch();
     spy();
     const jump = { "2": "s2", "3": "s3" }[params.get("step")];
