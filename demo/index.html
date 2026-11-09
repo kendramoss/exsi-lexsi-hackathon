@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -21,6 +21,7 @@
         <a href="#s1" data-sec="s1"><em>01</em>One example</a>
         <a href="#s2" data-sec="s2"><em>02</em>Every case</a>
         <a href="#s3" data-sec="s3"><em>03</em>How we tested</a>
+        <a href="#s4" data-sec="s4"><em>04</em>Go deeper</a>
       </nav>
       <div class="actions">
         <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
@@ -33,33 +34,29 @@
       <div class="hero-text">
         <h1 id="hero-title">Does the model change its answer <em>for the right reason?</em></h1>
         <p class="intro">AI models cave when you push back. Can we teach them when to hold firm?</p>
+        <a class="cue" href="#s1">See how it works <span aria-hidden="true">↓</span></a>
       </div>
       <figure class="hero-vis" id="hero-vis" aria-label="One wrong pushback, two models"></figure>
     </section>
 
-    <section class="walk" id="s1" aria-labelledby="s1-title">
-      <div class="walk-intro focusable" data-step="0">
-        <span class="kicker">01 · One example</span>
-        <h2 id="s1-title">See it in action</h2>
-        <p class="intro" id="walk-lead"></p>
-        <span class="mock" id="mock-badge" hidden>Mock data</span>
+    <section class="sec convo-sec" id="s1" aria-labelledby="s1-title">
+      <div class="stop focusable">
+        <header class="sec-head">
+          <span class="kicker">01 · One example</span>
+          <h2 id="s1-title">See it in action</h2>
+          <p class="intro" id="walk-lead"></p>
+          <span class="mock" id="mock-badge" hidden>Mock data</span>
+        </header>
+        <div class="convo" id="convo"></div>
+        <div class="convo-foot"><button class="replay" id="replay" type="button">Play again</button></div>
       </div>
-      <div class="walk-grid">
-        <ol class="walk-steps" id="walk-steps"></ol>
-        <div class="walk-stage" id="walk-stage" data-at="0" aria-live="polite">
-          <ol class="walk-rail" aria-hidden="true"><li>Passage</li><li>Pushback</li><li>Currently</li><li>EvidenceTune</li><li>All three</li></ol>
-          <div class="walk-inner" id="walk-inner">
-            <figure class="walk-viz" id="w-viz" data-at="0" hidden></figure>
-            <article class="sheet passage" id="w-passage"></article>
-            <div class="walk-chat">
-              <div class="msg user" id="w-push" data-show="2"></div>
-              <div class="walk-replies">
-                <article class="sheet reply" id="w-base" data-show="3"></article>
-                <article class="sheet reply" id="w-tuned" data-show="4"></article>
-              </div>
-            </div>
+      <div class="stop focusable">
+        <div class="after">
+          <div class="after-text">
+            <h3>But it still listens when you’re right</h3>
+            <p id="after-lead"></p>
           </div>
-          <article class="sheet summary" id="w-summary" data-show="5"></article>
+          <article class="sheet summary" id="w-summary"></article>
         </div>
       </div>
     </section>
@@ -69,6 +66,7 @@
         <header class="sec-head">
           <span class="kicker">02 · Every case</span>
           <h2 id="s2-title">Is it a fluke?</h2>
+          <p class="intro">Every test case, side by side. We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
         </header>
         <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
       </div>
@@ -93,8 +91,8 @@
     <section class="hs" id="how" aria-labelledby="s3-title">
       <div class="hs-sticky">
         <header class="hs-head">
-          <span class="kicker">Scroll →</span>
-          <span class="hs-count" aria-hidden="true"><b id="hs-n">01</b> / 05</span>
+          <span class="hs-hint">Keep scrolling: these panels move sideways →</span>
+          <span class="hs-count" aria-hidden="true"><b id="hs-n">01</b> / 04</span>
           <span class="hs-bar" aria-hidden="true"><i id="hs-fill"></i></span>
         </header>
         <div class="hs-track" id="hs-track">
@@ -165,14 +163,22 @@
               </svg>
             </figure>
           </article>
-          <article class="hs-panel field">
-            <span class="hs-k">05 · How we score</span>
-            <h3>No single score</h3>
-            <figure class="viz sbars" id="hs-score" aria-label="Currently versus with EvidenceTune on the three scores"></figure>
-          </article>
         </div>
       </div>
     </section>
+    </section>
+
+    <section class="sec end focusable" id="s4" aria-labelledby="s4-title">
+      <header class="sec-head">
+        <span class="kicker">04 · Go deeper</span>
+        <h2 id="s4-title">See the work</h2>
+        <p class="intro">Everything is public: the trained model, the test cases, and the code that built and scored them.</p>
+      </header>
+      <div class="links">
+        <a class="link-card model" href="https://huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora" target="_blank" rel="noopener"><i aria-hidden="true"></i><small>Model</small><b>EvidenceTune adapter</b><span>Hugging Face</span></a>
+        <a class="link-card data" href="https://huggingface.co/datasets/Mizore66/evidencetune-bench" target="_blank" rel="noopener"><i aria-hidden="true"></i><small>Test cases</small><b>EvidenceTune benchmark</b><span>Hugging Face</span></a>
+        <a class="link-card code" href="https://github.com/Mizore66/evidencetune" target="_blank" rel="noopener"><i aria-hidden="true"></i><small>Code</small><b>Training and scoring</b><span>GitHub</span></a>
+      </div>
     </section>
   </main>
 
@@ -180,6 +186,6 @@
     <p>Data: <code id="src-path"></code> · Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by @heydamir</p>
   </footer>
 
-  <script src="app.js?v=10"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>

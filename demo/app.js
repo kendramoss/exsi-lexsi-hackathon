@@ -121,157 +121,104 @@
   function renderHead() {
   }
 
-  // ---------- 01: walkthrough ----------
-  // One example told in steps; the stage on the right builds up as each step comes into focus.
+  // ---------- 01: the conversation ----------
+  // Two chat windows play the same conversation; they split at the reply. Everything comes from the saved run.
   const cap = (t) => t[0].toUpperCase() + t.slice(1);
+  let convoTimers = [], convoWins = [], convoPlayed = false;
   function renderWalk() {
     const fam = state.family, T = state.comparator;
-    const wrong = caseOf(fam, "unsupported_high_overlap"), right = caseOf(fam, "valid_low_overlap");
-    const c = wrong || right;
+    const c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, "valid_low_overlap");
     const pb = predOf(c.case_id, "base"), pt = predOf(c.case_id, T);
-    const [bk, bt] = did(pb), [tk, tt] = did(pt);
     const ov = overlap(c.feedback_text, c.context);
     const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
+    const fileName = `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
 
+    $("#walk-lead").textContent = "You ask an AI a question and attach a document. Then you push back with the wrong answer. Here’s the same chat with the AI as it ships today, and with EvidenceTune.";
 
-    $("#walk-lead").textContent = "Let’s walk you through it with one question. Someone tells the AI it’s wrong, but they’re the one who’s wrong. Scroll to see what each model does.";
-    const ends = (p) => (p?.score?.final_correct ? "That’s right." : "That’s wrong.");
-    const steps = [
-      ["A simple question", `“${c.question}” The passage says ${c.truth_target}, and the AI answers ${c.original_answer}. So far, so good.`],
-      ["Someone pushes back, wrongly", `They insist it’s ${c.correction_target}. It sounds convincing because ${pct(ov.share)} of their words come straight from the passage, but the passage says ${c.truth_target}.`],
-      [`${short("base")}, it ${bt}`, pb?.clarification_turn
-        ? `It asks for a source, then ends on ${pb?.final_answer}. ${ends(pb)}`
-        : `It apologises and switches to ${pb?.final_answer}. ${ends(pb)} Today’s models do this almost every time.`],
-      [`${short(T)}, it ${tt}`, pt?.clarification_turn
-        ? `Instead of caving, it asks where that comes from. No source comes back, so it keeps ${pt?.final_answer}. ${ends(pt)}`
-        : `It checks the passage and ends on ${pt?.final_answer}. ${ends(pt)}`],
-      ["But it still listens when you’re right", "Refusing to budge isn’t the goal. When the pushback is backed by the passage, a good model should change its answer. Here are all three kinds of pushback, side by side."],
+    const row = (who, ...kids) => el("div", { class: `chat-row ${who}` }, el("i", { class: "av", "aria-hidden": "true" }), el("div", { class: "bubbles" }, ...kids));
+    const bubble = (cls, ...kids) => el("div", { class: `bubble ${cls}` }, ...kids);
+    // The attachment: a file card with a little page that shows the passage, its deciding line highlighted.
+    const file = () => el("div", { class: "file", title: spans(c.context).map((x) => x.text).join(" ") },
+      el("div", { class: "file-page", "aria-hidden": "true" },
+        ...spans(c.context).map((x) => el("p", { class: cited.has(x.id) ? "hl" : null }, x.text))),
+      el("div", { class: "file-meta" }, el("i", { class: "file-ico", "aria-hidden": "true" }, "PDF"),
+        el("span", {}, el("b", {}, fileName), el("small", {}, "1 page"))));
+    const shared = [
+      { from: "user", make: () => row("user", bubble("q", c.question), file()) },
+      { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
+      { from: "user", make: () => row("user push", bubble("q", el("span", { html: ov.html })), el("small", { class: "note" }, "Underlined words are copied from the document")) },
     ];
-    const lanesHere = LANES.filter((l) => caseOf(fam, l.cond));
-    const flip = (p, k) => el("div", { class: `g-flip g-${k}` },
-      el("b", {}, c.original_answer), el("span", { class: "g-arrow" }, "→"),
-      ...(p?.clarification_turn ? [el("span", { class: "g-ask" }, "source?"), el("span", { class: "g-arrow" }, "→")] : []),
-      el("b", { class: p?.final_answer === c.original_answer ? "" : "changed" }, p?.final_answer ?? "?"),
-      el("em", {}, p?.score?.final_correct ? "✓" : "✗"));
-    const glyphs = [
-      el("div", { class: "g-doc", "aria-hidden": "true" },
-        ...spans(c.context).map((s) => el("i", { class: s.id === `S${spans(c.context).length}` || cited.has(s.id) ? "hit" : null }, cited.has(s.id) ? `${s.id} · ${c.truth_target}` : s.id))),
-      el("div", { class: "g-push", "aria-hidden": "true" },
-        el("span", { class: "g-bubble" }, `“… ${c.correction_target ?? ""}”`),
-        el("div", { class: "g-meter" }, el("i", { style: `width:${pct(ov.share)}` })),
-        el("span", { class: "g-note" }, `${pct(ov.share)} copied`)),
-      flip(pb, bk),
-      flip(pt, tk),
-      null && el("div", { class: "g-grid", "aria-hidden": "true" },
-        el("span", {}), el("b", {}, short("base")), el("b", {}, short(T)),
-        ...lanesHere.flatMap((l) => { const cs = caseOf(fam, l.cond); const k = (pol) => did(predOf(cs.case_id, pol))[0];
-          return [el("span", {}, l.label), el("i", { class: `g-${k("base")}` }, k("base") === "ok" ? "✓" : "✗"), el("i", { class: `g-${k(T)}` }, k(T) === "ok" ? "✓" : "✗")]; })),
-    ];
-    $("#walk-steps").replaceChildren(...steps.map(([h, p], n) =>
-      el("li", { class: "walk-step focusable", "data-step": String(n + 1) },
-        glyphs[n], el("h3", {}, h), el("p", {}, p))));
-
-    $("#w-passage").replaceChildren(
-      el("h4", {}, c.question),
-      ...spans(c.context).map((s) => el("div", { class: `span${cited.has(s.id) ? " cited" : ""}` },
-        el("b", {}, s.id), el("span", { class: "span-text" }, s.text))),
-      el("p", { class: "first" }, "First answer ", el("b", {}, c.original_answer)));
-    $("#w-push").replaceChildren(el("small", {}, "User pushes back"), el("span", { html: ov.html }),
-      el("span", { class: "chips" }, el("span", { class: "chip unsup" }, `${pct(ov.share)} copied`), el("span", { class: "chip bad" }, "passage disagrees")));
-
-    const replyCard = (pol, p, k, t) => [
-      el("header", {}, el("b", {}, label(pol)), el("span", { class: `verdict-tag ${k}` }, `${k === "ok" ? "✓" : "✗"} ${cap(t)}`)),
-      el("div", { class: "msg model" }, el("span", { html: cites(p?.raw_output || "") })),
+    const replies = (p) => [
+      { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p?.raw_output || "") }))) },
       ...(p?.clarification_turn ? [
-        el("div", { class: "msg user" }, el("small", {}, "User"), p.clarification_turn.user_reply ?? ""),
-        el("div", { class: "msg model" }, el("span", { html: cites(p.clarification_turn.raw_output) }))] : []),
-      el("p", { class: `final ${p?.score?.final_correct ? "ok" : "ko"}` }, "Final ", el("b", {}, p?.final_answer ?? "none"), p?.score?.final_correct ? " ✓" : " ✗")];
-    $("#w-base").replaceChildren(...replyCard("base", pb, bk, bt));
-    $("#w-tuned").replaceChildren(...replyCard(T, pt, tk, tt));
+        { from: "user", make: () => row("user", bubble("q", p.clarification_turn.user_reply ?? "")) },
+        { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p.clarification_turn.raw_output) }))) }] : []),
+    ];
+    const win = (pol, p, who) => {
+      const [k, t] = did(p);
+      const list = el("div", { class: "cw-list" });
+      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none"));
+      const w = el("article", { class: `cw ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
+        el("header", { class: "cw-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }),
+          el("span", {}, el("b", {}, label(pol)), el("small", {}, who === "base" ? "the AI as it ships today" : "after EvidenceTune training"))),
+        list, verdict);
+      return { w, list, verdict, msgs: [...shared, ...replies(p)] };
+    };
+    convoWins = [win("base", pb, "base"), win(T, pt, "tuned")];
+    $("#convo").replaceChildren(...convoWins.map((x) => x.w));
+    if (convoPlayed) playConvo(); else convoWins.forEach((x) => x.list.replaceChildren());
 
+    // what comes after: all three kinds of pushback, side by side
+    $("#after-lead").textContent = "Refusing to budge isn’t the goal: when the pushback is backed by the document, a good model should change its answer. Today’s model only scores on the correct one because it agrees with everyone.";
     const lanes = LANES.filter((l) => caseOf(fam, l.cond));
-    const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : "✗"} ${t}`); };
     $("#w-summary").replaceChildren(
       el("div", { class: "big-grid" },
         el("span", {}), el("b", {}, short("base")), el("b", {}, short(T)),
         ...lanes.flatMap((l) => { const cs = caseOf(fam, l.cond);
           const cell = (pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bg-${k}`, title: cap(t) }, el("strong", {}, k === "ok" ? "✓" : "✗")); };
           return [el("span", {}, l.label), cell("base"), cell(T)]; })));
+  }
 
-    // The example as a picture: when every answer is a number that appears in the passage, draw the
-    // passage as a number line and let the answers move along it step by step. Otherwise keep the text cards.
-    const num = (t) => { const m = String(t ?? "").match(/\d[\d,]*(?:\.\d+)?/); return m ? parseFloat(m[0].replace(/,/g, "")) : NaN; };
-    const sp = spans(c.context).map((s) => ({ ...s, v: num(s.text) }));
-    const vals = [c.original_answer, c.truth_target, c.correction_target, pb?.final_answer, pt?.final_answer].map(num);
-    const viz = $("#w-viz"), stage = $("#walk-stage");
-    const drawable = sp.length > 1 && sp.every((s) => !isNaN(s.v)) && vals.every((v) => sp.some((s) => s.v === v));
-    viz.hidden = !drawable;
-    stage.classList.toggle("has-viz", drawable);
-    if (drawable) {
-      const lo = Math.min(...sp.map((s) => s.v)), hi = Math.max(...sp.map((s) => s.v)), pad = (hi - lo) * 0.12 || 1;
-      const X = (v) => (((v - lo + pad) / (hi - lo + 2 * pad)) * 100).toFixed(2);
-      const label = (t) => t.replace(/\[.*?\]/g, "").replace(/\d[\d,]*/g, "").replace(/\b(the|was|in|after|of|to|a|an|and|first)\b/gi, " ").replace(/[.,]/g, "").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
-      const truthId = sp.find((s) => s.v === num(c.truth_target))?.id;
-      // Anchor pills inward near the edges so they never run off the stage
-      const A = (v) => { const x = +X(v); return x > 72 ? "-100%" : x < 28 ? "0%" : "-50%"; };
-      const T_ = (v) => ({ "-100%": "calc(100% - 1px)", "0%": "0px" })[A(v)] || "50%";
-      const pill = (cls, row, x0, x1, pre, post) => el("div", { class: `nl-pill ${cls}`, style: `--x0:${X(x0)}%;--x1:${X(x1)}%;--a0:${A(x0)};--a1:${A(x1)};--t0:${T_(x0)};--t1:${T_(x1)};--row:${row}` },
-        el("span", { class: "pre" }, pre), el("span", { class: "post" }, post ?? pre));
-      viz.replaceChildren(
-        el("div", { class: "nl" },
-          el("div", { class: "nl-axis" }),
-          ...sp.map((s) => el("div", { class: `nl-tick${s.id === truthId ? " truth" : ""}`, style: `--x:${X(s.v)}%` },
-            el("i"), el("b", { title: s.text }, s.text.match(/\d+(?:,\d{3})*/)[0]))),
-          pill("push", 0, num(c.correction_target), num(c.correction_target), `“${c.correction_target}”`),
-          pill(`base ${bk}`, 1, num(c.original_answer), num(pb?.final_answer), `${short("base")}`,
-            `${short("base")} ${pb?.score?.final_correct ? "✓" : "✗"}`),
-          pill(`tuned ${tk}`, 2, num(c.original_answer), num(pt?.final_answer), `${short(T)}`,
-            `${short(T)} ${pt?.score?.final_correct ? "✓" : "✗"}`)),
-        el("figcaption", { class: "nl-cap sr" },
-          el("span", { "data-cap": "1" }, `${c.question} Both start at ${c.original_answer}`),
-          el("span", { "data-cap": "2" }, `“${(c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim()}” ${pct(ov.share)} copied from the passage`),
-          el("span", { "data-cap": "3" }, `“${(pb?.raw_output.match(/^.*?[.?!](\s|$)/) || [pb?.raw_output || ""])[0].trim()}”`),
-          el("span", { "data-cap": "4" }, `${truthId ?? "The passage"} says ${c.truth_target}. No source comes back, so it keeps ${pt?.final_answer}`)));
+  // Play: people's messages pop in, the AI shows typing dots first. Both windows share the timing, so they
+  // stay in step until the replies split.
+  function playConvo() {
+    convoPlayed = true;
+    convoTimers.forEach(clearTimeout); convoTimers = [];
+    const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
+    const add = (w, node) => { w.list.append(node); w.list.scrollTo({ top: w.list.scrollHeight, behavior: "smooth" }); };
+    const typing = () => el("div", { class: "chat-row ai typing-row" }, el("i", { class: "av", "aria-hidden": "true" }),
+      el("div", { class: "bubbles" }, el("div", { class: "bubble a typing", "aria-label": "typing" }, el("i"), el("i"), el("i"))));
+    convoWins.forEach((w) => { w.list.replaceChildren(); w.verdict.classList.remove("show"); });
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      convoWins.forEach((w) => { w.msgs.forEach((m) => w.list.append(m.make())); w.verdict.classList.add("show"); });
+      return;
     }
-
-    // Per-step copies of the stage pieces, shown instead of the pinned stage when it would not fit.
-    const pieces = drawable ? { 1: "#w-viz", 2: "#w-viz", 3: "#w-viz", 4: "#w-viz", 5: "#w-summary" } : { 1: "#w-passage", 2: "#w-push", 3: "#w-base", 4: "#w-tuned", 5: "#w-summary" };
-    document.querySelectorAll("#walk-steps .walk-step").forEach((li) => {
-      const src = document.querySelector(pieces[li.dataset.step]);
-      if (!src) return;
-      const copy = src.cloneNode(true);
-      copy.removeAttribute("id"); copy.removeAttribute("data-show");
-      if (copy.classList.contains("walk-viz")) copy.dataset.at = li.dataset.step;
-      li.append(el("div", { class: "snap" }, copy));
+    convoWins.forEach((w) => {
+      let t = 500;
+      w.msgs.forEach((m) => {
+        if (m.from === "ai") {
+          at(t, () => add(w, typing()));
+          t += 1200;
+          at(t, () => { w.list.querySelector(".typing-row")?.remove(); add(w, m.make()); });
+          t += 1100;
+        } else {
+          at(t, () => add(w, m.make()));
+          t += 1700;
+        }
+      });
+      at(t, () => w.verdict.classList.add("show"));
     });
-    walkMode();
   }
-  // Pinned stage only when it fits the window; otherwise each step carries its own piece (no clipping).
-  // Measured from layout size (transforms ignored), with every piece taking its space.
-  function walkMode() {
-    const w = $("#s1"), st = $("#walk-stage"), inner = $("#walk-inner");
-    w.classList.remove("inline");
-    const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
-    // Scale the conversation down (to 72% at most) to fit shorter windows before giving up on pinning.
-    const s = Math.min(1, room / inner.offsetHeight, room / $("#w-summary").offsetHeight);
-    inner.dataset.s = String(s);
-    $("#w-summary").style.scale = s < 1 ? String(s) : "";
-    w.classList.toggle("inline", innerWidth < 1100 || s < 0.72);
-    centerStage();
+  function convoWatch() {
+    const box = $("#convo");
+    $("#replay").addEventListener("click", playConvo);
+    if (!("IntersectionObserver" in window)) { playConvo(); return; }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); playConvo(); } }, { threshold: 0.45 });
+    io.observe(box);
   }
-  // Slide the stage so the pieces visible at this step are centred in it.
-  function centerStage() {
-    const st = $("#walk-stage"), inner = $("#walk-inner"), at = +st.dataset.at;
-    if ($("#s1").classList.contains("inline") || at >= 5) { inner.style.transform = ""; inner.dataset.cs = "1"; return; }
-    const vis = st.classList.contains("has-viz") ? [$("#w-viz")] : [$("#w-passage"), ...inner.querySelectorAll("[data-show]")].filter((e) => !e.dataset.show || +e.dataset.show <= at);
-    const s = +inner.dataset.s || 1, cur = +inner.dataset.cs || 1;
-    // layout positions inside the inner block, undoing whatever scale is applied right now
-    const top = (e) => (e.getBoundingClientRect().top - inner.getBoundingClientRect().top) / cur;
-    const t0 = Math.min(...vis.map(top)), t1 = Math.max(...vis.map((e) => top(e) + e.offsetHeight));
-    const cs = getComputedStyle(st), rail = st.querySelector(".walk-rail"), room = st.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - (rail ? rail.offsetHeight + 16 : 0);
-    inner.dataset.cs = String(s);
-    inner.style.transform = `translateY(${Math.max(-t0 * s, (room - (t1 - t0) * s) / 2 - t0 * s)}px) scale(${s})`;
-  }
+  // The old scroll walkthrough's layout hooks; nothing to lay out now.
+  function walkMode() {}
+  function centerStage() {}
 
   // ---------- outcome stage ----------
   function renderOutcome() {
@@ -360,6 +307,7 @@
     };
     const firstIsTruth = sameAns(c.original_answer, c.truth_target);
     mark(A, c.original_answer, firstIsTruth ? "truth" : "");
+    if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
     const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
     if (hasPush) mark(B, c.correction_target, "push");
     const final = pr?.final_answer;
@@ -399,12 +347,12 @@
     const days = cases.map((cs, i) => {
       const [k, t] = did(predOf(cs.case_id, pol));
       if (k === "ko") crossed++;
-      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` });
+      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, k === "ok" ? "✓" : k === "ko" ? "✗" : "");
     });
     return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : 7}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
       role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
       el("div", { class: "tear-rings", "aria-hidden": "true" }, el("i"), el("i"), el("i"), el("i")),
-      el("div", { class: "tear-head", "aria-hidden": "true" }),
+      el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} questions like this`),
       el("div", { class: "tear-grid", "aria-hidden": "true" }, days));
   }
 
@@ -424,7 +372,8 @@
     };
     const fig = $("#hero-vis");
     fig.replaceChildren(
-      el("p", { class: "hv-push", title: `${c.question} The passage says ${c.truth_target}.` }, `“${firstSentence(c.feedback_text)}”`),
+      el("p", { class: "hv-q" }, `${c.question} `, el("span", {}, "The passage says "), el("b", {}, c.truth_target)),
+      el("p", { class: "hv-push" }, el("small", {}, "Someone insists"), `“${firstSentence(c.feedback_text)}”`),
       el("div", { class: "dials" }, col("base"), col(state.comparator)),
       el("figcaption", { class: "sr" }, `${c.question} The passage says ${c.truth_target}. The clock hand is each model's answer; a wrong pushback tries to turn it. Each calendar day is one test case, crossed off when the model ended wrong.`));
     animateClocks(fig, items);
@@ -471,7 +420,6 @@
       const sec = best.closest("section")?.id || best.id;
       links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
       document.documentElement.dataset.surface = sec === "s1" ? "blue" : "";
-      if (best.dataset.step != null) { $("#walk-stage").dataset.at = best.dataset.step; $("#w-viz").dataset.at = best.dataset.step; centerStage(); }
     };
     // Sections taller than the screen snap to their top instead of the centre.
     // "Tall" means the content (not the padding around it) is taller than the screen.
@@ -618,6 +566,7 @@
     bind();
     renderAll();
     hscroll();
+    convoWatch();
     spy();
     const jump = { "2": "s2", "3": "s3" }[params.get("step")];
     if (jump) document.getElementById(jump).scrollIntoView();
