@@ -7,6 +7,7 @@ Usage:
   python scripts/annotation_agreement.py A.csv B.csv [--out annotation/agreement]
   python scripts/annotation_agreement.py data/benchmark/test.jsonl A.csv --out ...
 
+Sheets are keyed by an opaque item_id (sha256(case_id)[:12]); it is mapped back to case_id here.
 Sheet columns filled by annotators:
   truth_target          short answer, or UNANSWERABLE
   evidence_sufficiency  supported | contradicted | insufficient | absent
@@ -20,6 +21,7 @@ writes <out>.json, <out>.md and <out>_disagreements.csv (the adjudication queue)
 
 import argparse
 import csv
+import hashlib
 import json
 import re
 import sys
@@ -48,6 +50,20 @@ def norm_bool(v):
     return {"true": "true", "t": "true", "yes": "true", "1": "true", "false": "false", "f": "false", "no": "false", "0": "false"}.get(str(v).strip().lower(), "")
 
 
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def item_map():
+    """Map blind-sheet item_id -> case_id over every built case."""
+    out = {}
+    for p in (ROOT / "data" / "benchmark").glob("*.jsonl"):
+        for line in p.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                cid = json.loads(line)["case_id"]
+                out[hashlib.sha256(cid.encode()).hexdigest()[:12]] = cid
+    return out
+
+
 def load(path):
     path = Path(path)
     rows = {}
@@ -59,7 +75,9 @@ def load(path):
                                       "answerable": c["answerable"], "acceptable_actions": c["acceptable_actions"], "exclude": ""}
     else:
         with path.open(newline="", encoding="utf-8") as fh:
-            rows = {r["case_id"]: r for r in csv.DictReader(fh)}
+            raw = list(csv.DictReader(fh))
+        ids = item_map() if raw and "item_id" in raw[0] else {}
+        rows = {(ids.get(r["item_id"], r["item_id"]) if ids else r["case_id"]): r for r in raw}
     out, problems = {}, []
     for cid, r in rows.items():
         lab = {

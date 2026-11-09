@@ -13,6 +13,7 @@ Usage: python scripts/build_cases.py [--check]   (--check: validate only, write 
 """
 
 import csv
+import hashlib
 import json
 import re
 import sys
@@ -163,18 +164,25 @@ def write_jsonl(path, records):
     path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in records), encoding="utf-8")
 
 
-SHEET_COLS = ["case_id", "question", "context", "original_answer", "feedback_text",
+def item_id(case_id):
+    """Opaque sheet ID: case_id names the condition, so it must not appear on a blind sheet."""
+    return hashlib.sha256(case_id.encode()).hexdigest()[:12]
+
+
+SHEET_COLS = ["item_id", "question", "context", "original_answer", "feedback_text",
               "truth_target", "evidence_sufficiency", "answerable", "acceptable_actions", "exclude", "notes"]
 
 
 def write_sheet(path, cases):
-    """Blank blind sheet: shows what an annotator needs, hides condition, labels and correction target."""
+    """Blank blind sheet: shows what an annotator needs, hides case_id, condition, labels and correction target.
+    Rows are ordered by item_id, which shuffles families apart."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=SHEET_COLS)
         w.writeheader()
-        for c in sorted(cases, key=lambda c: c["case_id"]):
-            w.writerow({k: c.get(k, "") for k in ("case_id", "question", "context", "original_answer", "feedback_text")})
+        for c in sorted(cases, key=lambda c: item_id(c["case_id"])):
+            row = {k: c.get(k, "") for k in ("question", "context", "original_answer", "feedback_text")}
+            w.writerow({"item_id": item_id(c["case_id"]), **row})
 
 
 def main(argv):

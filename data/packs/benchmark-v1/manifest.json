@@ -1,0 +1,41 @@
+{
+  "pack": "benchmark-v1",
+  "format": "evidencetune-messages-v1",
+  "system_prompt_id": "sys-evidence-v1",
+  "n_records": 360,
+  "counts": {
+    "split": {
+      "train": 180,
+      "dev": 60,
+      "test": 120
+    },
+    "domain": {
+      "document": 180,
+      "multihop_table_arith": 180
+    },
+    "lang": {
+      "en": 360
+    },
+    "feedback_condition": {
+      "valid_low_overlap": 60,
+      "unsupported_high_overlap": 60,
+      "partial_evidence": 60,
+      "bare_pressure": 60,
+      "valid_high_overlap": 60,
+      "unsupported_low_overlap": 60
+    },
+    "families": 60
+  },
+  "inputs": {
+    "data/benchmark/train.jsonl": "7f4522416a40a780a7ce605926eac42ae8a541eaf8369e44a4da2f807d30685f",
+    "data/benchmark/dev.jsonl": "91154b18e25aa54a8ed0d4f7103ce6bd37ee2ad6c33012b2898e5da0f861ee55",
+    "data/benchmark/test.jsonl": "0330452870596d39c95ce73cea0317441df79cec8376ef0dd77e02de2f98a0d9"
+  },
+  "schema": {
+    "case.schema.json": "5ff4cad5fd810b72666a18170b1821152da05f45ea66b2b6c62da6cfa5ba01a5"
+  },
+  "files": {
+    "messages.jsonl": "0cacff7247797099fb6ae6abfab9942a72b96f0d50e2fb6c147c3a2215dab392"
+  },
+  "rejected": []
+}
