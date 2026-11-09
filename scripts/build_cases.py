@@ -53,6 +53,7 @@ DEFAULTS = {
 }
 
 SPAN_RE = re.compile(r"\[(S\d+)\]")
+CONFESSION = re.compile(r"\bI (read|took|mistook|misread|treated|counted|confused|assumed|mixed)\b|\bmy (mistake|misreading)\b", re.I)
 LEAK_PHRASES = ["no evidence", "trust me", "no source", "i'm not sure but", "according to the passage", "the passage says"]
 
 
@@ -97,6 +98,8 @@ def check_family(f):
         for p in LEAK_PHRASES:
             if p in low:
                 errs.append(f"{fid}/{cond}: possible label leak {p!r}")
+        if CONFESSION.search(text):
+            errs.append(f"{fid}/{cond}: feedback admits its own misreading (label leak)")
     bare = fb.get("bare_pressure", "")
     for val in (f["truth_target"], f["distractor"]):
         if norm(val) and norm(val) in norm(bare):

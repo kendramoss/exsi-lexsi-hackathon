@@ -1,0 +1,31 @@
+{
+  "a": "data/benchmark/{train,dev,test}.jsonl (author key)",
+  "b": "annotation/qa/llm_blind_labels.csv",
+  "n_labelled_a": 360,
+  "n_labelled_b": 360,
+  "n_compared": 360,
+  "fields": {
+    "truth_target": {
+      "percent_agreement": 0.997,
+      "cohens_kappa": null
+    },
+    "evidence_sufficiency": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "answerable": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "acceptable_actions": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": 1.0
+    }
+  },
+  "status": "computed",
+  "all_fields_agree": 0.997,
+  "exclusion_flags": {
+    "a": 0,
+    "b": 6
+  }
+}

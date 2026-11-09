@@ -30,3 +30,7 @@ Run from `/Users/anasqumhiyeh/lexsi-koth/evtune`:
 ```
 
 No model, paid job, network service, package install, server, publishing step, or push is part of this kit. No files are written outside `annotation/`; CLI output paths are confined there. All input/output and output/output collisions are rejected, and existing outputs require explicit `--overwrite`.
+
+## Template benchmark v1 (separate set)
+
+The 60-family fictional-source benchmark under `data/families/` has its own blind sheets and QA pass: see [BENCHMARK-V1.md](BENCHMARK-V1.md).

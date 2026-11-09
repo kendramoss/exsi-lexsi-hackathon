@@ -40,8 +40,8 @@
       },
       "unsupported_low_overlap": {
         "n": 60,
-        "mean_tfidf_cosine": 0.076,
-        "mean_content_word_overlap": 0.025
+        "mean_tfidf_cosine": 0.077,
+        "mean_content_word_overlap": 0.027
       }
     },
     "gates": {
