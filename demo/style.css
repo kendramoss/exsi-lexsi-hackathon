@@ -1157,13 +1157,11 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 #top .cue .chev { display: inline-block; margin-left: 6px; vertical-align: middle; }
 
 /* 2 · names sit above the cards; one clock plays at a time */
-#glance .clockcol { display: grid; gap: 12px; align-content: start; transform-origin: center; transition: opacity 800ms var(--ease), transform 800ms var(--ease); }
-#glance .clockcol.is-dim { opacity: .35; transform: translateX(var(--away, 0)) scale(.9); }
-#glance .clockcol.is-on { opacity: 1; transform: translateX(var(--in, 0)) scale(1.04); }
-#glance .clockcol:first-child { --in: 24px; --away: -24px; }
-#glance .clockcol:last-child { --in: -24px; --away: 24px; }
+#glance .clockcol { display: grid; gap: 12px; align-content: start; transform-origin: center; transition: opacity 800ms var(--ease), transform 900ms cubic-bezier(.65, 0, .35, 1); }
+#glance .clockcol.is-dim { opacity: .35; transform: scale(.78); }
+#glance .clockcol.is-on { opacity: 1; transform: scale(1.12); }
 #glance .clockcol .bigclock { width: min(23vw, 320px); }
-#glance .clock-name { display: flex; justify-content: space-between; font: 400 22px/1 var(--display); color: #f5f9ff; }
+#glance .clock-name { display: flex; justify-content: center; text-align: center; font: 400 22px/1 var(--display); color: #f5f9ff; }
 #glance .clock-name b { font-weight: 400; }
 #glance .clock-name b.ok { color: #9fe8c6; }
 #glance .clock-name b.ko { color: #ffc2bd; }

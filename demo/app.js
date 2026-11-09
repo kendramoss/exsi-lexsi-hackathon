@@ -360,7 +360,7 @@
     const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 180;
     if (end === 180 && final != null) mark(180, final, "");
     const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 90, x2: 80, y2: 60 }), svg("polygon", { points: "73.5,61 80,47 86.5,61" }));
-    face.append(hand, svg("rect", { x: 75, y: 75, width: 10, height: 10, class: "c-hub" }));
+    face.append(hand, svg("circle", { cx: 80, cy: 80, r: 6, class: "c-hub" }));
     return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
   }
 
@@ -407,9 +407,8 @@
       if (k === "ko") crossed++;
       return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, k === "ok" ? "✓" : k === "ko" ? "✗" : "");
     });
-    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : 7}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
+    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : Math.min(7, cases.length)}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
       role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
-      el("div", { class: "tear-rings", "aria-hidden": "true" }, el("i"), el("i"), el("i"), el("i")),
       el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} questions like this`),
       el("div", { class: "tear-grid", "aria-hidden": "true" }, days));
   }
@@ -422,7 +421,7 @@
       if (k) ck.face.classList.add(k);
       items.push(ck);
       return el("div", { class: "clockcol", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
-        el("span", { class: "clock-name" }, `${short(pol)} `, el("b", { class: k }, k === "ok" ? `✓ kept ${pr?.final_answer ?? c.original_answer}` : `✗ switched to ${pr?.final_answer ?? "?"}`)),
+        el("span", { class: "clock-name" }, short(pol)),
         el("div", { class: "bigclock" }, ck.face, tearoff(pol)));
     };
     const fig = $("#hero-vis");
