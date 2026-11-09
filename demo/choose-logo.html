@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choose a logo · round thirteen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  :root { --cream: #f5f9ff; --cobalt: #0b55b8; --cobalt-3: #7d9fd4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--cobalt); font: 400 15px/1.5 Outfit, sans-serif; padding: 40px 48px 64px; }
+  h1 { margin: 0 0 8px; font: 400 40px/1.1 Outfit; letter-spacing: -.02em; }
+  .sub { margin: 0 0 24px; color: #3c76c6; }
+  .picked { font: 400 13px "JetBrains Mono", monospace; padding: 10px 14px; border: 1px solid var(--cobalt); display: inline-block; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--cobalt); border-left: 1px solid var(--cobalt); }
+  .opt { padding: 24px; border-right: 1px solid var(--cobalt); border-bottom: 1px solid var(--cobalt); display: grid; gap: 16px; align-content: start; }
+  .opt.chosen { outline: 3px solid var(--cobalt); outline-offset: -3px; }
+  .opt header { display: flex; gap: 10px; align-items: baseline; }
+  .opt header b { font: 400 12px "JetBrains Mono", monospace; color: var(--cobalt-3); }
+  .opt h2 { margin: 0; font: 400 22px Outfit; }
+  .big { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .big span { display: grid; place-items: center; height: 180px; border: 1px solid var(--cobalt); }
+  .big .blue { background: var(--cobalt); }
+  .big img { width: 104px; height: 104px; }
+  .nav { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 16px; border: 1px solid var(--cobalt); font: 400 20px Outfit; }
+  .nav img { width: 22px; height: 22px; }
+  .nav span { color: var(--cobalt-3); }
+  .nav.blue { background: var(--cobalt); color: var(--cream); }
+  .nav.blue span { color: #9fb6df; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; color: #222; border: 1px solid #ddd; border-radius: 8px 8px 0 0; font: 13px system-ui; }
+  .tab.dark { background: #2b2b2f; color: #eee; border-color: #444; }
+  .tab img { width: 16px; height: 16px; }
+  .opt p { margin: 0; color: #3c76c6; }
+  button { font: 500 15px Outfit; padding: 12px 18px; border: 1px solid var(--cobalt); background: var(--cream); color: var(--cobalt); cursor: pointer; justify-self: start; }
+  .opt.chosen button { background: var(--cobalt); color: var(--cream); }
+  @media (max-width: 1000px) { .grid { grid-template-columns: 1fr 1fr; } }
+</style></head><body>
+  <h1>Choose a logo: round thirteen</h1>
+  <p class="sub">In the style of the Unde Labs mark: bold tiles, two tones, no lines. Squares are heavy evidence, circles are light pushback.</p>
+  <div class="picked" id="picked">Nothing picked yet</div>
+  <div class="grid" id="grid">
+  <article class="opt" data-k="tipped-tiles">
+    <header><b>1</b><h2>Tipped tiles</h2></header>
+    <div class="big"><span><img src="assets/logo-options13/tipped-tiles.svg" alt=""></span><span class="blue"><img src="assets/logo-options13/tipped-tiles-light.svg" alt=""></span></div>
+    <div class="nav"><img src="assets/logo-options13/tipped-tiles.svg" alt="">evidence<span>[tune]</span></div>
+    <div class="tabs"><div class="tab"><img src="assets/logo-options13/tipped-tiles-favicon.svg" alt="">EvidenceTune Demo</div></div>
+    <p>The Unde grid, weighed: the evidence squares sink, the pushback circles rise</p>
+    <button type="button" data-k="1">Pick this one</button>
+  </article>
+  <article class="opt" data-k="seesaw">
+    <header><b>2</b><h2>Seesaw</h2></header>
+    <div class="big"><span><img src="assets/logo-options13/seesaw.svg" alt=""></span><span class="blue"><img src="assets/logo-options13/seesaw-light.svg" alt=""></span></div>
+    <div class="nav"><img src="assets/logo-options13/seesaw.svg" alt="">evidence<span>[tune]</span></div>
+    <div class="tabs"><div class="tab"><img src="assets/logo-options13/seesaw-favicon.svg" alt="">EvidenceTune Demo</div></div>
+    <p>A solid beam on a fulcrum: the heavy square of evidence holds its end down, the light circle lifts</p>
+    <button type="button" data-k="2">Pick this one</button>
+  </article>
+  <article class="opt" data-k="pans">
+    <header><b>3</b><h2>Pans</h2></header>
+    <div class="big"><span><img src="assets/logo-options13/pans.svg" alt=""></span><span class="blue"><img src="assets/logo-options13/pans-light.svg" alt=""></span></div>
+    <div class="nav"><img src="assets/logo-options13/pans.svg" alt="">evidence<span>[tune]</span></div>
+    <div class="tabs"><div class="tab"><img src="assets/logo-options13/pans-favicon.svg" alt="">EvidenceTune Demo</div></div>
+    <p>Two pans in quarter-circles, like Unde's: the one holding evidence sits lower</p>
+    <button type="button" data-k="3">Pick this one</button>
+  </article>
+  <article class="opt" data-k="settled">
+    <header><b>4</b><h2>Settled</h2></header>
+    <div class="big"><span><img src="assets/logo-options13/settled.svg" alt=""></span><span class="blue"><img src="assets/logo-options13/settled-light.svg" alt=""></span></div>
+    <div class="nav"><img src="assets/logo-options13/settled.svg" alt="">evidence<span>[tune]</span></div>
+    <div class="tabs"><div class="tab"><img src="assets/logo-options13/settled-favicon.svg" alt="">EvidenceTune Demo</div></div>
+    <p>Closest to Unde: four parts assembled, three solid, one light circle left out of the stack</p>
+    <button type="button" data-k="4">Pick this one</button>
+  </article>
+  </div>
+<script>
+  const key = "evidencetune-logo-choice-13";
+  const picked = document.getElementById("picked");
+  const show = (k) => {
+    document.querySelectorAll(".opt").forEach((o) => { const on = o.querySelector("button").dataset.k === k; o.classList.toggle("chosen", on); o.querySelector("button").textContent = on ? "Picked" : "Pick this one"; });
+    picked.textContent = k ? `Picked: ${k} (${document.querySelector(`button[data-k="${k}"]`).closest(".opt").querySelector("h2").textContent}). Tell Claude you've picked` : "Nothing picked yet";
+  };
+  let chosen = null; try { chosen = localStorage.getItem(key); } catch {}
+  show(chosen);
+  document.getElementById("grid").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-k]"); if (!b) return;
+    chosen = b.dataset.k; try { localStorage.setItem(key, chosen); } catch {}
+    show(chosen);
+  });
+</script>
+</body></html>
