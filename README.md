@@ -8,6 +8,20 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 
 **Pipeline:** CuratorKIT → SafeTune → AuditKIT.
 
+## See the demo live
+
+**[Open the live demo →](https://raw.githack.com/kendramoss/exsi-lexsi-hackathon/feat/demo-redesign/demo/index.html)**
+
+No install needed: this link serves `demo/` straight from the `feat/demo-redesign` branch, so it always shows the latest pushed design and layout (allow a few minutes after a push for it to refresh). It currently runs on the mock results in `demo/data/results/mock-smoke/`.
+
+To run it on your own machine instead:
+
+```sh
+cd demo
+python -m http.server 8000
+# then open http://localhost:8000
+```
+
 ## Project documents
 
 - [Research specification](SPEC.md)
