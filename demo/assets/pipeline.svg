@@ -2,9 +2,9 @@
   <title id="t">EvidenceTune pipeline: CuratorKIT, SafeTune, AuditKIT</title>
   <desc id="d">Licensed sources with blind double labels go into CuratorKIT, which validates them and exports two things. The training export goes to SafeTune, which trains a LoRA hardening adapter on Tiny Aya Global; an ordinary SFT adapter is trained on the same data as a control. The untouched evaluation pack (dev, test and transfer) is hashed before any outputs and goes straight to AuditKIT, never through training. AuditKIT runs both adapters and the inference-only baselines on identical cases and saves predictions, metrics, configs, fingerprints and paired intervals. The saved results feed the demo Space and the HF Article.</desc>
   <style>
-    svg { --bg:#f3efe6; --surface:#f3efe6; --surface2:#ebe6da; --ink:#0b55b8; --ink2:#3c76c6; --line:#7d9fd4; --train:#0b55b8; --eval:#157a55; --model:#7d9fd4; }
+    svg { --bg:#f5f9ff; --surface:#f5f9ff; --surface2:#e4eefd; --ink:#0b55b8; --ink2:#3c76c6; --line:#7d9fd4; --train:#0b55b8; --eval:#157a55; --model:#7d9fd4; }
     @media (prefers-color-scheme: dark) {
-      svg { --bg:#0a4ca6; --surface:#0a4ca6; --surface2:#083d87; --ink:#f3efe6; --ink2:#d6dcec; --line:#9fb6df; --train:#f3efe6; --eval:#7fe0b8; --model:#9fb6df; }
+      svg { --bg:#0a4ca6; --surface:#0a4ca6; --surface2:#083d87; --ink:#f5f9ff; --ink2:#d6dcec; --line:#9fb6df; --train:#f5f9ff; --eval:#7fe0b8; --model:#9fb6df; }
     }
     text { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; fill: var(--ink); }
     .bg { fill: var(--bg); }

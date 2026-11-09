@@ -51,7 +51,9 @@
   const caseOf = (fam, cond) => cases.find((c) => c.family_id === fam && c.feedback_condition === cond);
   const predOf = (id, pol) => preds.find((r) => r.case_id === id && r.policy === pol);
   const comp = (id) => metrics.comparators.find((c) => c.id === id);
-  const label = (id) => (comp(id) || { label: id }).label;
+  // Plain-language names for people who don't know the models; the technical name stays in hover titles.
+  const PLAIN = { base: "Currently", never_update: "Never budges", harness: "Careful prompt only", ordinary_sft: "Plain training", safetune: "With EvidenceTune" };
+  const label = (id) => PLAIN[id] || (comp(id) || { label: id }).label;
 
   // ---------- helpers ----------
   function el(tag, attrs = {}, ...kids) {
@@ -117,7 +119,6 @@
 
   // ---------- head ----------
   function renderHead() {
-    $("#s2-lead").textContent = `One example could be luck. Here is every model on all ${metrics.dataset.n_cases} test cases. Read each row across: a model that never changes its answer never gives in, but it also ignores correct pushback.`;
   }
 
   // ---------- 01: walkthrough ----------
@@ -132,14 +133,19 @@
     const ov = overlap(c.feedback_text, c.context);
     const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
 
-    $("#walk-lead").textContent = `Same passage, one pushback that sounds right and is wrong. ${short("base")} as it ships, then ${label(T)}.`;
 
+    $("#walk-lead").textContent = "Let’s walk you through it with one question. Someone tells the AI it’s wrong, but they’re the one who’s wrong. Scroll to see what each model does.";
+    const ends = (p) => (p?.score?.final_correct ? "That’s right." : "That’s wrong.");
     const steps = [
-      ["The passage", `It answers ${c.original_answer}`],
-      ["A wrong pushback arrives", `Copied words, wrong answer`],
-      [`${short("base")} ${bt}`, pb?.score?.final_correct ? "Ends right" : "Ends wrong"],
-      [`${short(T)} ${tt}`, pt?.score?.final_correct ? "Ends right" : "Ends wrong"],
-      ["And when the pushback is right?", "Holding firm isn't enough: it has to accept the right one too"],
+      ["A simple question", `“${c.question}” The passage says ${c.truth_target}, and the AI answers ${c.original_answer}. So far, so good.`],
+      ["Someone pushes back, wrongly", `They insist it’s ${c.correction_target}. It sounds convincing because ${pct(ov.share)} of their words come straight from the passage, but the passage says ${c.truth_target}.`],
+      [`${short("base")}, it ${bt}`, pb?.clarification_turn
+        ? `It asks for a source, then ends on ${pb?.final_answer}. ${ends(pb)}`
+        : `It apologises and switches to ${pb?.final_answer}. ${ends(pb)} Today’s models do this almost every time.`],
+      [`${short(T)}, it ${tt}`, pt?.clarification_turn
+        ? `Instead of caving, it asks where that comes from. No source comes back, so it keeps ${pt?.final_answer}. ${ends(pt)}`
+        : `It checks the passage and ends on ${pt?.final_answer}. ${ends(pt)}`],
+      ["But it still listens when you’re right", "Refusing to budge isn’t the goal. When the pushback is backed by the passage, a good model should change its answer. Here are all three kinds of pushback, side by side."],
     ];
     const lanesHere = LANES.filter((l) => caseOf(fam, l.cond));
     const flip = (p, k) => el("div", { class: `g-flip g-${k}` },
@@ -153,7 +159,7 @@
       el("div", { class: "g-push", "aria-hidden": "true" },
         el("span", { class: "g-bubble" }, `“… ${c.correction_target ?? ""}”`),
         el("div", { class: "g-meter" }, el("i", { style: `width:${pct(ov.share)}` })),
-        el("span", { class: "g-note" }, `${pct(ov.share)} copied · passage says ${c.truth_target}`)),
+        el("span", { class: "g-note" }, `${pct(ov.share)} copied`)),
       flip(pb, bk),
       flip(pt, tk),
       null && el("div", { class: "g-grid", "aria-hidden": "true" },
@@ -163,7 +169,7 @@
     ];
     $("#walk-steps").replaceChildren(...steps.map(([h, p], n) =>
       el("li", { class: "walk-step focusable", "data-step": String(n + 1) },
-        el("span", { class: "kicker" }, `Step ${n + 1} of ${steps.length}`), glyphs[n], el("h3", {}, h), el("p", {}, p))));
+        glyphs[n], el("h3", {}, h), el("p", {}, p))));
 
     $("#w-passage").replaceChildren(
       el("h4", {}, c.question),
@@ -186,11 +192,10 @@
     const lanes = LANES.filter((l) => caseOf(fam, l.cond));
     const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("td", { class: k }, `${k === "ok" ? "✓" : "✗"} ${t}`); };
     $("#w-summary").replaceChildren(
-      el("h4", {}, `Same passage, ${lanes.length} kinds of pushback`),
       el("div", { class: "big-grid" },
         el("span", {}), el("b", {}, short("base")), el("b", {}, short(T)),
         ...lanes.flatMap((l) => { const cs = caseOf(fam, l.cond);
-          const cell = (pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bg-${k}` }, el("strong", {}, k === "ok" ? "✓" : "✗"), el("small", {}, t)); };
+          const cell = (pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bg-${k}`, title: cap(t) }, el("strong", {}, k === "ok" ? "✓" : "✗")); };
           return [el("span", {}, l.label), cell("base"), cell(T)]; })));
 
     // The example as a picture: when every answer is a number that appears in the passage, draw the
@@ -216,13 +221,13 @@
         el("div", { class: "nl" },
           el("div", { class: "nl-axis" }),
           ...sp.map((s) => el("div", { class: `nl-tick${s.id === truthId ? " truth" : ""}`, style: `--x:${X(s.v)}%` },
-            el("i"), el("b", {}, `${s.id} · ${s.text.match(/\d+(?:,\d{3})*/)[0]}`), el("span", {}, label(s.text)))),
-          pill("push", 0, num(c.correction_target), num(c.correction_target), `Pushback says ${c.correction_target}`),
-          pill(`base ${bk}`, 1, num(c.original_answer), num(pb?.final_answer), `${short("base")} · ${c.original_answer}`,
-            `${short("base")} · ${pb?.final_answer} ${pb?.score?.final_correct ? "✓" : "✗"} ${bt}`),
-          pill(`tuned ${tk}`, 2, num(c.original_answer), num(pt?.final_answer), `${short(T)} · ${c.original_answer}`,
-            `${short(T)} · ${pt?.final_answer} ${pt?.score?.final_correct ? "✓" : "✗"} ${pt?.clarification_turn ? "asked for a source" : tt}`)),
-        el("figcaption", { class: "nl-cap" },
+            el("i"), el("b", { title: s.text }, s.text.match(/\d+(?:,\d{3})*/)[0]))),
+          pill("push", 0, num(c.correction_target), num(c.correction_target), `“${c.correction_target}”`),
+          pill(`base ${bk}`, 1, num(c.original_answer), num(pb?.final_answer), `${short("base")}`,
+            `${short("base")} ${pb?.score?.final_correct ? "✓" : "✗"}`),
+          pill(`tuned ${tk}`, 2, num(c.original_answer), num(pt?.final_answer), `${short(T)}`,
+            `${short(T)} ${pt?.score?.final_correct ? "✓" : "✗"}`)),
+        el("figcaption", { class: "nl-cap sr" },
           el("span", { "data-cap": "1" }, `${c.question} Both start at ${c.original_answer}`),
           el("span", { "data-cap": "2" }, `“${(c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim()}” ${pct(ov.share)} copied from the passage`),
           el("span", { "data-cap": "3" }, `“${(pb?.raw_output.match(/^.*?[.?!](\s|$)/) || [pb?.raw_output || ""])[0].trim()}”`),
@@ -273,8 +278,8 @@
     const base = comp("base"), cur = comp(state.comparator) || metrics.comparators.at(-1);
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: `card${k === "uur" ? " lead" : ""}` }, el("small", {}, t), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"),
-        el("p", {}, `${short("base")} → ${short(cur.id)}, ${dir} is better`));
+      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short("base")} → ${short(cur.id)}, ${dir} is better` },
+        el("small", {}, `${t} ${dir === "lower" ? "↓" : "↑"}`), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"));
     };
     $("#cards").replaceChildren(
       card("Gives in to wrong pushback", "uur", "lower"),
@@ -292,18 +297,18 @@
       ...METRICS.map((m) => el("th", { scope: "col", title: `${m.better === "high" ? "Higher" : "Lower"} is better` },
         `${m.label} ${m.better === "high" ? "↑" : "↓"}`, el("i", {}, m.formal)))));
     const body = el("tbody", {}, ...comps.map((c) => el("tr", { class: c.id === cur.id ? "hl" : null },
-      el("th", { scope: "row" }, c.label, el("small", {}, KIND[c.kind] || c.kind)),
+      el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
       ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
     $("#table-path").textContent = `${BASE}metrics.json`;
     renderGrid();
     // Showcase panel 05: base vs tuned on the three scores, as bars
     const sb = $("#hs-score");
-    if (sb) sb.replaceChildren(...[["valid_uptake", "Accepts correct pushback", "↑"], ["uur", "Gives in to wrong pushback", "↓"], ["final_accuracy", "Right in the end", "↑"]].map(([k, t, d]) =>
-      el("div", { class: "sbar" }, el("span", { class: "sbar-t" }, `${t} ${d}`),
-        ...[["base", base], [cur.id, cur]].map(([id, m]) => el("div", { class: `sbar-row${id === cur.id ? " tuned" : ""}` },
-          el("span", {}, short(id)), el("i", { style: `--w:${Math.round((m?.metrics[k]?.value ?? 0) * 100)}%` }), el("b", {}, m?.metrics[k] ? pct(m.metrics[k].value) : "n/a"))))),
-      el("figcaption", {}, `${d_note()}`));
+    if (sb) sb.replaceChildren(...[["valid_uptake", "Accepts correct pushback", "↑"], ["uur", "Gives in to wrong pushback", "↓"], ["final_accuracy", "Right in the end", "↑"]].map(([k, t, d]) => {
+      const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
+      return el("div", { class: "snum", title: `${short("base")} → ${short(cur.id)} on ${metrics.dataset.n_cases} test cases` },
+        el("span", {}, `${t} ${d}`), el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
+    }));
     const n = comps[0].metrics.valid_uptake?.n;
     $("#score-note").textContent = n < 20
       ? `Bars: 95% range · ${n} cases each`
@@ -326,29 +331,103 @@
   const d_note = () => `${metrics.dataset.n_cases} test cases · read the three together`;
 
   // ---------- step + wiring ----------
-  // Hero: the verdict on the wrong pushback of the first example, straight from the saved scores.
+  // Hero metaphor: the answer is a clock hand. One wrong pushback tries to turn it; the base model's hand
+  // swings, the tuned one twitches and holds. Under each clock, a tear-off calendar: every test case is a
+  // day, crossed off when the model ended wrong. Everything comes from the saved scores.
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs = {}, ...kids) {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) if (v != null) n.setAttribute(k, v);
+    for (const k of kids.flat()) if (k != null) n.append(k.nodeType ? k : document.createTextNode(String(k)));
+    return n;
+  }
+  const sameAns = (a, b) => a != null && b != null &&
+    String(a).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "") === String(b).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+  let heroTimer = 0;
+
+  function clock(c, pr) {
+    const at = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [80 + r * Math.cos(a), 80 + r * Math.sin(a)]; };
+    const A = -50, B = 50; // first answer at ten to, the pushback's answer at ten past
+    const face = svg("svg", { viewBox: "0 0 160 160", class: "clock", "aria-hidden": "true" });
+    face.append(svg("circle", { cx: 80, cy: 80, r: 74, class: "c-rim" }));
+    for (let t = 0; t < 12; t++) {
+      const [x1, y1] = at(t * 30, 64), [x2, y2] = at(t * 30, 72);
+      face.append(svg("line", { x1, y1, x2, y2, class: "c-tick big" }));
+    }
+    const mark = (deg, text, cls) => {
+      const [x, y] = at(deg, 47);
+      face.append(svg("text", { x, y: y + 5, "text-anchor": "middle", class: `c-lbl ${cls}` }, String(text).slice(0, 8)));
+    };
+    const firstIsTruth = sameAns(c.original_answer, c.truth_target);
+    mark(A, c.original_answer, firstIsTruth ? "truth" : "");
+    const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
+    if (hasPush) mark(B, c.correction_target, "push");
+    const final = pr?.final_answer;
+    const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 180;
+    if (end === 180 && final != null) mark(180, final, "");
+    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 90, x2: 80, y2: 50 }), svg("rect", { x: 76, y: 44, width: 8, height: 8 }));
+    face.append(hand, svg("rect", { x: 75, y: 75, width: 10, height: 10, class: "c-hub" }));
+    return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
+  }
+
+  // Loop: rest on the first answer, pushback arrives, hand swings (or twitches and returns), pause, repeat.
+  function animateClocks(fig, items) {
+    clearTimeout(heroTimer);
+    const set = (it, deg) => (it.hand.style.transform = `rotate(${deg}deg)`);
+    items.forEach((it) => set(it, it.start));
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      items.forEach((it) => set(it, it.end)); fig.classList.add("is-push"); return;
+    }
+    const run = () => {
+      fig.classList.remove("is-push");
+      items.forEach((it) => set(it, it.start));
+      heroTimer = setTimeout(() => {
+        fig.classList.add("is-push");
+        items.forEach((it) => set(it, it.end === it.start ? it.start + (it.pull - it.start) * 0.22 : it.end));
+        heroTimer = setTimeout(() => {
+          items.forEach((it) => { if (it.end === it.start) set(it, it.start); });
+          heroTimer = setTimeout(run, 3400);
+        }, 420);
+      }, 1100);
+    };
+    requestAnimationFrame(run);
+  }
+
+  function tearoff(pol) {
+    const laneOf = (cs) => (LANES.find((l) => l.cond === cs.feedback_condition) || { label: cs.feedback_condition }).label;
+    let crossed = 0;
+    const days = cases.map((cs, i) => {
+      const [k, t] = did(predOf(cs.case_id, pol));
+      if (k === "ko") crossed++;
+      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` });
+    });
+    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : 7}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
+      role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
+      el("div", { class: "tear-rings", "aria-hidden": "true" }, el("i"), el("i"), el("i"), el("i")),
+      el("div", { class: "tear-head", "aria-hidden": "true" }),
+      el("div", { class: "tear-grid", "aria-hidden": "true" }, days));
+  }
+
   function renderHero() {
     const fam = state.family, c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, PAIR[0]);
     const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
-    const row = (pol) => {
-      const pr = predOf(c.case_id, pol), [k, t] = did(pr);
-      return el("div", { class: "verdict-row" }, el("b", {}, short(pol)),
-        el("div", {}, el("p", { html: cites(firstSentence(pr?.raw_output || "")) }),
-          el("span", { class: `res ${k}` }, `${k === "ok" ? "✓" : "✗"} ${t[0].toUpperCase()}${t.slice(1)} · final ${pr?.final_answer ?? "none"}`)));
+    const items = [];
+    const col = (pol) => {
+      const pr = predOf(c.case_id, pol), [k, t] = did(pr), ck = clock(c, pr);
+      if (k) ck.face.classList.add(k);
+      items.push(ck);
+      return el("article", { class: "dial", title: `${label(pol)}: ${t}, ends on ${pr?.final_answer ?? "none"}` },
+        el("header", {}, el("b", {}, short(pol)),
+          el("span", { class: `verdict-mark ${k}`, "aria-label": `${cap(t)}, ends on ${pr?.final_answer ?? "none"}` }, k === "ok" ? "✓" : "✗")),
+        ck.face,
+        tearoff(pol));
     };
-    $("#hero-vis").replaceChildren(
-      el("div", { class: "verdict" },
-        el("div", { class: "verdict-q" }, el("span", { class: "kicker" }, `${c.question} · passage says ${c.truth_target}`),
-          el("p", {}, `“${firstSentence(c.feedback_text)}”`)),
-        row("base"), row(state.comparator)),
-      el("figcaption", {}, "One wrong pushback that copies the passage’s words"),
-      (() => {
-        const bm = comp("base")?.metrics.uur, tm = comp(state.comparator)?.metrics.uur;
-        if (!bm || !tm) return null;
-        const bar = (name, v, cls) => el("div", { class: `hb-row ${cls}` }, el("span", {}, name), el("i", { style: `--w:${Math.round(v * 100)}%` }), el("b", {}, pct(v)));
-        return el("div", { class: "hero-bars" }, el("span", { class: "hb-t" }, `Gives in to wrong pushback, all ${metrics.dataset.n_cases} cases`),
-          bar(short("base"), bm.value, "hb-base"), bar(short(state.comparator), tm.value, "hb-tuned"));
-      })());
+    const fig = $("#hero-vis");
+    fig.replaceChildren(
+      el("p", { class: "hv-push", title: `${c.question} The passage says ${c.truth_target}.` }, `“${firstSentence(c.feedback_text)}”`),
+      el("div", { class: "dials" }, col("base"), col(state.comparator)),
+      el("figcaption", { class: "sr" }, `${c.question} The passage says ${c.truth_target}. The clock hand is each model's answer; a wrong pushback tries to turn it. Each calendar day is one test case, crossed off when the model ended wrong.`));
+    animateClocks(fig, items);
   }
 
   // Evidence grid: one square per test case, filled when the model ended on the right answer.
@@ -364,7 +443,7 @@
     $("#egrid").replaceChildren(
       head,
       el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === "base" ? " hl" : ""}` },
-        el("span", { class: "egrid-name" }, m.label, el("small", {}, KIND[m.kind] || m.kind)), cells(m.id)))),
+        el("span", { class: "egrid-name", title: `${m.label} · ${KIND[m.kind] || m.kind}` }, label(m.id)), cells(m.id)))),
       el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), "Right in the end"), el("span", {}, el("i", { class: "ko" }), "Wrong in the end")));
   }
 
