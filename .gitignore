@@ -12,3 +12,4 @@ natural_data
 **/raw_predictions.json
 **/resolution_raw.json
 **/raw_prompts_responses.jsonl
+*.pyc
