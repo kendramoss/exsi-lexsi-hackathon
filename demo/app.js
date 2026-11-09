@@ -399,13 +399,21 @@
     requestAnimationFrame(() => play(0));
   }
 
+  // Bold check / cross for the test strip, drawn rather than typed so the stroke can be heavy.
+  function mark(k) {
+    if (k !== "ok" && k !== "ko") return "";
+    const d = k === "ok" ? "M3.5 8.5 6.8 11.8 12.8 4.6" : "M4.5 4.5 11.5 11.5 M11.5 4.5 4.5 11.5";
+    return svg("svg", { viewBox: "0 0 16 16", class: "tmark", "aria-hidden": "true" },
+      svg("path", { d, fill: "none", stroke: "currentColor", "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }));
+  }
+
   function tearoff(pol) {
     const laneOf = (cs) => (LANES.find((l) => l.cond === cs.feedback_condition) || { label: cs.feedback_condition }).label;
     let crossed = 0;
     const days = cases.map((cs, i) => {
       const [k, t] = did(predOf(cs.case_id, pol));
       if (k === "ko") crossed++;
-      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, k === "ok" ? "✓" : k === "ko" ? "✗" : "");
+      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, mark(k));
     });
     return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : Math.min(7, cases.length)}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
       role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
@@ -428,10 +436,12 @@
     fig.replaceChildren(big("base"), big(state.comparator));
     const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
     $("#setup").replaceChildren(
-      el("dt", {}, "You ask"), el("dd", {}, c.question),
-      el("dt", {}, "The document says"), el("dd", {}, el("b", { class: "fact" }, c.truth_target)),
-      el("dt", {}, "Then someone insists"), el("dd", { class: "push" }, `“${firstSentence(c.feedback_text)}”`));
-    $("#clock-cap").textContent = "Each clock hand is the AI’s answer. Underneath, the same test on more questions.";
+      el("div", { class: "row" }, el("dt", {}, "Question"), el("dd", {}, c.question)),
+      el("div", { class: "row" }, el("dt", {}, "Source"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
+      el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
+        el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
+    const slips = cases.filter((cs) => did(predOf(cs.case_id, "base"))[0] === "ko").length;
+    $("#clock-cap").textContent = `The hand points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
     animateClocks(fig, items);
   }
 
@@ -525,7 +535,34 @@
     let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0;
     const settle = () => { moving = false; };
     addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
-    const go = (s) => {
+    // Between two side-rail screens the frame stays put: the blue panel and progress blocks hold still,
+    // only the words and the visual fade out, the page swaps underneath, and the next screen fades in.
+    const FADE = 320;
+    const crossfade = (from, to) => {
+      moving = true; tail = true;
+      until = performance.now() + FADE * 2 + 400;
+      from.classList.add("xf-hide");
+      setTimeout(() => {
+        to.classList.add("xf-hide");
+        const was = [...from.querySelectorAll(".prog-blocks i")].map((i) => i.className);
+        const blocks = [...to.querySelectorAll(".prog-blocks i")];
+        const now = blocks.map((i) => i.className);
+        blocks.forEach((i, k) => (i.className = was[k] || ""));        // start from the old fill, then step to the new one
+        document.body.classList.add("xf");                            // no dim/undim fade during the swap
+        from.classList.remove("is-focus");
+        to.classList.add("is-focus");
+        scrollTo({ top: targetY(to), behavior: "instant" });
+        from.classList.remove("xf-hide");
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          document.body.classList.remove("xf");
+          to.classList.remove("xf-hide");
+          blocks.forEach((i, k) => (i.className = now[k]));
+          setTimeout(settle, FADE + 60);
+        }));
+      }, FADE);
+    };
+    const go = (s, from) => {
+      if (from && !reduced() && from.classList.contains("ch-rail") && s.classList.contains("ch-rail")) return crossfade(from, s);
       moving = true; tail = true;
       until = performance.now() + (reduced() ? 150 : 1100);         // hard cap if scrollend never fires
       setTimeout(() => { if (performance.now() >= until) settle(); }, (reduced() ? 150 : 1100) + 20);
@@ -535,7 +572,7 @@
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
       if (next.id === "s1") convoShow(dir > 0 ? 1 : CONVO_STEPS);   // arrive at the start going down, at the end going up
-      go(next);
+      go(next, cur);
       return true;
     };
     // One deliberate scroll = one conversation step while chapter 01 is on screen.
@@ -596,6 +633,84 @@
     $("#open-all").addEventListener("click", () => dlg.showModal());
     $("#close-all").addEventListener("click", () => dlg.close());
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  }
+
+  // Rail progress: seven small blocks (past pale, current solid) plus the screen's name from the dot nav.
+  function railProgress() {
+    const names = [...document.querySelectorAll(".dots a")].map((a) => (a.getAttribute("aria-label") || "").replace(/^\d+:\s*/, ""));
+    const total = names.length || 7;
+    document.querySelectorAll(".rail-count").forEach((cnt) => {
+      const n = parseInt(cnt.textContent, 10);
+      if (!n) return;
+      const name = names[n - 1] || "";
+      const blocks = el("span", { class: "prog-blocks", "aria-hidden": "true" },
+        ...Array.from({ length: total }, (_, i) => el("i", { class: i < n - 1 ? "done" : i === n - 1 ? "now" : null })));
+      const prog = el("div", { class: "prog", role: "img", "aria-label": `Screen ${n} of ${total}: ${name}` }, blocks);
+      const bar = cnt.nextElementSibling;
+      if (bar && bar.classList.contains("rail-bar")) bar.remove();
+      cnt.replaceWith(prog);
+    });
+  }
+
+  // Blue panels: faint blocks keep dropping along the bottom, like screen 1. Every panel mirrors one shared
+  // simulation (same cells, same timing), so moving between side-rail screens the animation just carries on.
+  function panelBlocks() {
+    const panels = [...document.querySelectorAll(".panel-blue")];
+    if (!panels.length) return;
+    const boxes = panels.map((p) => { const b = el("div", { class: "pblocks", "aria-hidden": "true" }); p.prepend(b); return b; });
+    const C = 28, CAP = 4, COLS = 72;
+    const SHAPES = [[[0,0],[1,0],[2,0],[3,0]], [[0,0],[1,0],[0,1],[1,1]], [[0,0],[1,0],[2,0],[1,1]], [[0,0],[1,0],[2,0],[0,1]]];
+    let h = [], timer = 0, dropped = [];
+    const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const cellAt = (c, row, cls) => {
+      const i = document.createElement("i");
+      if (cls) i.className = cls;
+      i.style.left = `${c * C + 2}px`;
+      i.style.bottom = `${row * C + 2}px`;
+      return i;
+    };
+    const tallest = () => Math.max(...panels.map((p) => p.clientHeight));
+    function build() {
+      clearTimeout(timer);
+      boxes.forEach((b) => b.replaceChildren());
+      dropped = [];
+      let seed = 11;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      h = Array.from({ length: COLS }, () => [0, 1, 1, 2, 2][Math.floor(rnd() * 5)]);
+      boxes.forEach((b) => { for (let c = 0; c < COLS; c++) for (let r = 0; r < h[c]; r++) b.append(cellAt(c, r)); });
+      if (!still()) timer = setTimeout(drop, 900);
+    }
+    function fits(shape) {
+      const w = Math.max(...shape.map(([x]) => x)) + 1, spots = [];
+      for (let c = 0; c + w <= COLS; c++) {
+        const base = h[c];
+        const flat = shape.filter(([, y]) => y === 0).every(([x]) => h[c + x] === base);
+        if (flat && shape.every(([, y]) => base + y < CAP)) spots.push([c, base]);
+      }
+      return spots;
+    }
+    function drop() {
+      const order = SHAPES.map((sh) => [Math.random(), sh]).sort((x, y) => x[0] - y[0]).map(([, sh]) => sh);
+      for (const shape of order) {
+        const spots = fits(shape);
+        if (!spots.length) continue;
+        const [c, base] = spots[Math.floor(Math.random() * spots.length)];
+        const fall = -(tallest() + 4 * C);
+        boxes.forEach((b) => {
+          const g = document.createElement("div");
+          g.style.cssText = "position:absolute;inset:0";
+          for (const [x, y] of shape) g.append(cellAt(c + x, base + y, "hi"));
+          b.append(g);
+          dropped.push(g);
+          g.animate([{ transform: `translateY(${fall}px)` }, { transform: "translateY(0)" }], { duration: 2200, easing: "cubic-bezier(.45,0,.85,.4)" });
+        });
+        for (const [x, y] of shape) h[c + x] = Math.max(h[c + x], base + y + 1);
+        timer = setTimeout(drop, 1700);
+        return;
+      }
+      Promise.all(dropped.map((g) => g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, fill: "forwards" }).finished)).then(build);
+    }
+    build();
   }
 
   // Screen 1 background: a low skyline of pale blocks; one piece at a time drops into a gap.
@@ -722,6 +837,8 @@
     renderAll();
     hscroll();
     blocks();
+    railProgress();
+    panelBlocks();
     convoWatch();
     spy();
     const jump = { "2": "s2", "3": "s3" }[params.get("step")];

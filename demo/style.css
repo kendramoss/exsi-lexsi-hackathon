@@ -1197,3 +1197,39 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 #glance .clockcol.is-done .tear-grid i:nth-child(14) { transition-delay: 1260ms; }
 #glance .c-tag.truth { fill: #157a55; }
 #glance .c-tag.push { fill: #c32a22; }
+.tear-grid .tmark { width: 58%; height: auto; max-width: 22px; }
+
+/* 2 · setup as a label column: one row each, years as chips matching the clock */
+#glance .setup { margin: 8px 0 0; display: grid; gap: 0; }
+#glance .setup .row { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid rgba(11, 85, 184, .12); }
+#glance .setup .row:last-child { border-bottom: 1px solid rgba(11, 85, 184, .12); }
+#glance .setup dt { margin: 0; font: 400 12px/1.4 var(--mono); color: #7d9fd4; }
+#glance .setup dd { margin: 0; padding: 0; font: 400 16px/1.4 var(--sans); color: #0b55b8; }
+#glance .setup .yr { display: inline-block; font: 500 15px/1 var(--mono); font-variant-numeric: tabular-nums; padding: 4px 8px; border-radius: 4px; }
+#glance .setup .yr.ok { background: rgba(21, 122, 85, .12); color: #157a55; }
+#glance .setup .yr.bad { background: rgba(195, 42, 34, .1); color: #c32a22; }
+#glance .setup .said { color: #3c76c6; }
+#glance .rail-foot { padding-top: 12px; font: 400 13px/1.5 var(--sans); color: #7d9fd4; max-width: 34ch; text-wrap: balance; }
+
+/* Rail progress: blocks + screen name */
+.prog { display: grid; gap: 10px; }
+.prog-blocks { display: flex; gap: 6px; }
+.prog-blocks i { width: 16px; height: 16px; border-radius: 2px; background: rgba(11, 85, 184, .12); }
+.prog-blocks i.done { background: #a9c8f5; }
+.prog-blocks i.now { background: #0b55b8; }
+.prog-name { font: 400 15px/1.2 var(--sans); color: #0b55b8; }
+
+/* Blue panels: still skyline of faint blocks behind the content */
+.panel-blue { isolation: isolate; }
+.pblocks { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.pblocks i { position: absolute; width: 24px; height: 24px; border-radius: 2px; background: rgba(245, 249, 255, .06); }
+.pblocks i.hi { background: rgba(245, 249, 255, .11); }
+#glance .panel { padding-bottom: 10vh; box-sizing: border-box; }
+.rail h2, .rail p, .rail dd { text-wrap: pretty; }
+
+/* Side-rail to side-rail: frame holds still, content cross-fades */
+.ch-rail .rail > :not(.prog), .ch-rail .panel > :not(.pblocks) { transition: opacity 320ms var(--ease); }
+.ch-rail.xf-hide .rail > :not(.prog), .ch-rail.xf-hide .panel > :not(.pblocks) { opacity: 0; }
+.prog-blocks i { transition: background-color 400ms var(--ease); }
+@media (prefers-reduced-motion: reduce) { .ch-rail .rail > *, .ch-rail .panel > *, .prog-blocks i { transition: none; } }
+body.xf .focusable { transition: none; }
