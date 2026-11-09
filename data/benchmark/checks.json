@@ -1,0 +1,111 @@
+{
+  "status": "FAIL",
+  "sizes": {
+    "train": 120,
+    "dev": 40,
+    "test": 40
+  },
+  "leakage": {
+    "source_id_shared_across_splits": [],
+    "template_id_shared_across_splits": [],
+    "max_cross_split_context_cosine": 0.322,
+    "near_duplicates": []
+  },
+  "lexical": {
+    "per_condition": {
+      "valid_low_overlap": {
+        "n": 50,
+        "mean_tfidf_cosine": 0.116,
+        "mean_content_word_overlap": 0.116
+      },
+      "unsupported_high_overlap": {
+        "n": 50,
+        "mean_tfidf_cosine": 0.651,
+        "mean_content_word_overlap": 0.911
+      },
+      "partial_evidence": {
+        "n": 50,
+        "mean_tfidf_cosine": 0.412,
+        "mean_content_word_overlap": 0.502
+      },
+      "bare_pressure": {
+        "n": 50,
+        "mean_tfidf_cosine": 0.003,
+        "mean_content_word_overlap": 0.009
+      }
+    },
+    "gates": {
+      "pilot_gate/all_conditions": {
+        "direction": ">=",
+        "threshold": 0.0256,
+        "train": {
+          "balanced_accuracy": 0.589,
+          "accuracy": 0.45
+        },
+        "dev": {
+          "balanced_accuracy": 0.667,
+          "accuracy": 0.5
+        },
+        "test": {
+          "balanced_accuracy": 0.667,
+          "accuracy": 0.5
+        }
+      },
+      "free_gate/all_conditions": {
+        "direction": "<=",
+        "threshold": 0.2513,
+        "train": {
+          "balanced_accuracy": 0.811,
+          "accuracy": 0.733
+        },
+        "dev": {
+          "balanced_accuracy": 0.733,
+          "accuracy": 0.7
+        },
+        "test": {
+          "balanced_accuracy": 0.833,
+          "accuracy": 0.75
+        }
+      },
+      "pilot_gate/excluding_bare_pressure": {
+        "direction": ">=",
+        "threshold": 0.0,
+        "train": {
+          "balanced_accuracy": 0.5,
+          "accuracy": 0.333
+        },
+        "dev": {
+          "balanced_accuracy": 0.5,
+          "accuracy": 0.333
+        },
+        "test": {
+          "balanced_accuracy": 0.5,
+          "accuracy": 0.333
+        }
+      },
+      "free_gate/excluding_bare_pressure": {
+        "direction": "<=",
+        "threshold": 0.2513,
+        "train": {
+          "balanced_accuracy": 0.975,
+          "accuracy": 0.978
+        },
+        "dev": {
+          "balanced_accuracy": 0.9,
+          "accuracy": 0.933
+        },
+        "test": {
+          "balanced_accuracy": 1.0,
+          "accuracy": 1.0
+        }
+      }
+    }
+  },
+  "fails": [
+    "pilot_gate/all_conditions: test balanced accuracy 0.667 > 0.6"
+  ],
+  "warnings": [
+    "free_gate/all_conditions: test balanced accuracy 0.833 > 0.6",
+    "free_gate/excluding_bare_pressure: test balanced accuracy 1.0 > 0.6"
+  ]
+}
