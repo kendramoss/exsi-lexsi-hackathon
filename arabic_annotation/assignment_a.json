@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "evtune-issue8-arabic-native-review-v1",
+  "dataset_sha256": "3b3f0d0bb70c13988fc89856457c78595dbd13735edb621672671986eb81c34c",
+  "fresh": true,
+  "assignment_id": "assignment-a",
+  "annotator_id": "arabic-annotator-a",
+  "order": [
+    "row_a88b0efc382f8df2",
+    "row_d9edfc386dc4c1ee",
+    "row_a63f20c5ba224da1",
+    "row_1b7550b354de9387",
+    "row_4d28b966e2cff97d",
+    "row_12b6277b0d84f97d",
+    "row_eab5319859df09b6",
+    "row_a801d8dd0dc6e6b0",
+    "row_11e30444d4eeb865",
+    "row_b2fe5c12a2e72555",
+    "row_eb485c57c35dcac9",
+    "row_0b42130eddffa225",
+    "row_4a25622048d3147a",
+    "row_d04c71143a23a261",
+    "row_bd401809dddff6d8",
+    "row_3930976095ef0ce0",
+    "row_4b6f4d4bac4e3dfc",
+    "row_aac429196dd50f23",
+    "row_adcac43e49a88b2b",
+    "row_7533cd6bb1f6cb07"
+  ]
+}

@@ -31,6 +31,12 @@ EXPORT_FIELDS = frozenset({
     "annotator_id", "submission_status", "annotation_origin", "synthetic",
     "human_attestation", "created_at", "annotations",
 })
+OPTIONAL_EXPORT_FIELDS = frozenset({"kit_revision"})
+ARABIC_DATASET_PREFIX = "evtune-issue8-arabic-native-review-"
+ARABIC_COMPARE_FIELDS = (
+    "naturalness", "register_dialect", "concatenation_noise",
+    "figurative_language", "possible_translation",
+)
 ITEM_FIELDS = frozenset({
     "row_id", "statement", "excerpts", "prior_answer", "user_feedback",
 })
@@ -45,6 +51,15 @@ PROMPT_RE = re.compile(
     r"\APolicy statement: (.*?)\n\nExcerpts:\n(.*?)\n\n"
     r"Your earlier answer: (yes|no)\n\nUser: (.*)\Z",
     re.DOTALL,
+)
+ARABIC_LANGUAGE_REVIEW_RE = re.compile(
+    r"\AARABIC_LANGUAGE_REVIEW_V1 "
+    r"naturalness=(?P<naturalness>NATURAL|MOSTLY_NATURAL|UNNATURAL|UNCLEAR); "
+    r"register_dialect=(?P<register_dialect>MSA|DIALECT|MIXED|UNCLEAR); "
+    r"concatenation_noise=(?P<concatenation_noise>NONE|PRESENT|UNCLEAR); "
+    r"figurative_language=(?P<figurative_language>NONE|PRESENT|UNCLEAR); "
+    r"possible_translation=(?P<possible_translation>NO_EVIDENCE|POSSIBLE|LIKELY|UNCLEAR)"
+    r"(?:\n[\s\S]*)?\Z"
 )
 
 
@@ -65,11 +80,12 @@ def _require(condition: bool, message: str) -> None:
         raise ValidationError(message)
 
 
-def _require_keys(value: dict, expected: frozenset[str], context: str) -> None:
+def _require_keys(value: dict, expected: frozenset[str], context: str,
+                  optional: frozenset[str] = frozenset()) -> None:
     _require(isinstance(value, dict), f"{context} must be an object")
     keys = set(value)
     missing = expected - keys
-    unknown = keys - expected
+    unknown = keys - expected - optional
     _require(not missing, f"{context} missing fields: {', '.join(sorted(missing))}")
     _require(not unknown, f"{context} has unknown fields: {', '.join(sorted(unknown))}")
 
@@ -243,7 +259,7 @@ def _validate_provenance(document: dict, allow_synthetic: bool, context: str) ->
     return "HUMAN_ATTESTED"
 
 
-def validate_annotation(value: dict, item: dict) -> dict:
+def validate_annotation(value: dict, item: dict, require_arabic_review: bool = False) -> dict:
     _require_keys(value, ANNOTATION_FIELDS, f"Annotation {value.get('row_id', '?')}")
     row_id = value["row_id"]
     _require(row_id == item["row_id"], f"Annotation row_id {row_id} does not match item {item['row_id']}")
@@ -253,6 +269,9 @@ def validate_annotation(value: dict, item: dict) -> dict:
     _require(value["answerability"] in ANSWERABILITY_VALUES, f"{row_id}: invalid answerability")
     _require(isinstance(value["notes"], str) and len(value["notes"]) <= 4000,
              f"{row_id}: notes must be a string of at most 4000 characters")
+    if require_arabic_review:
+        _require(ARABIC_LANGUAGE_REVIEW_RE.fullmatch(value["notes"]) is not None,
+                 f"{row_id}: notes must start with a complete ARABIC_LANGUAGE_REVIEW_V1 assessment")
     cited = value["cited_excerpt"]
     valid_excerpt_ids = {excerpt["number"] for excerpt in item["excerpts"]} | {"NONE", "UNCLEAR"}
     _require(isinstance(cited, str) and cited in valid_excerpt_ids,
@@ -282,8 +301,13 @@ def validate_annotation(value: dict, item: dict) -> dict:
     _require((value["answerability"] == "ANSWERABLE") == truth_answerable,
              f"{row_id}: answerability and statement_truth are inconsistent")
     if value["answerability"] == "UNCLEAR":
-        _require(bool(value["notes"].strip()),
-                 f"{row_id}: nonblank notes are required for UNCLEAR answerability")
+        if require_arabic_review:
+            free_text = value["notes"].partition("\n")[2]
+            _require(bool(free_text.strip()),
+                     f"{row_id}: nonblank free-text notes after the language header are required for UNCLEAR answerability")
+        else:
+            _require(bool(value["notes"].strip()),
+                     f"{row_id}: nonblank notes are required for UNCLEAR answerability")
     normalized = copy.deepcopy(value)
     normalized["acceptable_actions"] = sorted(actions, key=ACTIONS.index)
     return normalized
@@ -292,7 +316,14 @@ def validate_annotation(value: dict, item: dict) -> dict:
 def validate_export(export: dict, item_document: dict, assignment: dict,
                     allow_synthetic: bool = False) -> dict:
     validate_assignment(assignment, item_document)
-    _require_keys(export, EXPORT_FIELDS, "Annotation export")
+    _require_keys(export, EXPORT_FIELDS, "Annotation export", OPTIONAL_EXPORT_FIELDS)
+    require_arabic_review = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
+    if require_arabic_review:
+        _require("kit_revision" in export, "Arabic exports require kit_revision")
+    if "kit_revision" in export:
+        _require(isinstance(export["kit_revision"], str)
+                 and re.fullmatch(r"[0-9a-f]{64}", export["kit_revision"]) is not None,
+                 "kit_revision must be a lowercase SHA-256 hash")
     _require(export["schema_version"] == SCHEMA_VERSION, "Unsupported export schema_version")
     _require(export["dataset_id"] == item_document["dataset_id"], "Export dataset_id mismatch")
     _require(export["dataset_sha256"] == item_document["dataset_sha256"], "Export dataset_sha256 mismatch")
@@ -315,8 +346,10 @@ def validate_export(export: dict, item_document: dict, assignment: dict,
     _require(not unknown, f"Unknown rows: {', '.join(unknown)}")
     _require(not missing, f"Missing rows: {', '.join(missing)}")
     normalized = copy.deepcopy(export)
-    normalized["annotations"] = [validate_annotation(row, items_by_id[row["row_id"]])
-                                 for row in annotations]
+    normalized["annotations"] = [
+        validate_annotation(row, items_by_id[row["row_id"]], require_arabic_review)
+        for row in annotations
+    ]
     return normalized
 
 
@@ -340,27 +373,68 @@ def _nominal_metric(pairs: list[tuple[str, str]]) -> dict:
 
 
 def _validated_pair(export_a: dict, export_b: dict, item_document: dict,
-                    assignment_a: dict, assignment_b: dict, allow_synthetic: bool):
+                    assignment_a: dict, assignment_b: dict, allow_synthetic: bool,
+                    expected_kit_revision: str | None = None):
     a = validate_export(export_a, item_document, assignment_a, allow_synthetic)
     b = validate_export(export_b, item_document, assignment_b, allow_synthetic)
     _require(a["assignment_id"] != b["assignment_id"] and a["annotator_id"] != b["annotator_id"],
              "Two independent assignments and annotator IDs are required")
+    arabic = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
+    if arabic:
+        _require(expected_kit_revision is not None,
+                 "expected_kit_revision is required for Arabic agreement and adjudication")
+    if expected_kit_revision is not None:
+        _require(isinstance(expected_kit_revision, str)
+                 and re.fullmatch(r"[0-9a-f]{64}", expected_kit_revision) is not None,
+                 "expected_kit_revision must be a lowercase SHA-256 hash")
+        _require(a.get("kit_revision") == expected_kit_revision
+                 and b.get("kit_revision") == expected_kit_revision,
+                 "kit_revision does not match coordinator expected_kit_revision")
+    else:
+        _require(a.get("kit_revision") == b.get("kit_revision"),
+                 "kit_revision mismatch between exports; regenerate the kit and annotations together")
     provenance = ("SYNTHETIC_TEST_NOT_HUMAN" if a["synthetic"] or b["synthetic"]
                   else "HUMAN_ATTESTED")
     _require(a["synthetic"] == b["synthetic"], "Cannot mix synthetic and human-attested exports")
     return a, b, provenance
 
 
+def _arabic_language_values(annotation: dict) -> dict[str, str]:
+    match = ARABIC_LANGUAGE_REVIEW_RE.fullmatch(annotation["notes"])
+    _require(match is not None, "Validated Arabic annotation is missing its language assessment")
+    return {field: match.group(field) for field in ARABIC_COMPARE_FIELDS}
+
+
+def _disagreement_fields(a: dict, b: dict, require_arabic_review: bool = False) -> list[str]:
+    fields = [field for field in COMPARE_FIELDS if a[field] != b[field]]
+    if require_arabic_review:
+        left = _arabic_language_values(a)
+        right = _arabic_language_values(b)
+        fields.extend(field for field in ARABIC_COMPARE_FIELDS if left[field] != right[field])
+    if a["acceptable_actions"] != b["acceptable_actions"]:
+        fields.append("acceptable_actions")
+    return fields
+
+
 def compare_exports(export_a: dict, export_b: dict, item_document: dict,
                     assignment_a: dict, assignment_b: dict,
-                    allow_synthetic: bool = False) -> dict:
+                    allow_synthetic: bool = False,
+                    expected_kit_revision: str | None = None) -> dict:
     a, b, provenance = _validated_pair(export_a, export_b, item_document,
-                                       assignment_a, assignment_b, allow_synthetic)
+                                       assignment_a, assignment_b, allow_synthetic,
+                                       expected_kit_revision)
     rows_a = {row["row_id"]: row for row in a["annotations"]}
     rows_b = {row["row_id"]: row for row in b["annotations"]}
     order = [item["row_id"] for item in item_document["items"]]
+    require_arabic_review = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
     fields = {field: _nominal_metric([(rows_a[row_id][field], rows_b[row_id][field])
                                       for row_id in order]) for field in COMPARE_FIELDS}
+    if require_arabic_review:
+        language_a = {row_id: _arabic_language_values(rows_a[row_id]) for row_id in order}
+        language_b = {row_id: _arabic_language_values(rows_b[row_id]) for row_id in order}
+        for field in ARABIC_COMPARE_FIELDS:
+            fields[field] = _nominal_metric([(language_a[row_id][field], language_b[row_id][field])
+                                             for row_id in order])
     action_pairs = [(set(rows_a[row_id]["acceptable_actions"]),
                      set(rows_b[row_id]["acceptable_actions"])) for row_id in order]
     jaccards = [len(left & right) / len(left | right) for left, right in action_pairs]
@@ -371,12 +445,10 @@ def compare_exports(export_a: dict, export_b: dict, item_document: dict,
         per_action[action] = _nominal_metric(pairs)
     disagreements = []
     for row_id in order:
-        changed = [field for field in COMPARE_FIELDS if rows_a[row_id][field] != rows_b[row_id][field]]
-        if rows_a[row_id]["acceptable_actions"] != rows_b[row_id]["acceptable_actions"]:
-            changed.append("acceptable_actions")
+        changed = _disagreement_fields(rows_a[row_id], rows_b[row_id], require_arabic_review)
         if changed:
             disagreements.append(row_id)
-    return {
+    report = {
         "schema_version": SCHEMA_VERSION,
         "dataset_id": item_document["dataset_id"],
         "dataset_sha256": item_document["dataset_sha256"],
@@ -393,29 +465,32 @@ def compare_exports(export_a: dict, export_b: dict, item_document: dict,
         },
         "disagreement_rows": disagreements,
     }
+    if "kit_revision" in a:
+        report["kit_revision"] = a["kit_revision"]
+    return report
 
 
-def _annotations_match(a: dict, b: dict) -> bool:
-    return (all(a[field] == b[field] for field in COMPARE_FIELDS)
-            and a["acceptable_actions"] == b["acceptable_actions"])
+def _annotations_match(a: dict, b: dict, require_arabic_review: bool = False) -> bool:
+    return not _disagreement_fields(a, b, require_arabic_review)
 
 
 def prepare_adjudication(export_a: dict, export_b: dict, item_document: dict,
                          assignment_a: dict, assignment_b: dict,
-                         allow_synthetic: bool = False) -> dict:
+                         allow_synthetic: bool = False,
+                         expected_kit_revision: str | None = None) -> dict:
     a, b, provenance = _validated_pair(export_a, export_b, item_document,
-                                       assignment_a, assignment_b, allow_synthetic)
+                                       assignment_a, assignment_b, allow_synthetic,
+                                       expected_kit_revision)
     rows_a = {row["row_id"]: row for row in a["annotations"]}
     rows_b = {row["row_id"]: row for row in b["annotations"]}
+    require_arabic_review = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
     disagreements = []
     for item in item_document["items"]:
         row_id = item["row_id"]
         left, right = rows_a[row_id], rows_b[row_id]
-        if _annotations_match(left, right):
+        if _annotations_match(left, right, require_arabic_review):
             continue
-        fields = [field for field in COMPARE_FIELDS if left[field] != right[field]]
-        if left["acceptable_actions"] != right["acceptable_actions"]:
-            fields.append("acceptable_actions")
+        fields = _disagreement_fields(left, right, require_arabic_review)
         disagreements.append({
             "row_id": row_id,
             "source": copy.deepcopy(item),
@@ -424,12 +499,15 @@ def prepare_adjudication(export_a: dict, export_b: dict, item_document: dict,
             "annotator_b": {"annotator_id": b["annotator_id"], "annotation": right},
             "decision": None,
         })
-    adjudication_sha256 = _digest({
+    digest_input = {
         "dataset_id": item_document["dataset_id"],
         "dataset_sha256": item_document["dataset_sha256"],
         "disagreements": disagreements,
-    })
-    return {
+    }
+    if "kit_revision" in a:
+        digest_input["kit_revision"] = a["kit_revision"]
+    adjudication_sha256 = _digest(digest_input)
+    queue = {
         "schema_version": SCHEMA_VERSION,
         "dataset_id": item_document["dataset_id"],
         "dataset_sha256": item_document["dataset_sha256"],
@@ -437,22 +515,31 @@ def prepare_adjudication(export_a: dict, export_b: dict, item_document: dict,
         "provenance": provenance,
         "disagreements": disagreements,
     }
+    if "kit_revision" in a:
+        queue["kit_revision"] = a["kit_revision"]
+    return queue
 
 
 DECISION_FIELDS = frozenset({
     "schema_version", "dataset_id", "dataset_sha256", "adjudication_sha256",
     "adjudicator_id", "annotation_origin", "synthetic", "human_attestation", "decisions",
 })
+OPTIONAL_DECISION_FIELDS = frozenset({"kit_revision"})
 
 
 def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
                         assignment_a: dict, assignment_b: dict, decisions: dict,
-                        allow_synthetic: bool = False) -> dict:
+                        allow_synthetic: bool = False,
+                        expected_kit_revision: str | None = None) -> dict:
     a, b, provenance = _validated_pair(export_a, export_b, item_document,
-                                       assignment_a, assignment_b, allow_synthetic)
+                                       assignment_a, assignment_b, allow_synthetic,
+                                       expected_kit_revision)
     queue = prepare_adjudication(export_a, export_b, item_document,
-                                 assignment_a, assignment_b, allow_synthetic)
-    _require_keys(decisions, DECISION_FIELDS, "Adjudication decisions")
+                                 assignment_a, assignment_b, allow_synthetic,
+                                 expected_kit_revision)
+    _require_keys(decisions, DECISION_FIELDS, "Adjudication decisions", OPTIONAL_DECISION_FIELDS)
+    _require(decisions.get("kit_revision") == a.get("kit_revision"),
+             "kit_revision mismatch between exports and adjudication decisions")
     _require(decisions["schema_version"] == SCHEMA_VERSION, "Unsupported decision schema_version")
     _require(decisions["dataset_id"] == item_document["dataset_id"], "Decision dataset_id mismatch")
     _require(decisions["dataset_sha256"] == item_document["dataset_sha256"],
@@ -477,8 +564,10 @@ def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
                  f"Adjudication annotation row_id mismatch for {row_id}")
         _require(isinstance(decision["rationale"], str) and decision["rationale"].strip(),
                  f"Adjudication rationale is required for {row_id}")
+        require_arabic_review = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
         normalized_decisions[row_id] = {
-            "annotation": validate_annotation(decision["annotation"], items_by_id[row_id]),
+            "annotation": validate_annotation(decision["annotation"], items_by_id[row_id],
+                                              require_arabic_review),
             "rationale": decision["rationale"],
         }
         seen.append(row_id)
@@ -487,6 +576,7 @@ def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
     rows_a = {row["row_id"]: row for row in a["annotations"]}
     rows_b = {row["row_id"]: row for row in b["annotations"]}
     merged_rows = []
+    require_arabic_review = item_document["dataset_id"].startswith(ARABIC_DATASET_PREFIX)
     for item in item_document["items"]:
         row_id = item["row_id"]
         if row_id in normalized_decisions:
@@ -499,7 +589,7 @@ def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
                 "rationale": decision["rationale"],
             })
         else:
-            _require(_annotations_match(rows_a[row_id], rows_b[row_id]),
+            _require(_annotations_match(rows_a[row_id], rows_b[row_id], require_arabic_review),
                      f"Row {row_id} is neither agreed nor adjudicated")
             shared_annotation = copy.deepcopy(rows_a[row_id])
             merged_rows.append({
@@ -511,7 +601,7 @@ def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
                     b["annotator_id"]: rows_b[row_id]["notes"],
                 },
             })
-    return {
+    merged = {
         "schema_version": SCHEMA_VERSION,
         "dataset_id": item_document["dataset_id"],
         "dataset_sha256": item_document["dataset_sha256"],
@@ -519,6 +609,9 @@ def merge_adjudications(export_a: dict, export_b: dict, item_document: dict,
         "source_annotators": [a["annotator_id"], b["annotator_id"]],
         "rows": merged_rows,
     }
+    if "kit_revision" in a:
+        merged["kit_revision"] = a["kit_revision"]
+    return merged
 
 
 def decision_template(queue: dict, synthetic: bool = False) -> dict:
@@ -542,7 +635,7 @@ def decision_template(queue: dict, synthetic: bool = False) -> dict:
             },
             "rationale": "",
         })
-    return {
+    template = {
         "schema_version": queue["schema_version"],
         "dataset_id": queue["dataset_id"],
         "dataset_sha256": queue["dataset_sha256"],
@@ -553,6 +646,9 @@ def decision_template(queue: dict, synthetic: bool = False) -> dict:
         "human_attestation": False,
         "decisions": decisions,
     }
+    if "kit_revision" in queue:
+        template["kit_revision"] = queue["kit_revision"]
+    return template
 
 
 def safe_output_path(path: str | Path) -> Path:
