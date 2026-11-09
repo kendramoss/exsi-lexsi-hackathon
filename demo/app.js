@@ -349,42 +349,54 @@
     const mark = (deg, text, cls, tag) => {
       const [x, y] = at(deg, 47);
       face.append(svg("text", { x, y: y + 5, "text-anchor": "middle", class: `c-lbl ${cls}` }, String(text).slice(0, 8)));
-      if (tag) face.append(svg("text", { x, y: y + 18, "text-anchor": "middle", class: `c-tag ${cls}` }, tag));
+      if (tag) face.append(svg("text", { x, y: y - 10, "text-anchor": "middle", class: `c-tag ${cls}` }, tag));
     };
     const firstIsTruth = sameAns(c.original_answer, c.truth_target);
-    mark(A, c.original_answer, firstIsTruth ? "truth" : "", firstIsTruth ? "document" : "first answer");
+    mark(A, c.original_answer, firstIsTruth ? "truth" : "", firstIsTruth ? "correct" : "first answer");
     if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
     const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
-    if (hasPush) mark(B, c.correction_target, "push", "pushback");
+    if (hasPush) mark(B, c.correction_target, "push", "wrong");
     const final = pr?.final_answer;
     const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 180;
     if (end === 180 && final != null) mark(180, final, "");
-    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 90, x2: 80, y2: 50 }), svg("rect", { x: 76, y: 44, width: 8, height: 8 }));
+    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 90, x2: 80, y2: 60 }), svg("polygon", { points: "73.5,61 80,47 86.5,61" }));
     face.append(hand, svg("rect", { x: 75, y: 75, width: 10, height: 10, class: "c-hub" }));
     return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
   }
 
-  // Loop: rest on the first answer, pushback arrives, hand swings (or twitches and returns), pause, repeat.
+  // One clock at a time, in four beats: the answer, the pushback appears, the hand reacts, the result lands.
   function animateClocks(fig, items) {
     clearTimeout(heroTimer);
+    const cols = [...fig.children];
     const set = (it, deg) => (it.hand.style.transform = `rotate(${deg}deg)`);
+    const later = (ms, fn) => (heroTimer = setTimeout(fn, ms));
     items.forEach((it) => set(it, it.start));
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      items.forEach((it) => set(it, it.end)); fig.classList.add("is-push"); return;
+      items.forEach((it) => set(it, it.end));
+      cols.forEach((c) => c.classList.add("is-push", "is-done"));
+      return;
     }
-    const run = () => {
-      fig.classList.remove("is-push");
-      items.forEach((it) => set(it, it.start));
-      heroTimer = setTimeout(() => {
-        fig.classList.add("is-push");
-        items.forEach((it) => set(it, it.end === it.start ? it.start + (it.pull - it.start) * 0.22 : it.end));
-        heroTimer = setTimeout(() => {
-          items.forEach((it) => { if (it.end === it.start) set(it, it.start); });
-          heroTimer = setTimeout(run, 3400);
-        }, 420);
-      }, 1100);
+    const MOVE = 1200;
+    const play = (i) => {
+      const it = items[i], col = cols[i];
+      cols.forEach((c, j) => { c.classList.toggle("is-dim", j !== i); c.classList.toggle("is-on", j === i); });
+      col.classList.remove("is-push", "is-done");
+      set(it, it.start);
+      later(1400, () => {                                   // 2 · the pushback shows up on the face
+        col.classList.add("is-push");
+        later(800, () => {                                  // 3 · the hand reacts
+          const holds = it.end === it.start;
+          set(it, holds ? it.start + (it.pull - it.start) * 0.4 : it.end);
+          const done = () => {                              // 4 · result: colour, verdict, the strip fills in
+            col.classList.add("is-done");
+            later(3000, () => play((i + 1) % items.length));
+          };
+          if (holds) later(MOVE + 500, () => { set(it, it.start); later(MOVE, done); });
+          else later(MOVE, done);
+        });
+      });
     };
-    requestAnimationFrame(run);
+    requestAnimationFrame(() => play(0));
   }
 
   function tearoff(pol) {
@@ -409,8 +421,9 @@
       const pr = predOf(c.case_id, pol), [k] = did(pr), ck = clock(c, pr);
       if (k) ck.face.classList.add(k);
       items.push(ck);
-      return el("div", { class: "bigclock", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
-        el("span", {}, `${short(pol)} `, el("b", { class: k }, k === "ok" ? "✓ holds" : "✗ caves")), ck.face, tearoff(pol));
+      return el("div", { class: "clockcol", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
+        el("span", { class: "clock-name" }, `${short(pol)} `, el("b", { class: k }, k === "ok" ? `✓ kept ${pr?.final_answer ?? c.original_answer}` : `✗ switched to ${pr?.final_answer ?? "?"}`)),
+        el("div", { class: "bigclock" }, ck.face, tearoff(pol)));
     };
     const fig = $("#hero-vis");
     fig.replaceChildren(big("base"), big(state.comparator));

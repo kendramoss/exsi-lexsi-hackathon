@@ -426,9 +426,9 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .c-lbl.push { fill: var(--warn); }
 .c-hand { transform-box: view-box; transform-origin: 80px 80px; transition: transform 700ms cubic-bezier(.34, 1.56, .64, 1); }
 .c-hand line { stroke: var(--cobalt); stroke-width: 4; transition: stroke 300ms var(--ease); }
-.c-hand rect, .c-hub { fill: var(--cobalt); transition: fill 300ms var(--ease); }
-.is-push .clock.ko .c-hand line { stroke: var(--bad); } .is-push .clock.ko .c-hand rect { fill: var(--bad); }
-.is-push .clock.ok .c-hand line { stroke: var(--valid); } .is-push .clock.ok .c-hand rect { fill: var(--valid); }
+.c-hand polygon, .c-hub { fill: var(--cobalt); transition: fill 300ms var(--ease); }
+.is-push .clock.ko .c-hand line { stroke: var(--bad); } .is-push .clock.ko .c-hand polygon { fill: var(--bad); }
+.is-push .clock.ok .c-hand line { stroke: var(--valid); } .is-push .clock.ok .c-hand polygon { fill: var(--valid); }
 @media (prefers-reduced-motion: reduce) { .c-hand, .c-hand line, .hv-push { transition: none; } }
 .tear { justify-self: stretch; position: relative; border: 1px solid var(--cobalt); }
 .tear-rings { position: absolute; top: -7px; left: 0; right: 0; display: flex; justify-content: space-evenly; }
@@ -576,7 +576,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .dials .dial:last-child { border-bottom-right-radius: var(--q-s); }
 .cards { border-radius: var(--q-s) 0 var(--q-s) 0; overflow: hidden; }
 .more { border-radius: 0 0 var(--q-s) 0; }
-.tear { border-radius: 0 0 var(--q-s) 0; overflow: hidden; }
+.tear { border-radius: 0; overflow: hidden; }
 /* pushback is round, like the mark's circle */
 .hv-push { border-radius: 999px; padding-inline: 32px; }
 .nl-pill.push, .g-bubble { border-radius: 999px; }
@@ -1101,7 +1101,7 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 
 /* 2, 3, 5 · B: side rail on the left, the picture on the right */
 .ch-rail { display: grid; grid-template-columns: 400px minmax(0, 1fr); }
-.rail { padding: 7vh 48px 5vh; display: flex; flex-direction: column; gap: 14px; border-right: 1px solid rgba(11, 85, 184, .2); min-width: 0; color: #0b55b8; }
+.rail { padding: 7vh 48px 5vh; display: flex; flex-direction: column; gap: 14px; min-width: 0; color: #0b55b8; }
 .rail-count { font: 400 13px/1 var(--mono); color: #7d9fd4; }
 .rail-bar { display: block; height: 3px; background: rgba(11, 85, 184, .15); }
 .rail-bar i { display: block; height: 3px; background: #0b55b8; }
@@ -1155,3 +1155,45 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 .blocks i.drop { background: #a9c8f5; }
 #top .stage .cue { background: #f5f9ff; position: relative; z-index: 1; }
 #top .cue .chev { display: inline-block; margin-left: 6px; vertical-align: middle; }
+
+/* 2 · names sit above the cards; one clock plays at a time */
+#glance .clockcol { display: grid; gap: 12px; align-content: start; transform-origin: center; transition: opacity 800ms var(--ease), transform 800ms var(--ease); }
+#glance .clockcol.is-dim { opacity: .35; transform: translateX(var(--away, 0)) scale(.9); }
+#glance .clockcol.is-on { opacity: 1; transform: translateX(var(--in, 0)) scale(1.04); }
+#glance .clockcol:first-child { --in: 24px; --away: -24px; }
+#glance .clockcol:last-child { --in: -24px; --away: 24px; }
+#glance .clockcol .bigclock { width: min(23vw, 320px); }
+#glance .clock-name { display: flex; justify-content: space-between; font: 400 22px/1 var(--display); color: #f5f9ff; }
+#glance .clock-name b { font-weight: 400; }
+#glance .clock-name b.ok { color: #9fe8c6; }
+#glance .clock-name b.ko { color: #ffc2bd; }
+#glance .clockcol + .clockcol .bigclock { border-radius: 0 0 24px 0; }
+
+@media (max-width: 900px) { #glance .clockcol .bigclock { width: min(86vw, 320px); } }
+
+/* 2 · clock beats: pushback appears, hand reacts, result lands */
+#glance .c-hand { transition: transform 1200ms cubic-bezier(.65, 0, .35, 1); }
+#glance .clockcol .c-lbl.push, #glance .clockcol .c-tag.push { opacity: .2; transition: opacity 500ms var(--ease); }
+#glance .clockcol.is-push .c-lbl.push, #glance .clockcol.is-push .c-tag.push { opacity: 1; }
+#glance .clockcol:not(.is-done) .clock .c-hand line { stroke: #0b55b8; }
+#glance .clockcol:not(.is-done) .clock .c-hand polygon { fill: #0b55b8; }
+#glance .clock-name b { opacity: 0; transition: opacity 500ms var(--ease); }
+#glance .clockcol.is-done .clock-name b { opacity: 1; }
+#glance .clockcol .tear-grid i { opacity: .15; transition: opacity 300ms var(--ease); }
+#glance .clockcol.is-done .tear-grid i { opacity: 1; }
+#glance .clockcol.is-done .tear-grid i:nth-child(1) { transition-delay: 90ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(2) { transition-delay: 180ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(3) { transition-delay: 270ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(4) { transition-delay: 360ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(5) { transition-delay: 450ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(6) { transition-delay: 540ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(7) { transition-delay: 630ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(8) { transition-delay: 720ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(9) { transition-delay: 810ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(10) { transition-delay: 900ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(11) { transition-delay: 990ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(12) { transition-delay: 1080ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(13) { transition-delay: 1170ms; }
+#glance .clockcol.is-done .tear-grid i:nth-child(14) { transition-delay: 1260ms; }
+#glance .c-tag.truth { fill: #157a55; }
+#glance .c-tag.push { fill: #c32a22; }
