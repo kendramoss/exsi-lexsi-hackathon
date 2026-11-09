@@ -133,7 +133,7 @@
     const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
     const fileName = `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
 
-    $("#walk-lead").textContent = "You ask an AI a question and attach a document. Then you push back with the wrong answer. Here’s the same chat with the AI as it ships today, and with EvidenceTune.";
+    $("#walk-lead").textContent = "You ask with a document attached, then push back with the wrong answer. Watch where they split.";
 
     const row = (who, ...kids) => el("div", { class: `chat-row ${who}` }, el("i", { class: "av", "aria-hidden": "true" }), el("div", { class: "bubbles" }, ...kids));
     const bubble = (cls, ...kids) => el("div", { class: `bubble ${cls}` }, ...kids);
@@ -146,7 +146,7 @@
     const shared = [
       { from: "user", make: () => row("user", bubble("q", c.question), file()) },
       { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
-      { from: "user", make: () => row("user push", bubble("q", el("span", { html: ov.html })), el("small", { class: "note" }, "Underlined words are copied from the document")) },
+      { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap((c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim(), c.context).html }))) },
     ];
     const replies = (p) => [
       { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p?.raw_output || "") }))) },
@@ -154,29 +154,63 @@
         { from: "user", make: () => row("user", bubble("q", p.clarification_turn.user_reply ?? "")) },
         { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p.clarification_turn.raw_output) }))) }] : []),
     ];
-    const win = (pol, p, who) => {
+    // One thread while the two AIs are identical; it branches at the first reply where they differ.
+    const branch = (pol, p, who) => {
       const [k, t] = did(p);
-      const list = el("div", { class: "cw-list" });
+      const list = el("div", { class: "branch-list" });
       const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none"));
-      const w = el("article", { class: `cw ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
-        el("header", { class: "cw-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }),
-          el("span", {}, el("b", {}, label(pol)), el("small", {}, who === "base" ? "the AI as it ships today" : "after EvidenceTune training"))),
-        list, verdict);
-      return { w, list, verdict, msgs: [...shared, ...replies(p)] };
+      const node = el("div", { class: `branch ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
+        el("header", { class: "branch-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }), el("b", {}, label(pol))), list, verdict);
+      return { node, list, verdict, msgs: replies(p) };
     };
-    convoWins = [win("base", pb, "base"), win(T, pt, "tuned")];
-    $("#convo").replaceChildren(...convoWins.map((x) => x.w));
-    if (convoPlayed) playConvo(); else convoWins.forEach((x) => x.list.replaceChildren());
+    const trunk = el("div", { class: "trunk" });
+    const fork = el("div", { class: "fork", "aria-hidden": "true" },
+      el("i", { class: "stem" }), el("i", { class: "l" }), el("i", { class: "r" }),
+      el("span", { class: "fork-tag" }, "They split here"));
+    const bL = branch("base", pb, "base"), bR = branch(T, pt, "tuned");
+    convoWins = { trunk, fork, shared, branches: [bL, bR] };
+    $("#convo").classList.add("flow");
+    $("#convo").replaceChildren(trunk, fork, el("div", { class: "branches" }, bL.node, bR.node));
+    convoShow(Math.max(1, convoStepAt));
 
-    // what comes after: all three kinds of pushback, side by side
-    $("#after-lead").textContent = "Refusing to budge isn’t the goal: when the pushback is backed by the document, a good model should change its answer. Today’s model only scores on the correct one because it agrees with everyone.";
+    // "It still listens": one full-width band per kind of pushback
     const lanes = LANES.filter((l) => caseOf(fam, l.cond));
-    $("#w-summary").replaceChildren(
-      el("div", { class: "big-grid" },
-        el("span", {}), el("b", {}, short("base")), el("b", {}, short(T)),
-        ...lanes.flatMap((l) => { const cs = caseOf(fam, l.cond);
-          const cell = (pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bg-${k}`, title: cap(t) }, el("strong", {}, k === "ok" ? "✓" : "✗")); };
-          return [el("span", {}, l.label), cell("base"), cell(T)]; })));
+    $("#bands-cols").replaceChildren(el("span", {}, short("base")), el("span", {}, short(T)));
+    const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bd ${k}`, title: `${label(pol)}: ${cap(t)}` }, k === "ok" ? "✓" : "✗"); };
+    const first = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
+    const should = { supported: "The document backs it, so change the answer", contradicted: "The document says otherwise, so hold", insufficient: "The document doesn’t settle it, so ask or hold", absent: "No evidence at all, so hold" };
+    $("#bands").replaceChildren(...lanes.map((l) => { const cs = caseOf(fam, l.cond);
+      return el("div", { class: "band" },
+        el("span", { class: "band-label" }, el("b", {}, l.label),
+          el("q", {}, first(cs.feedback_text)),
+          el("small", {}, should[cs.evidence_sufficiency] || "")),
+        el("span", { class: "band-marks" }, mark(cs, "base"), mark(cs, T))); }));
+  }
+
+  // Scroll-stepped conversation (desktop): step n shows
+  //   1 the question with its attachment · 2 the AI's answer · 3 the pushback
+  //   4 the split, each AI's first reply · 5 the rest of each thread and the verdicts
+  const CONVO_STEPS = 5;
+  let convoStepAt = 0;
+  function convoShow(n) {
+    const W = convoWins;
+    if (!W.trunk) return;
+    convoTimers.forEach(clearTimeout); convoTimers = [];
+    const prev = convoStepAt;
+    convoStepAt = n; convoPlayed = true;
+    const fresh = (node, step) => { if (step > prev) node.classList.add("fresh"); return node; };
+    W.trunk.replaceChildren(...W.shared.slice(0, Math.min(n, 3)).map((m, i) => fresh(m.make(), i + 1)));
+    const split = n >= 4;
+    W.trunk.classList.toggle("past", split);
+    W.fork.classList.toggle("show", split);
+    W.branches.forEach((b) => {
+      b.node.classList.toggle("show", split);
+      const count = n >= 5 ? b.msgs.length : split ? 1 : 0;
+      b.list.replaceChildren(...b.msgs.slice(0, count).map((m, i) => fresh(m.make(), i === 0 ? 4 : 5)));
+      b.verdict.classList.toggle("show", n >= 5);
+    });
+    const hint = $("#convo-step");
+    if (hint) hint.textContent = n < CONVO_STEPS ? `Scroll to continue · ${n} / ${CONVO_STEPS}` : "Scroll on for Chapter 02 ↓";
   }
 
   // Play: people's messages pop in, the AI shows typing dots first. Both windows share the timing, so they
@@ -184,36 +218,38 @@
   function playConvo() {
     convoPlayed = true;
     convoTimers.forEach(clearTimeout); convoTimers = [];
+    const W = convoWins;
+    if (!W.trunk) return;
     const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
-    const add = (w, node) => { w.list.append(node); w.list.scrollTo({ top: w.list.scrollHeight, behavior: "smooth" }); };
     const typing = () => el("div", { class: "chat-row ai typing-row" }, el("i", { class: "av", "aria-hidden": "true" }),
       el("div", { class: "bubbles" }, el("div", { class: "bubble a typing", "aria-label": "typing" }, el("i"), el("i"), el("i"))));
-    convoWins.forEach((w) => { w.list.replaceChildren(); w.verdict.classList.remove("show"); });
+    W.trunk.replaceChildren(); W.trunk.classList.remove("past"); W.fork.classList.remove("show");
+    W.branches.forEach((b) => { b.list.replaceChildren(); b.verdict.classList.remove("show"); b.node.classList.remove("show"); });
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      convoWins.forEach((w) => { w.msgs.forEach((m) => w.list.append(m.make())); w.verdict.classList.add("show"); });
+      W.shared.forEach((m) => W.trunk.append(m.make())); W.fork.classList.add("show");
+      W.branches.forEach((b) => { b.node.classList.add("show"); b.msgs.forEach((m) => b.list.append(m.make())); b.verdict.classList.add("show"); });
       return;
     }
-    convoWins.forEach((w) => {
-      let t = 500;
-      w.msgs.forEach((m) => {
+    // people's messages pop in; the AI shows typing dots first
+    const play = (list, msgs, t) => {
+      msgs.forEach((m) => {
         if (m.from === "ai") {
-          at(t, () => add(w, typing()));
-          t += 1200;
-          at(t, () => { w.list.querySelector(".typing-row")?.remove(); add(w, m.make()); });
-          t += 1100;
-        } else {
-          at(t, () => add(w, m.make()));
-          t += 1700;
-        }
+          at(t, () => list.append(typing())); t += 1100;
+          at(t, () => { list.querySelector(".typing-row")?.remove(); list.append(m.make()); }); t += 1000;
+        } else { at(t, () => list.append(m.make())); t += 1500; }
       });
-      at(t, () => w.verdict.classList.add("show"));
-    });
+      return t;
+    };
+    let t = play(W.trunk, W.shared, 400);
+    at(t, () => { W.trunk.classList.add("past"); W.fork.classList.add("show"); }); t += 900;
+    at(t, () => W.branches.forEach((b) => b.node.classList.add("show"))); t += 300;
+    W.branches.forEach((b) => { const end = play(b.list, b.msgs, t); at(end, () => b.verdict.classList.add("show")); });
   }
   function convoWatch() {
     const box = $("#convo");
     $("#replay").addEventListener("click", playConvo);
     if (!("IntersectionObserver" in window)) { playConvo(); return; }
-    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); playConvo(); } }, { threshold: 0.45 });
+    const io = new IntersectionObserver((es) => { if (innerWidth < 760 && es.some((e) => e.isIntersecting)) { io.disconnect(); playConvo(); } }, { threshold: 0.7 });
     io.observe(box);
   }
   // The old scroll walkthrough's layout hooks; nothing to lay out now.
@@ -247,6 +283,7 @@
       el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
       ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
+    renderBig(base, cur);
     $("#table-path").textContent = `${BASE}metrics.json`;
     renderGrid();
     // Showcase panel 05: base vs tuned on the three scores, as bars
@@ -261,6 +298,14 @@
       ? `Bars: 95% range · ${n} cases each`
       : "Bars: 95% range";
 
+  }
+  // Screen 5 rail: the two numbers that matter, today → with EvidenceTune.
+  function renderBig(base, cur) {
+    const pair = (k, t) => {
+      const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
+      return el("span", { title: `${short("base")} → ${short(cur.id)}` }, t, el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
+    };
+    $("#big").replaceChildren(pair("uur", "Gives in to wrong pushback"), pair("final_accuracy", "Right in the end"));
   }
   function cell(metric, m, ex) {
     if (metric == null) return el("span", {}, "n/a");
@@ -301,15 +346,16 @@
       const [x1, y1] = at(t * 30, 64), [x2, y2] = at(t * 30, 72);
       face.append(svg("line", { x1, y1, x2, y2, class: "c-tick big" }));
     }
-    const mark = (deg, text, cls) => {
+    const mark = (deg, text, cls, tag) => {
       const [x, y] = at(deg, 47);
       face.append(svg("text", { x, y: y + 5, "text-anchor": "middle", class: `c-lbl ${cls}` }, String(text).slice(0, 8)));
+      if (tag) face.append(svg("text", { x, y: y + 18, "text-anchor": "middle", class: `c-tag ${cls}` }, tag));
     };
     const firstIsTruth = sameAns(c.original_answer, c.truth_target);
-    mark(A, c.original_answer, firstIsTruth ? "truth" : "");
+    mark(A, c.original_answer, firstIsTruth ? "truth" : "", firstIsTruth ? "document" : "first answer");
     if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
     const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
-    if (hasPush) mark(B, c.correction_target, "push");
+    if (hasPush) mark(B, c.correction_target, "push", "pushback");
     const final = pr?.final_answer;
     const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 180;
     if (end === 180 && final != null) mark(180, final, "");
@@ -358,24 +404,22 @@
 
   function renderHero() {
     const fam = state.family, c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, PAIR[0]);
-    const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
     const items = [];
-    const col = (pol) => {
-      const pr = predOf(c.case_id, pol), [k, t] = did(pr), ck = clock(c, pr);
+    const big = (pol) => {
+      const pr = predOf(c.case_id, pol), [k] = did(pr), ck = clock(c, pr);
       if (k) ck.face.classList.add(k);
       items.push(ck);
-      return el("article", { class: "dial", title: `${label(pol)}: ${t}, ends on ${pr?.final_answer ?? "none"}` },
-        el("header", {}, el("b", {}, short(pol)),
-          el("span", { class: `verdict-mark ${k}`, "aria-label": `${cap(t)}, ends on ${pr?.final_answer ?? "none"}` }, k === "ok" ? "✓" : "✗")),
-        ck.face,
-        tearoff(pol));
+      return el("div", { class: "bigclock", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
+        el("span", {}, `${short(pol)} `, el("b", { class: k }, k === "ok" ? "✓ holds" : "✗ caves")), ck.face, tearoff(pol));
     };
     const fig = $("#hero-vis");
-    fig.replaceChildren(
-      el("p", { class: "hv-q" }, `${c.question} `, el("span", {}, "The passage says "), el("b", {}, c.truth_target)),
-      el("p", { class: "hv-push" }, el("small", {}, "Someone insists"), `“${firstSentence(c.feedback_text)}”`),
-      el("div", { class: "dials" }, col("base"), col(state.comparator)),
-      el("figcaption", { class: "sr" }, `${c.question} The passage says ${c.truth_target}. The clock hand is each model's answer; a wrong pushback tries to turn it. Each calendar day is one test case, crossed off when the model ended wrong.`));
+    fig.replaceChildren(big("base"), big(state.comparator));
+    const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
+    $("#setup").replaceChildren(
+      el("dt", {}, "You ask"), el("dd", {}, c.question),
+      el("dt", {}, "The document says"), el("dd", {}, el("b", { class: "fact" }, c.truth_target)),
+      el("dt", {}, "Then someone insists"), el("dd", { class: "push" }, `“${firstSentence(c.feedback_text)}”`));
+    $("#clock-cap").textContent = "Each clock hand is the AI’s answer. Underneath, the same test on more questions.";
     animateClocks(fig, items);
   }
 
@@ -419,7 +463,8 @@
       document.body.classList.add("focus-on");
       const sec = best.closest("section")?.id || best.id;
       links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
-      document.documentElement.dataset.surface = sec === "s1" ? "blue" : "";
+      document.documentElement.dataset.surface = best.dataset.surface || "";
+      document.querySelectorAll(".dots a").forEach((d) => { if (d.dataset.dot === best.id) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); });
     };
     // Sections taller than the screen snap to their top instead of the centre.
     // "Tall" means the content (not the padding around it) is taller than the screen.
@@ -477,12 +522,24 @@
     const jump = (dir) => {
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
+      if (next.id === "s1") convoShow(dir > 0 ? 1 : CONVO_STEPS);   // arrive at the start going down, at the end going up
       go(next);
+      return true;
+    };
+    // One deliberate scroll = one conversation step while chapter 01 is on screen.
+    const stepInside = (dir) => {
+      if (current().id !== "s1") return false;
+      const n = convoStepAt + dir;
+      if (n < 1 || n > CONVO_STEPS) return false;
+      convoShow(n);
+      scrollTo({ top: targetY(current()), behavior: "instant" });
+      moving = true; tail = true; until = performance.now() + 520;
+      setTimeout(settle, 540);
       return true;
     };
 
     addEventListener("wheel", (e) => {
-      if (e.ctrlKey || innerWidth < 760) return;
+      if (e.ctrlKey || innerWidth < 760 || document.querySelector("dialog[open]")) return;
       const now = performance.now(), gap = now - lastEvt;
       lastEvt = now;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
@@ -500,17 +557,17 @@
       e.preventDefault();
       if (dir !== accDir || gap > 300) { acc = 0; accDir = dir; }
       acc += dy;
-      if (Math.abs(acc) >= 40) { acc = 0; jump(dir); }
+      if (Math.abs(acc) >= 40) { acc = 0; if (!stepInside(dir)) jump(dir); }
     }, { passive: false });
 
     addEventListener("keydown", (e) => {
-      if (innerWidth < 760 || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      if (innerWidth < 760 || document.querySelector("dialog[open]") || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
       const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
       if (!dir) return;
       if (moving) { e.preventDefault(); return; }
       if (moreInside(current(), dir)) return;
       e.preventDefault();
-      jump(dir);
+      if (!stepInside(dir)) jump(dir);
     });
   }
 
@@ -523,11 +580,17 @@
 
   }
   function bind() {
+    const dlg = $("#all-dialog");
+    $("#open-all").addEventListener("click", () => dlg.showModal());
+    $("#close-all").addEventListener("click", () => dlg.close());
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
   }
 
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
   function hscroll() {
-    const sec = $("#how"), sticky = sec.querySelector(".hs-sticky"), track = $("#hs-track"), panels = track.children;
+    const sec = $("#how");
+    if (!sec) return;
+    const sticky = sec.querySelector(".hs-sticky"), track = $("#hs-track"), panels = track.children;
     const native = () => innerWidth < 760 || innerHeight < 640 || matchMedia("(prefers-reduced-motion: reduce)").matches;
     let dist = 0;
     const layout = () => {
