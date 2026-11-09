@@ -1157,7 +1157,7 @@ body.focus-on .ch:not(.is-focus) { opacity: .35; filter: none; }
 #top .cue .chev { display: inline-block; margin-left: 6px; vertical-align: middle; }
 
 /* 2 · names sit above the cards; one clock plays at a time */
-#glance .clockcol { display: grid; gap: 12px; align-content: start; transform-origin: center; transition: opacity 800ms var(--ease), transform 900ms cubic-bezier(.65, 0, .35, 1); }
+#glance .clockcol { display: grid; gap: 12px; align-content: start; transform-origin: center; transition: opacity 800ms var(--ease), transform 900ms cubic-bezier(.45, .05, .55, .95); }
 #glance .clockcol.is-dim { opacity: .35; transform: scale(.78); }
 #glance .clockcol.is-on { opacity: 1; transform: translateX(var(--in, 0)) scale(1.12); }
 #glance .clockcol:first-child { --in: 20px; }
