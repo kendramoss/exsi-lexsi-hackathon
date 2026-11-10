@@ -643,7 +643,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 @media (max-width: 760px) { .end .links { grid-template-columns: minmax(0, 1fr); } }
 .g-bubble { border-radius: 24px; }
 .g-bubble mark { background: color-mix(in srgb, #a9c8f5 60%, transparent); color: inherit; }
-.g-bubble mark { background: none; color: inherit; text-decoration: underline 3px #a9c8f5; text-underline-offset: 5px; text-decoration-skip-ink: none; }
+.g-bubble mark { background: none; color: inherit; text-decoration: underline 1.5px #a9c8f5; text-underline-offset: 4px; text-decoration-skip-ink: none; }
 
 /* ---------- 01 as a conversation ---------- */
 .chat { display: grid; gap: 10px; }
@@ -662,7 +662,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .bubble.q { background: var(--cream-2); border-radius: 18px 18px 4px 18px; }
 .bubble.a { background: var(--cream); border-radius: 16px 4px 16px 4px; }
 .chat-row.push .bubble.q { box-shadow: 4px 4px 0 #a9c8f5; }
-.bubble mark { background: none; color: inherit; text-decoration: underline 3px #a9c8f5; text-underline-offset: 4px; text-decoration-skip-ink: none; }
+.bubble mark { background: none; color: inherit; text-decoration: underline 1.5px #a9c8f5; text-underline-offset: 3px; text-decoration-skip-ink: none; }
 .bubble .cite { color: var(--cobalt); }
 .attach { max-width: 46ch; padding: 10px 14px; display: grid; gap: 4px; background: var(--cream); color: var(--cobalt); border-radius: 12px 0 12px 0; font: var(--t-small); }
 .attach small { font: var(--t-meta); color: var(--cobalt-3); }
@@ -1623,3 +1623,8 @@ body.xf .focusable { transition: none; }
 #s3 .fair-facts li { display: grid; gap: 6px; font: 400 15px/1.45 var(--display); color: #3c76c6; }
 #s3 .fair-facts b { font: 500 17px var(--display); color: #0b55b8; }
 @media (max-width: 900px) { #s3 .fair-facts { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+/* 5 · room under the top bar: content centres only while it fits, and the diagram gives way first */
+@media (min-width: 901px) and (min-height: 601px) {
+  #s3 { justify-content: safe center; padding-top: clamp(48px, 9vh, 96px); padding-bottom: clamp(32px, 6vh, 64px); gap: clamp(16px, 3vh, 32px); }
+  .fair-svg { max-height: 44vh; }
+}

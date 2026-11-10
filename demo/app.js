@@ -701,7 +701,7 @@
     const cut = (txt, max) => (txt.length > max ? txt.slice(0, max - 1).trimEnd() + "…" : txt);
     const TOP = 44, STEP = 112, RH = 92;
     const H = TOP + STEP * rows.length - (STEP - RH), cy = TOP + (H - TOP) / 2;
-    const svg = n("svg", { viewBox: `0 0 1200 ${H}`, class: "fair-svg" },
+    const svg = n("svg", { viewBox: `0 0 1200 ${H}`, class: "fair-svg", preserveAspectRatio: "xMinYMin meet" },
       n("defs", {}, n("marker", { id: "fair-ah", viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, n("path", { d: "M0 0 L10 5 L0 10 z" }))),
       n("text", { x: 0, y: 20, class: "fh" }, "The test case"), n("text", { x: 450, y: 20, class: "fh" }, "The pushback"), n("text", { x: 920, y: 20, class: "fh" }, "What the model should do"));
     // the case card: the statement, its three excerpts, which one settles it
