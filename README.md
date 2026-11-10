@@ -12,7 +12,7 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 
 **[Open the live demo →](https://raw.githack.com/kendramoss/exsi-lexsi-hackathon/feat/demo-redesign/demo/index.html)**
 
-No install needed: this link serves `demo/` straight from the `feat/demo-redesign` branch, so it always shows the latest pushed design and layout (allow a few minutes after a push for it to refresh). It currently runs on the mock results in `demo/data/results/mock-smoke/`.
+No install needed: this link serves `demo/` straight from the `feat/demo-redesign` branch, so it always shows the latest pushed design and layout (allow a few minutes after a push for it to refresh). The default is the verified, recorded-only merged α=0.75 comparison in `demo/data/results/merged-alpha-075/merged.json`. The separate historical mock is available explicitly with `?run=mock-smoke` and is invented, not current model evidence.
 
 To run it on your own machine instead:
 
