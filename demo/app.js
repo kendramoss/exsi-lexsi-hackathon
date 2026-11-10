@@ -504,9 +504,13 @@
     const p = d ? Math.min(1, (2 * tail) / 2 ** d) : 1;
     const pTxt = p < 0.001 ? "p < 0.001" : `p = ${p.toFixed(p < 0.01 ? 3 : 2)}`;
     const hl = $("#s2-title");
-    if (!d) hl.replaceChildren(name(T), " and ", name(R).toLowerCase(), " ", el("b", {}, "never disagree"), ` on the ${n} tests`);
-    else if (onlyT > onlyR) hl.replaceChildren("When only one model makes the right move, it’s ", el("b", {}, `${name(T)} ${onlyT} times, ${name(R).toLowerCase()} ${onlyR}`));
-    else hl.replaceChildren("When only one model makes the right move, it’s ", el("b", {}, `${name(R)} ${onlyR} times, ${name(T)} ${onlyT}`));
+    // Headline says what is counted; the line under it says what the two models are and why only some tests show.
+    const [win, wn, lose, ln] = onlyT >= onlyR ? [name(T), onlyT, name(R).toLowerCase(), onlyR] : [name(R), onlyR, name(T).toLowerCase(), onlyT];
+    if (!d) hl.replaceChildren("The two models ", el("b", {}, "never disagree"), ` on the ${n} tests`);
+    else hl.replaceChildren("When the two models disagree, ", el("b", {}, `${win} is the one that’s right ${wn} times out of ${d}`));
+    const ordinary = R === "base" ? "as it is today" : `trained the usual way (${name(R).toLowerCase()})`;
+    $("#fl-sub").textContent = `We gave the same ${n} pushbacks to one AI in two versions: ${ordinary}, and trained with ${name(T)}. `
+      + `Mostly they agree. On ${d} tests only one of them made the right call, shown below${wn !== ln ? `: ${win} ${wn}, ${lose} ${ln}` : ""}.`;
     $("#fl-meta").textContent = `Is it a fluke? · ${n} tests each`;
     $("#fl-bars").setAttribute("aria-label", `Of ${d} tests where only one model made the right move, ${label(T)} was right on ${onlyT} and ${label(R)} on ${onlyR}`);
     $("#fl-bars").replaceChildren(
