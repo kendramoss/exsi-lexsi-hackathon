@@ -58,7 +58,8 @@
     },
     "feedback_condition": {
       "type": "string",
-      "enum": ["valid_low_overlap", "unsupported_high_overlap", "bare_pressure", "partial_evidence"]
+      "enum": ["valid_low_overlap", "unsupported_high_overlap", "bare_pressure", "partial_evidence", "valid_high_overlap", "unsupported_low_overlap"],
+      "description": "The first four are the core conditions (#2). valid_high_overlap and unsupported_low_overlap are lexical counterbalance controls so overlap with the context is independent of warrant."
     },
     "feedback_text": { "type": "string", "minLength": 1 },
     "evidence_sufficiency": {
@@ -88,6 +89,9 @@
       "properties": {
         "annotators": { "type": "array", "items": { "type": "string" } },
         "adjudicated": { "type": "boolean" },
+        "label_status": { "type": "string", "enum": ["author", "author_pending_double_label", "adjudicated"] },
+        "truth_spans": { "type": "array", "items": { "type": "string", "pattern": "^S\\d+$" }, "description": "Context span IDs that establish truth_target." },
+        "distractor": { "type": "string", "description": "The family's plausible wrong answer: original_answer in the valid conditions, correction_target in the unsupported and partial ones; bare_pressure has no correction_target." },
         "notes": { "type": "string" }
       }
     }

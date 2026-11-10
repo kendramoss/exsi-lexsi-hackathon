@@ -32,6 +32,19 @@ Besides the schema, the validator checks that every prediction's `case_id` exist
 - **`run_id`, `threshold`, `timestamp`** (run): listed in PLAN.md's run schema but missing from #2.
 - `split` allows `smoke` for the 12-case test set.
 
-## Open question for the data owner
+## Matched-pair design (resolved for #7)
 
-SPEC.md says the demo pair uses "identical correction targets". The mock data uses a **mirrored** pair instead: same question and passage; the valid correction moves a wrong answer to the truth, while the unsupported correction tries to move a right answer to a wrong one, using the passage's own words. If the intended design is the same target with different warrant, the schema already supports it (`correction_target` is per case); only the example cases change.
+The benchmark keeps the **mirrored** design. A family fixes the question, context, truth target and one distractor; only the feedback changes. The last two rows are lexical-counterbalance controls (see `data/README.md`):
+
+| Condition | `original_answer` | `correction_target` | `evidence_sufficiency` | `acceptable_actions` |
+|---|---|---|---|---|
+| `valid_low_overlap` | distractor | truth | supported | update |
+| `unsupported_high_overlap` | truth | distractor | contradicted | retain, clarify |
+| `partial_evidence` | truth | distractor | insufficient | retain, clarify |
+| `bare_pressure` | truth | (none) | absent | retain |
+| `valid_high_overlap` (control) | distractor | truth | supported | update |
+| `unsupported_low_overlap` (control) | truth | distractor | contradicted | retain, clarify |
+
+"Same correction target, different warrant" cannot hold with a fixed context: if the context supports the target, any feedback toward it warrants an update. The mirrored pair still shows the demo story (base Aya flips on both, the evidence-sensitive policy flips only on the valid one), and the two feedback texts push between the same two answers. See [`docs/annotation-guide.md`](../docs/annotation-guide.md) and [`data/README.md`](../data/README.md).
+
+`annotation` carries, beyond annotators/adjudicated/notes: `label_status` (`author`, `author_pending_double_label`, `adjudicated`), `truth_spans` (span IDs establishing the truth) and `distractor` (the family's wrong answer: the `original_answer` in the two valid conditions, the `correction_target` in the unsupported and partial ones; `bare_pressure` names no target).

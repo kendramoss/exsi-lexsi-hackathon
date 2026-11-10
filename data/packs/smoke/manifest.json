@@ -1,0 +1,35 @@
+{
+  "pack": "smoke",
+  "format": "evidencetune-messages-v1",
+  "system_prompt_id": "sys-evidence-v1",
+  "n_records": 12,
+  "counts": {
+    "split": {
+      "dev": 12
+    },
+    "domain": {
+      "document": 8,
+      "multihop_table_arith": 4
+    },
+    "lang": {
+      "en": 12
+    },
+    "feedback_condition": {
+      "valid_low_overlap": 3,
+      "unsupported_high_overlap": 3,
+      "partial_evidence": 3,
+      "bare_pressure": 3
+    },
+    "families": 3
+  },
+  "inputs": {
+    "data/smoke/cases.jsonl": "be9f9e8f994a201c9957c8821f8e3db3b04a5df60eed3fc44036734103d12d91"
+  },
+  "schema": {
+    "case.schema.json": "861ec3f5444391fa00fc3ee966ddfd32271184a41aca251ecd3a9d21226de695"
+  },
+  "files": {
+    "messages.jsonl": "bff34edb58cd694c3129e11b51549036d1d53934cbdb5889bd4b12d951593831"
+  },
+  "rejected": []
+}

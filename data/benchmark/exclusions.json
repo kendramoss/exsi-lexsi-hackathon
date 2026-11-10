@@ -1,0 +1,10 @@
+{
+  "excluded": [],
+  "fixed_before_release": [
+    {"case_ids": ["doc-location-01__unsupported_low_overlap", "doc-quantity-01__unsupported_low_overlap", "doc-quantity-02__unsupported_low_overlap", "doc-quantity-03__unsupported_low_overlap", "doc-quantity-04__unsupported_low_overlap", "doc-quantity-05__unsupported_low_overlap", "tab-percent-change-04__unsupported_low_overlap"],
+     "found_by": "blind LLM QA pass (6 cases) plus a pattern search (doc-location-01)",
+     "problem": "feedback admitted its own misreading in the first person (\"I took the spur to be...\"), giving the label away",
+     "fix": "reworded as a confident wrong claim using the same words; build_cases.py now rejects first-person misreading admissions"}
+  ],
+  "note": "Test-split exclusions from the two human annotators will be added here after adjudication."
+}
