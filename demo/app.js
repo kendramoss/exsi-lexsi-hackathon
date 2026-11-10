@@ -506,20 +506,28 @@
     const hl = $("#s2-title");
     // Headline says what is counted; the line under it says what the two models are and why only some tests show.
     const [win, wn, lose, ln] = onlyT >= onlyR ? [name(T), onlyT, name(R).toLowerCase(), onlyR] : [name(R), onlyR, name(T).toLowerCase(), onlyT];
-    if (!d) hl.replaceChildren("The two models ", el("b", {}, "never disagree"), ` on the ${n} tests`);
-    else hl.replaceChildren("When the two models disagree, ", el("b", {}, `${win} is the one that’s right ${wn} times out of ${d}`));
-    const ordinary = R === "base" ? "as it is today" : `trained the usual way (${name(R).toLowerCase()})`;
-    $("#fl-sub").textContent = `We gave the same ${n} pushbacks to one AI in two versions: ${ordinary}, and trained with ${name(T)}. `
-      + `Mostly they agree. On ${d} tests only one of them made the right call, shown below${wn !== ln ? `: ${win} ${wn}, ${lose} ${ln}` : ""}.`;
-    $("#fl-meta").textContent = `Is it a fluke? · ${n} tests each`;
+    // Confident, but every word true: a plain ratio in the headline, the exact counts in the line under it,
+    // and the significance test turned into everyday odds in the small print.
+    const ratio = ln ? wn / ln : Infinity, WORD = ["", "", "twice", "three times", "four times", "five times"];
+    const how = !ln ? "every time" : ratio >= 1.95 && Math.round(ratio) <= 5 ? `${WORD[Math.round(ratio)]} as often` : "more often";
+    if (!d) hl.replaceChildren("Two versions, ", el("b", {}, "the same calls"), ` on all ${n} tests`);
+    else if (wn === ln) hl.replaceChildren("When they split, ", el("b", {}, "neither comes out ahead"));
+    else hl.replaceChildren("When they split, bet on ", el("b", {}, `${win}. It’s right ${how}`));
+    const setup = R === "base" ? `One AI, two versions: as it is today, and trained with ${name(T)}.` : `One AI, trained two ways: the usual way, and with ${name(T)}.`;
+    $("#fl-sub").textContent = `${setup} We put the same ${n} pushbacks to both. `
+      + `They make the same call almost every time; below are the ${d} times they didn’t${wn !== ln ? `, and ${win} took ${wn} of them` : ""}.`;
+    $("#fl-meta").textContent = `Is it a fluke? · ${n} tests`;
+    // everyday odds for the paired test: "less than 1 in 200" rather than a bare p-value
+    const odds = (q) => { const inv = 1 / q, mag = 10 ** Math.floor(Math.log10(inv)); return Math.floor(inv / mag) * mag; };
+    const pPlain = p < 0.05 ? `Odds of a split this lopsided by pure chance: under 1 in ${odds(p)} (${pTxt})` : `A split like this could easily be chance (${pTxt})`;
     $("#fl-bars").setAttribute("aria-label", `Of ${d} tests where only one model made the right move, ${label(T)} was right on ${onlyT} and ${label(R)} on ${onlyR}`);
     $("#fl-bars").replaceChildren(
       el("div", { class: "fl-tiles", style: `--n:${Math.max(d, 1)}` },
         ...Array.from({ length: d }, (_, i) => el("i", { class: i < onlyT ? "t" : "r", style: `--i:${i}`, title: i < onlyT ? `Only ${label(T)} right` : `Only ${label(R)} right` }))),
-      el("p", { class: "fl-note" }, `${both} tests both got right and ${neither} neither did are left out · paired test ${pTxt}`));
+      el("p", { class: "fl-note" }, el("span", { class: "fl-odds" }, pPlain), el("span", {}, `Not shown: ${both} both got right · ${neither} both got wrong`)));
     $("#fl-key").replaceChildren(
-      el("li", {}, el("i", { class: "t", "aria-hidden": "true" }), `Only ${name(T)} right · ${onlyT}`),
-      el("li", {}, el("i", { class: "r", "aria-hidden": "true" }), `Only ${name(R).toLowerCase()} right · ${onlyR}`));
+      el("li", {}, el("i", { class: "t", "aria-hidden": "true" }), `${name(T)} right, ${name(R).toLowerCase()} wrong · ${onlyT}`),
+      el("li", {}, el("i", { class: "r", "aria-hidden": "true" }), `${name(R)} right, ${name(T)} wrong · ${onlyR}`));
     // draw once, the first time the screen is in view
     const sec = $("#s2");
     const show = () => sec.classList.add("shown");

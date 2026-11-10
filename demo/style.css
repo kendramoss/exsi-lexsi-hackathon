@@ -1528,3 +1528,6 @@ body.xf .focusable { transition: none; }
   opacity: 0; translate: 0 12px; transition: opacity 600ms var(--ease) 600ms, translate 600ms var(--ease) 600ms; }
 #s2.shown .fl-sub { opacity: 1; translate: 0 0; }
 @media (prefers-reduced-motion: reduce) { #s2 .fl-sub { transition: none; opacity: 1; translate: 0 0; } }
+/* 5 · small print as two short lines: the "is it luck?" answer, then what is left out */
+#s2 .fl-note { display: grid; gap: 4px; }
+#s2 .fl-note .fl-odds { color: #f5f9ff; font-family: var(--sans); font-size: 15px; }
