@@ -1531,3 +1531,33 @@ body.xf .focusable { transition: none; }
 /* 5 · small print as two short lines: the "is it luck?" answer, then what is left out */
 #s2 .fl-note { display: grid; gap: 4px; }
 #s2 .fl-note .fl-odds { color: #f5f9ff; font-family: var(--sans); font-size: 15px; }
+
+/* ---------- 7 · see the work: each card has the real page it opens tucked behind it ----------
+   The previews are screenshots of the live pages (assets/previews), framed as a plain browser window. */
+#s4 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; padding: 0 64px; background: none; border: 0; height: auto; }
+#s4 .tile { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: clamp(380px, 56vh, 560px); padding: 0; background: none; color: #f5f9ff; text-decoration: none; isolation: isolate; }
+#s4 .tile:hover { background: none; }
+#s4 .peek { position: absolute; z-index: -1; left: 24px; right: 24px; top: 0; height: 72%; display: flex; flex-direction: column; overflow: hidden; border-radius: 10px; background: #f5f9ff; box-shadow: 0 24px 50px -30px rgba(2, 16, 40, .8); transform: rotate(-2.5deg); transform-origin: bottom center; transition: transform 320ms var(--ease), top 320ms var(--ease); }
+#s4 .tile.data .peek { transform: rotate(1.5deg); }
+#s4 .tile.code .peek { transform: rotate(-1deg); }
+#s4 .tile:hover .peek, #s4 .tile:focus-visible .peek { top: -16px; transform: rotate(0deg); }
+#s4 .pbar { display: flex; align-items: center; gap: 6px; flex: none; padding: 9px 12px; background: #e4eefd; border-bottom: 1px solid rgba(11, 85, 184, .12); }
+#s4 .pbar i { width: 8px; height: 8px; border-radius: 50%; background: #a9c8f5; }
+#s4 .pbar em { margin-left: 8px; min-width: 0; flex: 1; font: 400 11px/1.4 var(--mono); font-style: normal; color: #3c76c6; background: #f5f9ff; padding: 4px 9px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#s4 .peek img { display: block; width: 100%; flex: 1; min-height: 0; object-fit: cover; object-position: top left; }
+#s4 .front { position: relative; display: grid; gap: 10px; align-content: end; min-height: 46%; padding: 28px 32px; background: #0b4ca6; border: 1px solid rgba(245, 249, 255, .25); border-radius: 4px; transition: background-color 200ms var(--ease); }
+#s4 .tile:hover .front { background: #0a4499; }
+#s4 .tile:focus-visible { outline: none; }
+#s4 .tile:focus-visible .front { outline: 2px solid #f5f9ff; outline-offset: 4px; }
+#s4 .front i { display: block; width: min(9vh, 72px); height: min(9vh, 72px); margin-bottom: auto; background: #f5f9ff; }
+#s4 .tile.model .front i { border-radius: 72px 0 0 0; } #s4 .tile.code .front i { border-radius: 0 0 72px 0; } #s4 .tile.data .front i { border-radius: 0; }
+#s4 .front small { margin-top: 20px; font: 400 13px/1 var(--mono); opacity: .75; }
+#s4 .front b { font: 400 clamp(22px, 2.2vw, 30px)/1.15 var(--display); }
+#s4 .front .url { font: 400 12px/1.4 var(--mono); opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#s4 .end-head { padding-bottom: 5vh; }
+@media (max-width: 900px) {
+  #s4 .tiles { grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 0 20px; }
+  #s4 .tile { height: 340px; }
+  #s4 .peek { height: 64%; }
+}
+@media (prefers-reduced-motion: reduce) { #s4 .peek { transition: none; } }
