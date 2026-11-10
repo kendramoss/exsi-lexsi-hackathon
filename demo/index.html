@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=78">
+  <link rel="stylesheet" href="style.css?v=95">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -53,7 +53,6 @@
     <!-- 2 · B: rail sets the scene, the clocks answer it -->
     <section class="ch ch-light ch-rail focusable" id="glance" aria-labelledby="glance-title">
       <div class="rail">
-        <span class="rail-count">02 / 07</span><span class="rail-bar"><i style="width: 28%"></i></span>
         <h2 id="glance-title">Tell it the wrong info. Does it switch?</h2>
         <dl class="setup" id="setup"></dl>
         <p class="rail-foot" id="clock-cap"></p>
@@ -64,7 +63,6 @@
     <!-- 3 · B: rail, the conversation steps on the right -->
     <section class="ch ch-light ch-rail focusable" id="s1" aria-labelledby="s1-title">
       <div class="rail">
-        <span class="rail-count">03 / 07</span><span class="rail-bar"><i style="width: 43%"></i></span>
         <h2 id="s1-title">One example</h2>
         <p class="rail-lead" id="walk-lead"></p>
         <ol class="timeline" id="convo-tl" aria-label="What happens in the chat"></ol>
@@ -93,18 +91,19 @@
     </section>
 
     <!-- 5 · B: rail with the numbers, every case on the right -->
-    <section class="ch ch-light ch-rail focusable" id="s2" aria-labelledby="s2-title">
-      <div class="rail">
-        <span class="rail-count">05 / 07</span><span class="rail-bar"><i style="width: 71%"></i></span>
-        <h2 id="s2-title">Is it a fluke?</h2>
-        <p class="rail-lead">Every test case, against three shortcuts someone might try instead.</p>
-        <div class="rail-nums" id="big"></div>
-        <button class="linkish" id="open-all" type="button">All the numbers</button>
+    <section class="ch ch-blue focusable fluke" id="s2" aria-labelledby="s2-title">
+      <div class="fl-inner">
+        <header class="fl-top">
+          <h2 class="fl-hl" id="s2-title"><span id="fl-a"></span> <em id="fl-b"></em></h2>
+          <span class="fl-meta" id="fl-meta"></span>
+        </header>
+        <div class="fl-bars" id="fl-bars" role="img"></div>
+        <div class="fl-foot"><ul class="fl-key" id="fl-key"></ul><button class="linkish" id="open-all" type="button">All the numbers</button></div>
       </div>
-      <div class="panel"><figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure></div>
       <dialog class="all" id="all-dialog" aria-labelledby="all-title">
         <div class="all-head"><h3 id="all-title">All the numbers</h3><button class="replay" id="close-all" type="button">Close</button></div>
         <p class="intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
+        <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
         <div class="cards" id="cards"></div>
         <div class="table-win">
           <div class="tbl-head" id="table-path"></div>
@@ -146,6 +145,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=71"></script>
+  <script src="app.js?v=78"></script>
 </body>
 </html>

@@ -1247,10 +1247,10 @@ body.xf .focusable { transition: none; }
 .flow .bubble, .flow .file, .flow .fresh .bubble, .flow .fresh .file { animation: none; }
 :root { interpolate-size: allow-keywords; }
 /* A · make room, then pop: the new row opens from zero height (pushing earlier messages up), then the bubble pops into the gap */
-.flow .chat-row.sent { animation: makeroom 350ms cubic-bezier(.2, .7, .2, 1) both; }
+.flow .chat-row.sent { min-height: 0; overflow-clip-margin: 10px; animation: makeroom 480ms cubic-bezier(.25, .8, .25, 1) both; }
 @keyframes makeroom { 0% { height: 0; margin-top: -10px; overflow: clip; } 99% { overflow: clip; } 100% { height: auto; margin-top: 0; overflow: visible; } }
-.flow .chat-row.sent .bubble, .flow .chat-row.sent .file { animation: popin 420ms 330ms cubic-bezier(.2, .8, .3, 1) both; }
-.flow .chat-row.sent .file { animation-delay: 410ms; }
+.flow .chat-row.sent .bubble, .flow .chat-row.sent .file { animation: popin 460ms 400ms cubic-bezier(.2, .8, .3, 1) both; }
+.flow .chat-row.sent .file { animation-delay: 480ms; }
 @keyframes send { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
 .flow .typing-row .bubble.typing { animation: typein 350ms ease-out both; }
 @keyframes typein { from { opacity: 0; } to { opacity: 1; } }
@@ -1268,7 +1268,11 @@ body.xf .focusable { transition: none; }
 .timeline li.done::before { background: #a9c8f5; border-color: #a9c8f5; }
 .timeline li.now { color: #0b55b8; font-weight: 500; }
 .timeline li.now::before { background: #0b55b8; border-color: #0b55b8; }
-#s1 .panel .ch-chat .convo.flow.fits { justify-content: center; -webkit-mask-image: none; mask-image: none; }
+/* Centred while it fits, bottom-anchored once it overflows, with no JS: two flexible spacers share the free
+   space; when there is none, flex-end pushes the overflow out of the top (under the fade). As a row opens,
+   the spacers shrink at the same rate, so earlier messages only ever move up, never back down. */
+#s1 .panel .ch-chat .convo.flow { justify-content: flex-end; box-sizing: border-box; padding-bottom: 0; }
+#s1 .convo.flow::before, #s1 .convo.flow::after { content: ""; flex: 1 1 0; min-height: 0; }
 .convo.flow:not(.split) .fork, .convo.flow:not(.split) .branches { display: none; }
 .fork.show { @starting-style { clip-path: inset(0 50% 100% 50%); } }
 .ch-rail.xf-instant .rail > *, .ch-rail.xf-instant .panel > * { transition: none !important; }
@@ -1281,3 +1285,123 @@ body.xf .focusable { transition: none; }
 .clock.gauge .c-base { stroke: var(--cobalt); stroke-width: 1.2; opacity: .35; }
 .clock.gauge .c-rim { fill: none; }
 #glance .bigclock .clock.gauge { width: 100%; max-width: 280px; }
+/* the chat column is always the full chat width, so messages never re-wrap as new ones arrive */
+#s1 .convo.flow > .trunk, #s1 .convo.flow > .fork, #s1 .convo.flow > .branches { align-self: stretch; width: 100%; box-sizing: border-box; }
+/* the split: fork touches the centred pushback, and fork + columns grow open instead of popping in */
+#s1 .flow .fork { margin: 0 0 8px; }
+#s1 .convo.flow.split .fork { animation: growin 500ms cubic-bezier(.2, .7, .2, 1); }
+#s1 .convo.flow.split .branches { animation: growin 700ms cubic-bezier(.2, .7, .2, 1); }
+/* no end keyframe: each element grows to its own height (the fork's is a fixed 44px, not auto, which would snap at the end) */
+@keyframes growin { 0% { height: 0; overflow: clip; } 99.9% { overflow: clip; } }
+@media (prefers-reduced-motion: reduce) { #s1 .convo.flow.split .fork, #s1 .convo.flow.split .branches { animation: none; } }
+#s1 .flow .chat-row.push { padding: 0; gap: 0; }
+#s1 .convo.flow { gap: 0; row-gap: 0; }
+@media (prefers-reduced-motion: reduce) { #s1 .panel .ch-chat .convo.flow { transition: none; } }
+.flow .file-meta b { color: #0b55b8; }
+.cw-verdict .nw { white-space: nowrap; }
+
+/* ---------- Screens 4–7 balanced: one centred block each, clear space top and bottom ---------- */
+@media (min-width: 900px) and (min-height: 600px) {
+  /* 4 · it still listens */
+  #listen { display: flex; flex-direction: column; justify-content: center; padding: 6vh max(64px, calc((100% - 1100px) / 2)); }
+  #listen .bands-head { padding: 0 0 24px; }
+  #listen .bands-head h2 { text-wrap: balance; }
+  #listen .band { padding: 14px 0; flex: none; }
+  #listen .band:last-child { border-bottom: 1px solid rgba(11, 85, 184, .25); }
+  #listen .bd { width: 128px; height: 64px; }
+  #listen .bands-cols span { width: 128px; }
+
+  /* 5 · is it a fluke: heading, line and numbers together, centred against the grid */
+  #s2 .rail { justify-content: center; padding-block: 6vh; }
+  #s2 .rail-nums { margin-top: 12px; }
+  #s2 .panel { padding-block: 6vh; box-sizing: border-box; }
+
+  /* 6 · is the test fair: heading and diagram as one block that fits the screen */
+  #s3 { display: flex; flex-direction: column; justify-content: center; gap: 7vh; padding: 6vh max(64px, calc((100% - 1100px) / 2)) 14vh; }
+  #s3 .ch-head { position: static; max-width: none; }
+  #s3 .ch-head h2 { text-wrap: balance; }
+  #s3 .pipe { position: relative; left: auto; right: auto; top: auto; }
+  #s3 .ch-num { opacity: .04; }
+
+  /* 7 · see the work: shorter tiles, the whole block centred, room under the credit */
+  #s4 { display: flex; flex-direction: column; justify-content: center; padding-block: 6vh; }
+  #s4 .end-head { padding: 0 40px 4vh; }
+  #s4 .tiles { flex: none; height: auto; }
+  #s4 .tile { height: auto; min-height: 0; }
+  #s4 .tile { padding: 36px 40px; }
+  #s4 .tile i { width: min(11vh, 88px); height: min(11vh, 88px); }
+  #s4 .tile small { margin-top: 28px; }
+  #s4 .credit { padding: 3vh 40px 0; }
+}
+
+/* ---------- 3 · chat sizing follows the window ----------
+   The chat is drawn at a zoom (--cz) so it reads big on large screens; zoom, width and height all step with
+   the viewport instead of a fixed 1.4× at 60% width, which crushed the two columns on mid-size windows.
+   Height is in zoomed units, hence the divide: on screen it is always ~72% of the space under the nav. */
+#s1 .panel .ch-chat .convo.flow { --cz: 1.4; zoom: var(--cz); width: min(100%, 560px); height: calc((100vh - var(--nav)) * .72 / var(--cz)); }
+@media (max-width: 1400px), (max-height: 760px) { #s1 .panel .ch-chat .convo.flow { --cz: 1.2; } }
+@media (max-width: 1150px), (max-height: 640px) { #s1 .panel .ch-chat .convo.flow { --cz: 1; } }
+#s1 .panel .ch-chat { padding-inline: clamp(16px, 3vw, 40px); }
+/* single column (phones, narrow or short windows): full-width chat, a steady height */
+@media (max-width: 900px), (max-height: 600px) {
+  #s1 .panel .ch-chat { padding: 8px clamp(4px, 2vw, 16px); }
+  #s1 .panel .ch-chat .convo.flow { --cz: 1; width: 100%; height: clamp(420px, 70vh, 640px); }
+}
+/* side rail narrows on mid-size windows; the chat keeps clear of the page dots on the right edge */
+@media (min-width: 901px) and (min-height: 601px) {
+  .ch-rail { grid-template-columns: clamp(300px, 28vw, 400px) minmax(0, 1fr); }
+  .ch-rail .rail { padding-inline: clamp(24px, 3vw, 48px); }
+  #s1 .panel .ch-chat { padding-right: max(56px, 3vw); }
+}
+
+/* ---------- 5 · is it a fluke: the sentence over one stacked bar per approach ----------
+   One thing to look at: the bars. Each test case is a slice, either the right move or how that approach
+   slipped. EvidenceTune's bar is the only solid one. Draws once when the screen comes into view. */
+#s2.fluke { padding: 0; }
+.fl-inner { height: 100%; box-sizing: border-box; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 32px;
+  padding: 7vh max(88px, calc((100% - 1200px) / 2)) 6vh; }
+.fl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
+.fl-hl { margin: 0; font: 400 clamp(36px, 3.8vw, 56px)/1.06 var(--display); letter-spacing: -.02em; max-width: 22ch; }
+.fl-hl span, .fl-hl em { display: block; }
+.fl-hl em { font-style: normal; color: #a9c8f5; }
+.fl-meta { font: 400 13px/1.4 var(--mono); color: #c9dcf8; white-space: nowrap; padding-top: 12px; }
+.fl-bars { display: grid; gap: 12px; align-content: center; }
+.fl-row { display: grid; grid-template-columns: 200px minmax(0, 1fr) 64px; gap: 16px; align-items: center; font-size: 16px; color: #c9dcf8; }
+.fl-track { height: 28px; display: flex; background: rgba(245, 249, 255, .08); }
+.fl-val { font: 400 22px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+.fl-row.me { color: #f5f9ff; font-weight: 500; }
+.fl-row.me .fl-track { height: 40px; }
+.fl-row.me .fl-val { font-size: 32px; }
+.fl-seg { display: block; height: 100%; }
+.s-ok { background: rgba(245, 249, 255, .34); }
+.fl-row.me .s-ok, .fl-key .s-ok { background: #f5f9ff; }
+.s-in { background: #ff8f86; }
+.s-ig { box-shadow: inset 0 0 0 1.5px rgba(245, 249, 255, .6); }
+.s-ask { background: repeating-linear-gradient(135deg, rgba(245, 249, 255, .5) 0 3px, transparent 3px 8px); }
+.fl-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+.fl-key { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: #c9dcf8; }
+.fl-key li { display: flex; align-items: center; gap: 8px; }
+.fl-key i { width: 16px; height: 16px; display: block; }
+#s2 .linkish { color: #f5f9ff; }
+/* the draw-in: headline, then the bars grow left to right one row after another, EvidenceTune last */
+#s2 .fl-hl span, #s2 .fl-hl em, #s2 .fl-meta, #s2 .fl-foot { opacity: 0; translate: 0 12px; transition: opacity 600ms cubic-bezier(.2, .7, .2, 1), translate 600ms cubic-bezier(.2, .7, .2, 1); }
+#s2 .fl-hl em { transition-delay: 500ms; }
+#s2 .fl-meta { transition-delay: 700ms; }
+#s2 .fl-foot { transition-delay: 2000ms; }
+#s2 .fl-seg { transform-origin: 0 50%; scale: 0 1; transition: scale 800ms cubic-bezier(.2, .7, .2, 1); transition-delay: calc(900ms + var(--d, 0ms)); }
+#s2 .fl-row { --d: 0ms; }
+#s2.shown .fl-hl span, #s2.shown .fl-hl em, #s2.shown .fl-meta, #s2.shown .fl-foot { opacity: 1; translate: 0 0; }
+#s2.shown .fl-seg { scale: 1 1; }
+@media (prefers-reduced-motion: reduce) { #s2 .fl-hl span, #s2 .fl-hl em, #s2 .fl-meta, #s2 .fl-foot, #s2 .fl-seg { transition: none; } }
+/* the fine-print grid now lives in the dialog */
+.all .egrid { background: #0b55b8; color: #f5f9ff; border: 0; border-radius: 16px 0 16px 0; --ink: #f5f9ff; --line: #f5f9ff; }
+.all .egrid-cells i.ok { background: #f5f9ff; }
+@media (max-width: 900px), (max-height: 600px) {
+  #s2.fluke { padding: 0; }
+  .fl-inner { padding: 56px 20px; gap: 28px; }
+  .fl-top { flex-direction: column; gap: 8px; }
+  .fl-meta { padding-top: 0; }
+  .fl-row { grid-template-columns: minmax(0, 1fr) 48px; gap: 6px 12px; }
+  .fl-name { grid-column: 1 / -1; }
+  .fl-track { grid-column: 1; }
+}

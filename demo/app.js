@@ -163,7 +163,7 @@
     const branch = (pol, p, who) => {
       const [k, t] = did(p);
       const list = el("div", { class: "branch-list" });
-      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), el("span", {}, `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none")));
+      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), el("span", {}, `${cap(t)} `, el("span", { class: "nw" }, "· ends on ", el("strong", {}, p?.final_answer ?? "none"))));
       const node = el("div", { class: `branch ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
         el("header", { class: "branch-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }), el("b", {}, label(pol))), list, verdict);
       return { node, list, verdict, msgs: replies(p) };
@@ -176,17 +176,14 @@
     convoWins = { trunk, fork, shared, branches: [bL, bR] };
     $("#convo").classList.add("flow");
     $("#convo").replaceChildren(trunk, fork, el("div", { class: "branches" }, bL.node, bR.node));
-    // Centre the chat while it fits; once it overflows, anchor it to the bottom and fade the top, like a phone.
+    // Centring is pure CSS (two flexible spacers in #convo, see style.css): centred while the chat fits,
+    // bottom-anchored once it overflows. A new row opening its room only ever pushes earlier messages up.
     const box = $("#convo");
-    if (!box._fit) {
-      const fit = () => {
-        const used = [...box.children].reduce((a, ch) => a + ch.getBoundingClientRect().height, 0) + 24;
-        box.classList.toggle("fits", used <= box.getBoundingClientRect().height);
-      };
-      box._fit = new MutationObserver(() => requestAnimationFrame(fit));
-      addEventListener("resize", fit);
-      box._fit.observe(box, { childList: true, subtree: true });
-      box.addEventListener("animationend", fit);   // re-measure once a new message has finished opening its room
+    if (!box._resize) {
+      // The pushback's slide-to-centre is a pixel offset; redo it (without animating) when the window changes.
+      let rt = 0;
+      box._resize = () => { cancelAnimationFrame(rt); rt = requestAnimationFrame(() => { if (convoStepAt >= 4) centerPush(false); }); };
+      new ResizeObserver(box._resize).observe(box);
     }
     convoShow(Math.max(1, convoStepAt));
 
@@ -212,6 +209,19 @@
   // A typing bubble on the sender's side: three dots, like a real chat.
   const typingRow = (who) => el("div", { class: `chat-row ${who} typing-row` }, el("i", { class: "av", "aria-hidden": "true" }),
     el("div", { class: "bubbles" }, el("div", { class: `bubble ${who === "ai" ? "a" : "q"} typing`, "aria-label": "typing" }, el("i"), el("i"), el("i"))));
+
+  // At the split the pushback slides to the centre so the fork's stem grows straight out of it.
+  function centerPush(animate) {
+    const trunk = convoWins.trunk, bub = trunk && trunk.querySelector(".chat-row.push .bubble");
+    if (!bub) return;
+    const z = parseFloat(getComputedStyle($("#convo")).zoom) || 1;
+    bub.style.transition = "none"; bub.style.translate = "0px 0px";
+    const tr = trunk.getBoundingClientRect(), br = bub.getBoundingClientRect();
+    const dx = ((tr.left + tr.width / 2) - (br.left + br.width / 2)) / z;
+    void bub.offsetWidth;
+    bub.style.transition = animate ? "translate 600ms cubic-bezier(.2, .7, .2, 1)" : "none";
+    bub.style.translate = `${dx}px 0px`;
+  }
 
   function convoShow(n, wait = 0) {
     const W = convoWins;
@@ -242,6 +252,7 @@
     const staged = split && prev < 4 && !still;
     const convoEl = $("#convo");
     W.trunk.classList.toggle("past", split);
+    if (split) at(0, () => centerPush(staged));
     if (staged) {
       convoEl.classList.remove("split"); W.fork.classList.remove("show");
       W.branches.forEach((b) => b.node.classList.remove("show"));
@@ -334,7 +345,7 @@
       el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
       ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
-    renderBig(base, cur);
+    renderFluke();
     $("#table-path").textContent = `${BASE}metrics.json`;
     renderGrid();
     // Showcase panel 05: base vs tuned on the three scores, as bars
@@ -350,13 +361,49 @@
       : "Bars: 95% range";
 
   }
-  // Screen 5 rail: the two numbers that matter, today → with EvidenceTune.
-  function renderBig(base, cur) {
-    const pair = (k, t) => {
-      const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
-      return el("span", { title: `${short("base")} → ${short(cur.id)}` }, t, el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
-    };
-    $("#big").replaceChildren(pair("uur", "Gives in to wrong pushback"), pair("final_accuracy", "Right in the end"));
+  // Screen 5: one stacked bar per approach. Each test case is a slice: the right move, or how it slipped.
+  // Categories come only from the saved score; the headline is chosen from the counts, never assumed.
+  const SLIP = [
+    { k: "ok", label: "Right move" },
+    { k: "in", label: "Gave in to a wrong fix" },
+    { k: "ig", label: "Ignored a correct fix" },
+    { k: "ask", label: "Asked when it didn’t need to" },
+  ];
+  function slip(p) {
+    if (!p) return null;
+    const s = p.score || {};
+    if (s.action_acceptable) return "ok";
+    if (s.unwarranted_update) return "in";
+    if (p.parsed_action.action === "clarify") return "ask";
+    return "ig";
+  }
+  function renderFluke() {
+    const T = state.comparator, n = cases.length;
+    const order = [...metrics.comparators.filter((c) => c.id !== T), comp(T)].filter(Boolean);
+    const rows = order.map((c) => {
+      const counts = Object.fromEntries(SLIP.map((x) => [x.k, 0]));
+      cases.forEach((cs) => { const k = slip(predOf(cs.case_id, c.id)); if (k) counts[k]++; });
+      return { c, counts, me: c.id === T };
+    });
+    const mine = rows.at(-1), others = rows.slice(0, -1);
+    const clean = mine.counts.ok === n;
+    $("#fl-a").textContent = others.every((r) => r.counts.ok < n) ? "Each shortcut slips in its own way" : "Most shortcuts slip somewhere";
+    $("#fl-b").textContent = clean ? `${short(T).replace(/^With /, "")} doesn’t slip` : `${short(T).replace(/^With /, "")} slips ${n - mine.counts.ok} of ${n} times`;
+    $("#fl-meta").textContent = `${n} test cases each`;
+    const used = SLIP.filter((x) => rows.some((r) => r.counts[x.k]));
+    $("#fl-bars").setAttribute("aria-label", rows.map((r) => `${label(r.c.id)}: ${r.counts.ok} of ${n} right` +
+      used.filter((x) => x.k !== "ok" && r.counts[x.k]).map((x) => `, ${r.counts[x.k]} ${x.label.toLowerCase()}`).join("")).join("; "));
+    $("#fl-bars").replaceChildren(...rows.map((r, i) => el("div", { class: `fl-row${r.me ? " me" : ""}`, style: `--d:${r.me ? 260 + i * 140 : i * 140}ms` },
+      el("span", { class: "fl-name" }, label(r.c.id)),
+      el("span", { class: "fl-track" }, ...used.filter((x) => r.counts[x.k]).map((x) =>
+        el("i", { class: `fl-seg s-${x.k}`, style: `width:${(r.counts[x.k] / n) * 100}%`, title: `${label(r.c.id)}: ${r.counts[x.k]} of ${n} · ${x.label}` }))),
+      el("span", { class: "fl-val" }, `${r.counts.ok}/${n}`))));
+    $("#fl-key").replaceChildren(...used.map((x) => el("li", {}, el("i", { class: `s-${x.k}`, "aria-hidden": "true" }), x.label)));
+    // draw once, the first time the screen is in view
+    const sec = $("#s2");
+    const show = () => sec.classList.add("shown");
+    if (params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) show();
+    else if (!sec._io) { sec._io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { show(); sec._io.disconnect(); } }, { threshold: 0.55 }); sec._io.observe(sec); }
   }
   function cell(metric, m, ex) {
     if (metric == null) return el("span", {}, "n/a");
@@ -628,7 +675,7 @@
     const jump = (dir) => {
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
-      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 1400 : 0); }   // start going down (after the fade-in), end going up
+      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 750 : 0); }   // start going down (after the fade-in), end going up
       go(next, cur);
       return true;
     };
