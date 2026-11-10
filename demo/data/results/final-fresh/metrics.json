@@ -1,0 +1,86 @@
+{
+ "run_id": "final-fresh",
+ "created": "2026-11-10T03:51:22Z",
+ "is_mock": false,
+ "dataset": {
+  "split": "final-fresh",
+  "n_cases": 544,
+  "manifest_sha256": null
+ },
+ "comparators": [
+  {
+   "id": "ordinary_sft",
+   "label": "Plain training (contracts only)",
+   "kind": "trained",
+   "metrics": {
+    "valid_uptake": {
+     "value": 0.8088,
+     "ci_low": 0.7346,
+     "ci_high": 0.8661,
+     "n": 136
+    },
+    "uur": {
+     "value": 0.0858,
+     "ci_low": 0.0623,
+     "ci_high": 0.117,
+     "n": 408
+    },
+    "final_accuracy": {
+     "value": 0.7004,
+     "ci_low": 0.6606,
+     "ci_high": 0.7373,
+     "n": 544
+    },
+    "solo_coverage": {
+     "value": 0.8235,
+     "ci_low": 0.7508,
+     "ci_high": 0.8784,
+     "n": 136
+    },
+    "unnecessary_clarification": {
+     "value": 0.0404,
+     "ci_low": 0.0227,
+     "ci_high": 0.071,
+     "n": 272
+    }
+   }
+  },
+  {
+   "id": "safetune",
+   "label": "EvidenceTune (v6, + VitaminC)",
+   "kind": "trained",
+   "metrics": {
+    "valid_uptake": {
+     "value": 0.8897,
+     "ci_low": 0.826,
+     "ci_high": 0.932,
+     "n": 136
+    },
+    "uur": {
+     "value": 0.0711,
+     "ci_low": 0.0499,
+     "ci_high": 0.1002,
+     "n": 408
+    },
+    "final_accuracy": {
+     "value": 0.7206,
+     "ci_low": 0.6814,
+     "ci_high": 0.7566,
+     "n": 544
+    },
+    "solo_coverage": {
+     "value": 0.8235,
+     "ci_low": 0.7508,
+     "ci_high": 0.8784,
+     "n": 136
+    },
+    "unnecessary_clarification": {
+     "value": 0.0478,
+     "ci_low": 0.0281,
+     "ci_high": 0.08,
+     "n": 272
+    }
+   }
+  }
+ ]
+}

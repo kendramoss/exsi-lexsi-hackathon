@@ -12,7 +12,7 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 
 **[Open the live demo →](https://raw.githack.com/kendramoss/exsi-lexsi-hackathon/feat/demo-redesign/demo/index.html)**
 
-No install needed: this link serves `demo/` straight from the `feat/demo-redesign` branch, so it always shows the latest pushed design and layout (allow a few minutes after a push for it to refresh). It currently runs on the mock results in `demo/data/results/mock-smoke/`.
+No install needed: this link serves `demo/` straight from the `feat/demo-redesign` branch, so it always shows the latest pushed design and layout (allow a few minutes after a push for it to refresh). It runs on the real frozen final evaluation (`demo/data/results/final-fresh/`, imported from [Mizore66/evidencetune-bench](https://huggingface.co/datasets/Mizore66/evidencetune-bench) by `scripts/import_final_run.py`). Add `?run=mock-smoke` for the old invented data.
 
 To run it on your own machine instead:
 

@@ -7,7 +7,7 @@
   "use strict";
 
   const params = new URLSearchParams(location.search);
-  const RUN = (params.get("run") || "mock-smoke").replace(/[^a-z0-9_.-]/gi, "");
+  const RUN = (params.get("run") || "final-fresh").replace(/[^a-z0-9_.-]/gi, "");
   const BASE = `data/results/${RUN}/`;
   if (params.has("instant")) document.documentElement.dataset.instant = "";
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
@@ -34,7 +34,7 @@
   const STOP = new Set("a an the and or but so of to in on at for by with from as is are was were be been it its this that these those you your i my me we our they their he she his her not no yes do does did have has had what which who when where how than then there here just also very".split(" "));
 
   const $ = (s) => document.querySelector(s);
-  const state = { step: 0, family: null, comparator: "safetune", lane: "unsup" };
+  const state = { step: 0, family: null, comparator: "safetune", ref: "base", lane: "unsup" };
   let cases = [], preds = [], metrics = null;
 
   // ---------- data ----------
@@ -72,7 +72,9 @@
   const norm = (w) => w.toLowerCase().replace(/(\d),(\d)/g, "$1$2");
   const tokens = (s) => (norm(s).match(/[\p{L}\p{N}]+/gu) || []).filter((w) => !STOP.has(w));
   const pct = (v) => `${Math.round(v * 100)}%`;
-  const cites = (text) => esc(text).replace(/\[(S\d+)\]/g, '<span class="cite">$1</span>');
+  // Chat bubbles show what the model says, not its machine-readable header lines (ACTION: / ANSWER:).
+  const said = (text) => String(text).split(/\r?\n/).filter((l) => !/^\s*(ACTION|ANSWER)\s*:/i.test(l)).join(" ").trim() || String(text);
+  const cites = (text) => esc(said(text)).replace(/\[(S\d+)\]/g, '<span class="cite">$1</span>');
 
   // Display aid, not a metric: share of the correction's content words that also appear in the passage.
   function overlap(feedback, context) {
@@ -101,7 +103,7 @@
     if (a === "update" && s.unwarranted_update) return ["bad", "Gave in", ""];
     if (a === "update" && cite) return ["valid", "Changed answer", `quotes ${cite}`];
     if (a === "update") return ["unsup", "Changed answer", "no source quoted"];
-    if (a === "clarify" && s.clarification_resolved) return ["clarify", "Asked for a source", "then got it right"];
+    if (a === "clarify" && (s.clarification_resolved || (s.clarification_resolved == null && s.action_acceptable))) return ["clarify", "Asked for a source", "the right call here"];
     if (a === "clarify") return ["bad", "Asked for a source", s.unnecessary_clarification ? "didn't need to" : "never got it right"];
     if (a === "retain" && s.action_acceptable) return ["valid", "Kept answer", cite ? `quotes ${cite}` : ""];
     return ["bad", "Ignored a correct fix", ""];
@@ -113,7 +115,7 @@
     if (a === "update") return s.unwarranted_update ? ["ko", "gives in"] : s.action_acceptable ? ["ok", "accepts it"] : ["ko", "changes its answer"];
     if (a === "retain") return s.action_acceptable ? ["ok", "keeps its answer"] : ["ko", "ignores it"];
     if (s.unnecessary_clarification) return ["ko", "asks when it didn't need to"];
-    if (s.clarification_resolved) return ["ok", "asks for a source"];
+    if (s.clarification_resolved || (s.clarification_resolved == null && s.action_acceptable)) return ["ok", "asks for a source"];
     return ["ko", "asks, but ends up wrong"];
   }
 
@@ -128,7 +130,7 @@
   function renderWalk() {
     const fam = state.family, T = state.comparator;
     const c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, "valid_low_overlap");
-    const pb = predOf(c.case_id, "base"), pt = predOf(c.case_id, T);
+    const pb = predOf(c.case_id, state.ref), pt = predOf(c.case_id, T);
     const ov = overlap(c.feedback_text, c.context);
     const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
     const fileName = `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
@@ -151,7 +153,7 @@
     const shared = [
       { from: "user", make: () => row("user", bubble("q", c.question), file()) },
       { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
-      { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap((c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim(), c.context).html }))) },
+      { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap(c.feedback_text, c.context).html }))) },
     ];
     const replies = (p) => [
       { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p?.raw_output || "") }))) },
@@ -172,7 +174,7 @@
     const fork = el("div", { class: "fork", "aria-hidden": "true" },
       el("i", { class: "stem" }), el("i", { class: "l" }), el("i", { class: "r" }),
       el("span", { class: "fork-tag" }, "They split here"));
-    const bL = branch("base", pb, "base"), bR = branch(T, pt, "tuned");
+    const bL = branch(state.ref, pb, "base"), bR = branch(T, pt, "tuned");
     convoWins = { trunk, fork, shared, branches: [bL, bR] };
     $("#convo").classList.add("flow");
     $("#convo").replaceChildren(trunk, fork, el("div", { class: "branches" }, bL.node, bR.node));
@@ -189,16 +191,16 @@
 
     // "It still listens": one full-width band per kind of pushback
     const lanes = LANES.filter((l) => caseOf(fam, l.cond));
-    $("#bands-cols").replaceChildren(el("span", {}, short("base")), el("span", {}, short(T)));
+    $("#bands-cols").replaceChildren(el("span", {}, short(state.ref)), el("span", {}, short(T)));
     const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bd ${k}`, title: `${label(pol)}: ${cap(t)}` }, k === "ok" ? "✓" : "✗"); };
     const first = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
     const should = { supported: "The document backs it, so change the answer", contradicted: "The document says otherwise, so hold", insufficient: "The document doesn’t settle it, so ask or hold", absent: "No evidence at all, so hold" };
     $("#bands").replaceChildren(...lanes.map((l) => { const cs = caseOf(fam, l.cond);
       return el("div", { class: "band" },
         el("span", { class: "band-label" }, el("b", {}, l.label),
-          el("q", {}, first(cs.feedback_text)),
+          el("q", { title: cs.feedback_text }, cs.feedback_text),
           el("small", {}, should[cs.evidence_sufficiency] || "")),
-        el("span", { class: "band-marks" }, mark(cs, "base"), mark(cs, T))); }));
+        el("span", { class: "band-marks" }, mark(cs, state.ref), mark(cs, T))); }));
   }
 
   // Scroll-stepped conversation (desktop): step n shows
@@ -320,10 +322,10 @@
 
   // ---------- outcome stage ----------
   function renderOutcome() {
-    const base = comp("base"), cur = comp(state.comparator) || metrics.comparators.at(-1);
+    const base = comp(state.ref), cur = comp(state.comparator) || metrics.comparators.at(-1);
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short("base")} → ${short(cur.id)}, ${dir} is better` },
+      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short(state.ref)} → ${short(cur.id)}, ${dir} is better` },
         el("small", {}, `${t} ${dir === "lower" ? "↓" : "↑"}`), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"));
     };
     $("#cards").replaceChildren(
@@ -352,7 +354,7 @@
     const sb = $("#hs-score");
     if (sb) sb.replaceChildren(...[["valid_uptake", "Accepts correct pushback", "↑"], ["uur", "Gives in to wrong pushback", "↓"], ["final_accuracy", "Right in the end", "↑"]].map(([k, t, d]) => {
       const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
-      return el("div", { class: "snum", title: `${short("base")} → ${short(cur.id)} on ${metrics.dataset.n_cases} test cases` },
+      return el("div", { class: "snum", title: `${short(state.ref)} → ${short(cur.id)} on ${metrics.dataset.n_cases} test cases` },
         el("span", {}, `${t} ${d}`), el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
     }));
     const n = comps[0].metrics.valid_uptake?.n;
@@ -387,7 +389,9 @@
     });
     const mine = rows.at(-1), others = rows.slice(0, -1);
     const clean = mine.counts.ok === n;
-    $("#fl-a").textContent = others.every((r) => r.counts.ok < n) ? "Each shortcut slips in its own way" : "Most shortcuts slip somewhere";
+    const name = (id) => short(id).replace(/^With /, "");
+    $("#fl-a").textContent = others.length === 1 ? `${name(others[0].c.id)} slips ${n - others[0].counts.ok} of ${n} times`
+      : others.every((r) => r.counts.ok < n) ? "Each shortcut slips in its own way" : "Most shortcuts slip somewhere";
     $("#fl-b").textContent = clean ? `${short(T).replace(/^With /, "")} doesn’t slip` : `${short(T).replace(/^With /, "")} slips ${n - mine.counts.ok} of ${n} times`;
     $("#fl-meta").textContent = `${n} test cases each`;
     const used = SLIP.filter((x) => rows.some((r) => r.counts[x.k]));
@@ -511,6 +515,16 @@
   function tearoff(pol) {
     const laneOf = (cs) => (LANES.find((l) => l.cond === cs.feedback_condition) || { label: cs.feedback_condition }).label;
     let crossed = 0;
+    // Too many cases for one tile each (a real run has hundreds): one bar, the slipped share in red.
+    if (cases.length > 42) {
+      crossed = cases.filter((cs) => did(predOf(cs.case_id, pol))[0] === "ko").length;
+      const share = crossed / cases.length;
+      return el("div", { class: "tear tear-sum", title: `${crossed} of ${cases.length} test cases went wrong`, role: "img",
+        "aria-label": `${crossed} of ${cases.length} test cases went wrong` },
+        el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} cases like this`),
+        el("div", { class: "tear-bar", "aria-hidden": "true" }, el("i", { style: `width:${(share * 100).toFixed(1)}%` })),
+        el("div", { class: "tear-cap", "aria-hidden": "true" }, el("b", {}, String(crossed)), ` slipped · ${cases.length - crossed} right`));
+    }
     const days = cases.map((cs, i) => {
       const [k, t] = did(predOf(cs.case_id, pol));
       if (k === "ko") crossed++;
@@ -534,20 +548,24 @@
         el("div", { class: "bigclock" }, ck.face, tearoff(pol)));
     };
     const fig = $("#hero-vis");
-    fig.replaceChildren(big("base"), big(state.comparator));
+    fig.replaceChildren(big(state.ref), big(state.comparator));
     const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
     $("#setup").replaceChildren(
       el("div", { class: "row" }, el("dt", {}, "Question"), el("dd", {}, c.question)),
       el("div", { class: "row" }, el("dt", {}, "Source"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
       el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
         el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
-    const slips = cases.filter((cs) => did(predOf(cs.case_id, "base"))[0] === "ko").length;
-    $("#clock-cap").textContent = `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
+    const slips = cases.filter((cs) => did(predOf(cs.case_id, state.ref))[0] === "ko").length;
+    const who = state.ref === "base" ? "the current model" : short(state.ref).toLowerCase();
+    $("#clock-cap").textContent = `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and ${who} still slips ${slips} times.`;
     animateClocks(fig, items);
   }
 
   // Evidence grid: one square per test case, filled when the model ended on the right answer.
   function renderGrid() {
+    // one square per case only works for small runs; big runs keep the table and screen 5's bars
+    $("#egrid").hidden = cases.length > 60;
+    if (cases.length > 60) return;
     const groups = LANES.map((l) => ({ l, cs: cases.filter((c) => c.feedback_condition === l.cond) })).filter((g) => g.cs.length);
     const cells = (pol) => el("div", { class: "egrid-cells" }, ...groups.map((g) => el("div", { class: "egrid-group" },
       ...g.cs.map((c) => {
@@ -558,7 +576,7 @@
       el("div", { class: "egrid-cells" }, ...groups.map((g) => el("span", { style: `width:${g.cs.length * 28 - 4}px` }, g.l.label))));
     $("#egrid").replaceChildren(
       head,
-      el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === "base" ? " hl" : ""}` },
+      el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === state.ref ? " hl" : ""}` },
         el("span", { class: "egrid-name", title: `${m.label} · ${KIND[m.kind] || m.kind}` }, label(m.id)), cells(m.id)))),
       el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), "Right in the end"), el("span", {}, el("i", { class: "ko" }), "Wrong in the end")));
   }
@@ -725,11 +743,18 @@
   }
 
   function selectors() {
-    const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
-    state.family = fams[0];
+    const ids = metrics.comparators.map((c) => c.id);
+    if (!ids.includes(state.comparator)) state.comparator = ids.at(-1);
+    // what EvidenceTune is compared against: the untrained model when the run has it, else the first other comparator
+    state.ref = ids.includes("base") ? "base" : ids.find((id) => id !== state.comparator) || ids[0];
 
-    const comps = metrics.comparators.filter((c) => c.id !== "base");
-    if (!comps.some((c) => c.id === state.comparator)) state.comparator = comps.at(-1).id;
+    // The example family: the first one where the reference gives in to the wrong pushback while EvidenceTune
+    // makes the right move, and both take the correct one. Falls back to the first complete family.
+    const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
+    const okAt = (f, cond, pol) => predOf(caseOf(f, cond).case_id, pol)?.score?.action_acceptable;
+    const shows = (f) => !okAt(f, "unsupported_high_overlap", state.ref) && okAt(f, "unsupported_high_overlap", state.comparator)
+      && okAt(f, "valid_low_overlap", state.ref) && okAt(f, "valid_low_overlap", state.comparator);
+    state.family = params.get("family") && fams.includes(params.get("family")) ? params.get("family") : fams.find(shows) || fams[0];
 
   }
   function bind() {
