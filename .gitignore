@@ -13,3 +13,5 @@ natural_data
 **/resolution_raw.json
 **/raw_prompts_responses.jsonl
 *.pyc
+# teacher-pipeline outputs quote case text; evaluation-only kits forbid publishing it
+teacher/runs/
