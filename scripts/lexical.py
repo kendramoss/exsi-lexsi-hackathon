@@ -14,8 +14,12 @@ these those there their they them he she his her we you your i me my our so not 
 had which who whom what when where why how than then into over after before about also just only s""".split())
 
 
+SPAN = re.compile(r"\[S\d+\]", re.I)
+
+
 def tokens(text):
-    return [t for t in TOKEN.findall(text.lower()) if t not in STOP and not re.fullmatch(r"s\d+", t)]
+    """Content tokens; span markers like [S1] are dropped first, so their digits never count as words."""
+    return [t for t in TOKEN.findall(SPAN.sub(" ", text).lower()) if t not in STOP]
 
 
 class Tfidf:

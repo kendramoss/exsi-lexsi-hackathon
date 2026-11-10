@@ -8,146 +8,190 @@
   "leakage": {
     "source_id_shared_across_splits": [],
     "template_id_shared_across_splits": [],
-    "max_cross_split_context_cosine": 0.36,
+    "max_cross_split_context_cosine": 0.332,
     "near_duplicates": []
   },
   "lexical": {
     "per_condition": {
       "valid_low_overlap": {
         "n": 60,
-        "mean_tfidf_cosine": 0.105,
-        "mean_content_word_overlap": 0.113
+        "mean_tfidf_cosine": 0.101,
+        "mean_content_word_overlap": 0.105,
+        "mean_words": 21.7
       },
       "unsupported_high_overlap": {
         "n": 60,
-        "mean_tfidf_cosine": 0.669,
-        "mean_content_word_overlap": 0.91
+        "mean_tfidf_cosine": 0.718,
+        "mean_content_word_overlap": 0.914,
+        "mean_words": 35.5
       },
       "partial_evidence": {
         "n": 60,
-        "mean_tfidf_cosine": 0.402,
-        "mean_content_word_overlap": 0.488
+        "mean_tfidf_cosine": 0.406,
+        "mean_content_word_overlap": 0.486,
+        "mean_words": 29.4
       },
       "bare_pressure": {
         "n": 60,
         "mean_tfidf_cosine": 0.004,
-        "mean_content_word_overlap": 0.015
+        "mean_content_word_overlap": 0.015,
+        "mean_words": 7.3
       },
       "valid_high_overlap": {
         "n": 60,
-        "mean_tfidf_cosine": 0.728,
-        "mean_content_word_overlap": 0.925
+        "mean_tfidf_cosine": 0.732,
+        "mean_content_word_overlap": 0.923,
+        "mean_words": 36.7
       },
       "unsupported_low_overlap": {
         "n": 60,
-        "mean_tfidf_cosine": 0.077,
-        "mean_content_word_overlap": 0.027
+        "mean_tfidf_cosine": 0.108,
+        "mean_content_word_overlap": 0.1,
+        "mean_words": 21.2
       }
     },
     "gates": {
       "pilot_gate/overlap_2x2": {
+        "feature": "TF-IDF cosine",
         "direction": ">=",
-        "threshold": 0.7348,
+        "threshold": 0.7939,
         "train": {
-          "balanced_accuracy": 0.6,
-          "accuracy": 0.6
+          "balanced_accuracy": 0.558,
+          "accuracy": 0.558
         },
         "dev": {
-          "balanced_accuracy": 0.5,
-          "accuracy": 0.5
+          "balanced_accuracy": 0.475,
+          "accuracy": 0.475
         },
         "test": {
-          "balanced_accuracy": 0.525,
-          "accuracy": 0.525
-        }
-      },
-      "free_gate/overlap_2x2": {
-        "direction": ">=",
-        "threshold": 0.7348,
-        "train": {
-          "balanced_accuracy": 0.6,
-          "accuracy": 0.6
-        },
-        "dev": {
-          "balanced_accuracy": 0.5,
-          "accuracy": 0.5
-        },
-        "test": {
-          "balanced_accuracy": 0.525,
-          "accuracy": 0.525
+          "balanced_accuracy": 0.463,
+          "accuracy": 0.463
         }
       },
       "pilot_gate/all_conditions": {
+        "feature": "TF-IDF cosine",
         "direction": ">=",
-        "threshold": 0.6092,
+        "threshold": 0.6004,
         "train": {
-          "balanced_accuracy": 0.646,
-          "accuracy": 0.7
+          "balanced_accuracy": 0.629,
+          "accuracy": 0.672
         },
         "dev": {
-          "balanced_accuracy": 0.6,
-          "accuracy": 0.667
+          "balanced_accuracy": 0.588,
+          "accuracy": 0.65
         },
         "test": {
-          "balanced_accuracy": 0.625,
-          "accuracy": 0.683
-        }
-      },
-      "free_gate/all_conditions": {
-        "direction": ">=",
-        "threshold": 0.6092,
-        "train": {
-          "balanced_accuracy": 0.646,
-          "accuracy": 0.7
-        },
-        "dev": {
-          "balanced_accuracy": 0.6,
+          "balanced_accuracy": 0.619,
           "accuracy": 0.667
-        },
-        "test": {
-          "balanced_accuracy": 0.625,
-          "accuracy": 0.683
         }
       },
       "pilot_gate/excluding_bare_pressure": {
+        "feature": "TF-IDF cosine",
         "direction": ">=",
-        "threshold": 0.6381,
+        "threshold": 0.6004,
         "train": {
-          "balanced_accuracy": 0.617,
-          "accuracy": 0.653
+          "balanced_accuracy": 0.589,
+          "accuracy": 0.607
         },
         "dev": {
-          "balanced_accuracy": 0.583,
-          "accuracy": 0.62
+          "balanced_accuracy": 0.55,
+          "accuracy": 0.58
         },
         "test": {
-          "balanced_accuracy": 0.617,
+          "balanced_accuracy": 0.579,
+          "accuracy": 0.6
+        }
+      },
+      "free_gate/overlap_2x2": {
+        "feature": "TF-IDF cosine",
+        "direction": ">=",
+        "threshold": 0.7939,
+        "train": {
+          "balanced_accuracy": 0.558,
+          "accuracy": 0.558
+        },
+        "dev": {
+          "balanced_accuracy": 0.475,
+          "accuracy": 0.475
+        },
+        "test": {
+          "balanced_accuracy": 0.463,
+          "accuracy": 0.463
+        }
+      },
+      "free_gate/all_conditions": {
+        "feature": "TF-IDF cosine",
+        "direction": ">=",
+        "threshold": 0.6004,
+        "train": {
+          "balanced_accuracy": 0.629,
+          "accuracy": 0.672
+        },
+        "dev": {
+          "balanced_accuracy": 0.588,
           "accuracy": 0.65
+        },
+        "test": {
+          "balanced_accuracy": 0.619,
+          "accuracy": 0.667
         }
       },
       "free_gate/excluding_bare_pressure": {
+        "feature": "TF-IDF cosine",
         "direction": ">=",
-        "threshold": 0.6381,
+        "threshold": 0.6004,
         "train": {
-          "balanced_accuracy": 0.617,
-          "accuracy": 0.653
+          "balanced_accuracy": 0.589,
+          "accuracy": 0.607
         },
         "dev": {
-          "balanced_accuracy": 0.583,
-          "accuracy": 0.62
+          "balanced_accuracy": 0.55,
+          "accuracy": 0.58
         },
         "test": {
-          "balanced_accuracy": 0.617,
-          "accuracy": 0.65
+          "balanced_accuracy": 0.579,
+          "accuracy": 0.6
+        }
+      },
+      "free_gate[share]/overlap_2x2": {
+        "feature": "content-word share",
+        "direction": ">=",
+        "threshold": 0.9583,
+        "train": {
+          "balanced_accuracy": 0.575,
+          "accuracy": 0.575
+        },
+        "dev": {
+          "balanced_accuracy": 0.475,
+          "accuracy": 0.475
+        },
+        "test": {
+          "balanced_accuracy": 0.5,
+          "accuracy": 0.5
+        }
+      },
+      "free_gate[words]/overlap_2x2": {
+        "feature": "word count",
+        "direction": ">=",
+        "threshold": 30,
+        "train": {
+          "balanced_accuracy": 0.575,
+          "accuracy": 0.575
+        },
+        "dev": {
+          "balanced_accuracy": 0.475,
+          "accuracy": 0.475
+        },
+        "test": {
+          "balanced_accuracy": 0.525,
+          "accuracy": 0.525
         }
       }
     }
   },
   "fails": [],
   "warnings": [
-    "pilot_gate/all_conditions: test balanced accuracy 0.625 > 0.6",
-    "free_gate/all_conditions: test balanced accuracy 0.625 > 0.6",
-    "pilot_gate/excluding_bare_pressure: test balanced accuracy 0.617 > 0.6",
-    "free_gate/excluding_bare_pressure: test balanced accuracy 0.617 > 0.6"
+    "pilot_gate/all_conditions: test balanced accuracy 0.619 > 0.6",
+    "free_gate/all_conditions: test balanced accuracy 0.619 > 0.6"
   ]
 }

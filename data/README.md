@@ -41,6 +41,6 @@ Edit `families/` only; everything under `benchmark/`, `smoke/` and `packs/` is g
 
 - 60 families, 360 cases: train 30 (180), dev 10 (60), test 20 (120). Smoke set: 12 cases.
 - Leakage: no `source_id` or `template_id` shared across splits; max cross-split context TF-IDF cosine 0.36.
-- Lexical shortcut: on the counterbalanced 2x2, a TF-IDF gate tuned on train scores 0.525 test balanced accuracy, near chance (before the controls, a reverse gate scored 1.0). Across all conditions it scores 0.625 because `partial_evidence` and `bare_pressure` are never updates; reported as a warning.
+- Surface-cue shortcuts: on the counterbalanced 2x2 (valid/unsupported x low/high overlap), single-feature gates tuned on train score near chance on test: TF-IDF cosine 0.463, content-word share 0.500, word count 0.525 balanced accuracy. Before the controls a reversed TF-IDF gate scored 1.0; before per-family length/reuse balancing (`scripts/pair_balance.py`) content-word share scored 0.675. Across all six conditions the TF-IDF gate scores 0.619, because `partial_evidence` and `bare_pressure` are never updates; reported as a warning.
 - Packs `packs/smoke` and `packs/benchmark-v1` round-trip with no field loss and verified checksums.
 - Still open: human double-labelling of the test split, agreement, and adjudication (see `../annotation/BENCHMARK-V1.md`); a run through the real CuratorKIT, then `export_pack.py verify` on its output.
