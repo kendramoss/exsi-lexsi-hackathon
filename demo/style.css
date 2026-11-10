@@ -1774,3 +1774,14 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 #s4 .all-btn:hover { background: #ffffff; }
 #s4 .all-btn:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
 #s4 .end-actions span { font: 400 15px var(--display); color: rgba(245, 249, 255, .75); }
+
+/* Dot nav: readable on the light screens too. A hairline outline gives the pill an edge on cream, the rings are
+   darker and a little bigger, and the quote cards' right lane stops short of the dots so nothing passes behind. */
+.dots { background: #f5f9ff; border: 1px solid rgba(11, 85, 184, .22); box-shadow: 0 2px 14px rgba(4, 30, 70, .14); padding: 12px 8px; gap: 12px; }
+.dots a { width: 12px; height: 12px; border: 2px solid #3c76c6; }
+.dots a:hover { border-color: #0b55b8; }
+.dots a[aria-current] { background: #0b55b8; border-color: #0b55b8; }
+.ls-lane.r { right: 64px; width: calc((100% - 1100px) / 2 - 64px); }
+
+/* 6 · one line along the bottom: the credit on the left, the note and the numbers button on the right */
+#s4 .end-actions .credit { margin: 0 auto 0 0; padding: 0; }
