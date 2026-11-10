@@ -19,12 +19,13 @@ Pick what you want to do. Each link jumps to step-by-step instructions.
 
 ## Watch the demo online
 
-**[Open the demo →](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html)**
+**[Open the demo →](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)**
 
 That's it. It opens in your browser and works on any computer.
 
 - Scroll down, or use the tabs at the top, to move through the screens.
 - The demo replays answers the model already gave during testing. It does not run the model live, so it is fast and always shows the same results.
+- An earlier version that replays the merged α=0.75 model is on [Hugging Face](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html).
 
 ---
 
@@ -92,7 +93,7 @@ You will see a line like `Serving HTTP on :: port 8000`. **Leave this window ope
 
 ### Step 5 · Open it in your browser
 
-Go to **[http://localhost:8000](http://localhost:8000)**.
+Go to **[http://localhost:8000/?run=final-fresh](http://localhost:8000/?run=final-fresh)**.
 
 The demo loads. Scroll, or use the tabs at the top, to move through it.
 
