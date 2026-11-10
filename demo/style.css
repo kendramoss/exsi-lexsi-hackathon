@@ -1771,7 +1771,8 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 #glance .clock-cap { margin: 0; text-align: center; font: 400 15px/1.45 var(--display); color: rgba(245, 249, 255, .82); }
 
 /* 6 · "See all the numbers" is a real button, so the full scoreboard is easy to find */
-#s4 .end-actions { position: relative; z-index: 1; padding: 0 64px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+/* bottom right, under the Code card: the note, then the button at the card's right edge */
+#s4 .end-actions { position: relative; z-index: 1; padding: 0 64px; display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap; }
 #s4 .all-btn { min-height: 48px; padding: 0 24px; border: 0; border-radius: 8px; background: #f5f9ff; color: #0b55b8; font: 500 17px var(--display); cursor: pointer; transition: background-color 150ms var(--ease); }
 #s4 .all-btn:hover { background: #ffffff; }
 #s4 .all-btn:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
