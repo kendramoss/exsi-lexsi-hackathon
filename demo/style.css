@@ -1676,3 +1676,41 @@ body.xf .focusable { transition: none; }
 .ls-x .ls-sg { border-radius: 4px; }
 .ls-x .ls-sg b { opacity: 0; transition: opacity 300ms var(--ease); }
 .ls-x .ls-mdl.ls-on .ls-sg b { opacity: 1; transition-delay: 350ms; }
+#listen .ls-sg.ask b { font-weight: 600; }
+
+/* 4 · the data behind the bars: 272 squares, one per wrong-quote test, recolouring with the bar swap */
+.ch#listen { position: relative; overflow: hidden; }
+#listen > .ls-inner { position: relative; z-index: 1; }
+.ls-field { position: absolute; left: 32px; right: 32px; top: 50%; translate: 0 -50%; z-index: 0; display: grid; grid-template-columns: repeat(34, minmax(0, 1fr)); gap: clamp(6px, .6vw, 12px); opacity: .13; pointer-events: none; }
+.ls-field i { aspect-ratio: 1; border-radius: 6px; background: var(--b); transition: background-color 500ms var(--ease); transition-delay: calc(var(--k) * 3ms); }
+#listen.ls-pt .ls-field i { background: var(--a); }
+.ls-field .a-keep { --a: #a9c8f5; } .ls-field .a-ask { --a: #0b55b8; } .ls-field .a-chg { --a: #c32a22; } .ls-field .a-none { --a: transparent; }
+.ls-field .b-keep { --b: #a9c8f5; } .ls-field .b-ask { --b: #0b55b8; } .ls-field .b-chg { --b: #c32a22; } .ls-field .b-none { --b: transparent; }
+@media (max-width: 900px) { .ls-field { grid-template-columns: repeat(17, minmax(0, 1fr)); left: 12px; right: 12px; } }
+@media (prefers-reduced-motion: reduce) { .ls-field i { transition: none; } }
+/* 4 · keep the field out of the way: only in the margins either side of the content, and fainter */
+.ls-field { opacity: .09;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - 640px), transparent calc(50% - 560px), transparent calc(50% + 560px), #000 calc(50% + 640px));
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - 640px), transparent calc(50% - 560px), transparent calc(50% + 560px), #000 calc(50% + 640px)); }
+@media (max-width: 1300px) { .ls-field { display: none; } }
+/* 4 · tetris-shaped groups brighten and fade in the margins */
+.ls-field { opacity: .16; }
+.ls-field i { opacity: .5; transition: background-color 500ms var(--ease), opacity 700ms var(--ease); }
+.ls-field i.lit { opacity: 1; }
+/* 4 · strongest at the page edges, fading out toward the content */
+.ls-field { opacity: .26;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, rgba(0,0,0,.12) calc(50% - 570px), transparent calc(50% - 550px), transparent calc(50% + 550px), rgba(0,0,0,.12) calc(50% + 570px), #000 100%);
+  mask-image: linear-gradient(90deg, #000 0, rgba(0,0,0,.12) calc(50% - 570px), transparent calc(50% - 550px), transparent calc(50% + 550px), rgba(0,0,0,.12) calc(50% + 570px), #000 100%); }
+
+/* 4 · screen 1's falling blocks, upside down: they stack down from the top edge, clear of the content */
+.ls-field { display: none; }
+#listen > .blocks { position: absolute; inset: 0; transform: scaleY(-1); pointer-events: none; z-index: 0; }
+
+/* 4 → 5 · pieces fade in at the top of screen 4, fall through it and stack at the bottom of screen 5 */
+#listen > .blocks { display: none; }
+.ch#s3 { position: relative; overflow: hidden; }
+.ch#s3 { isolation: isolate; }
+#s3 > .fall-layer { z-index: -1; }
+.fall-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.fall-piece { position: absolute; left: 0; top: 0; width: 100%; height: 0; opacity: 0; }
+.fall-piece i { position: absolute; width: 36px; height: 36px; border-radius: 3px; background: #d3e2f7; }

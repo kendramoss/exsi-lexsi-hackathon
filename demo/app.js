@@ -1100,8 +1100,8 @@
   }
 
   // Screen 1 background: a low skyline of pale blocks; one piece at a time drops into a gap.
-  function blocks() {
-    const box = $("#top .blocks");
+  function blocks(box0, capsFn, fromEdge) {
+    const box = box0 || $("#top .blocks");
     if (!box) return;
     const C = 40;
     const SHAPES = [
@@ -1135,7 +1135,7 @@
       box.replaceChildren();
       dropped = [];
       const cols = Math.ceil(box.clientWidth / C);
-      cap = caps(cols);
+      cap = capsFn ? capsFn(cols, box) : caps(cols);
       let seed = 7;
       const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
       h = cap.map((m) => Math.min(m - 1, 1 + Math.floor(rnd() * Math.ceil(m * 0.55))));
@@ -1149,7 +1149,7 @@
         const base = h[c];
         const flat = shape.filter(([, y]) => y === 0).every(([x]) => h[c + x] === base);
         const room = shape.every(([x, y]) => base + y < cap[c + x]);
-        if (flat && room) spots.push([c, base]);
+        if (flat && room && base >= 0) spots.push([c, base]);
       }
       return spots;
     }
@@ -1164,7 +1164,7 @@
         for (const [x, y] of shape) g.append(cellAt(c + x, base + y, "drop"));
         box.append(g);
         dropped.push(g);
-        g.animate([{ transform: `translateY(${-(box.clientHeight + 4 * C)}px)` }, { transform: "translateY(0)" }],
+        g.animate([{ transform: `translateY(${fromEdge ? (base + 4) * C : -(box.clientHeight + 4 * C)}px)` }, { transform: "translateY(0)" }],
           { duration: 1900, easing: "cubic-bezier(.45,0,.85,.4)" });
         for (const [x, y] of shape) h[c + x] = Math.max(h[c + x], base + y + 1);
         timer = setTimeout(drop, 1400);
@@ -1173,6 +1173,75 @@
       // nowhere left to land: fade the dropped pieces out and start over
       const gone = dropped.map((g) => g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, fill: "forwards" }).finished);
       Promise.all(gone).then(build);
+    }
+    let rt = 0;
+    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 250); });
+    build();
+  }
+
+  // Screens 4 → 5: a tetris piece fades in at the top of screen 4, falls through it and lands in a stack at the
+  // bottom of screen 5. Each screen draws its own copy of the piece on the same path, so it crosses the seam.
+  function fallThrough() {
+    const s4 = $("#listen"), s5 = $("#s3");
+    if (!s4 || !s5 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const C = 40;
+    const SHAPES = [[[0,0],[1,0],[2,0],[3,0]], [[0,0],[1,0],[0,1],[1,1]], [[0,0],[1,0],[2,0],[1,1]], [[0,0],[1,0],[2,0],[0,1]], [[0,0],[1,0],[1,1],[2,1]]];
+    const L4 = el("div", { class: "fall-layer", "aria-hidden": "true" }), L5 = el("div", { class: "fall-layer", "aria-hidden": "true" });
+    s4.prepend(L4); s5.prepend(L5);
+    let h = [], cap = [], timer = 0, pieces = [];
+    function build() {
+      clearTimeout(timer);
+      L4.replaceChildren(); L5.replaceChildren(); pieces = [];
+      const cols = Math.ceil(L5.clientWidth / C);
+      // the stack runs the full width of screen 5
+      const b = L5.getBoundingClientRect(), inner = [...s5.children].filter((e) => e !== L5).map((e) => e.getBoundingClientRect());
+      const left = Math.min(...inner.map((r) => r.left)) - b.left - 24, right = Math.max(...inner.map((r) => r.right)) - b.left + 24;
+      const high = Math.max(2, Math.floor((b.height * 0.4) / C));
+      // like screen 1: under the content the stack stays low (only the room below it), higher at the sides
+      const low = Math.max(1, Math.floor((b.bottom - Math.max(...inner.map((r) => r.bottom)) - 8) / C));
+      cap = Array.from({ length: cols }, (_, c) => (c * C + C > left && c * C < right ? low : Math.max(high, low)));
+      h = cap.map(() => 0);
+      timer = setTimeout(drop, 900);
+    }
+    function fits(shape) {
+      const w = Math.max(...shape.map(([x]) => x)) + 1, spots = [];
+      for (let c = 0; c + w <= h.length; c++) {
+        const base = Math.max(...shape.filter(([, y]) => y === 0).map(([x]) => h[c + x]));
+        const flat = shape.filter(([, y]) => y === 0).every(([x]) => h[c + x] === base);
+        if (flat && shape.every(([x, y]) => base + y < cap[c + x])) spots.push([c, base]);
+      }
+      return spots;
+    }
+    function piece(shape, c) {
+      const g = el("div", { class: "fall-piece" });
+      for (const [x, y] of shape) { const i = document.createElement("i"); i.style.left = `${(c + x) * C + 2}px`; i.style.top = `${-y * C + 2}px`; g.append(i); }
+      return g;
+    }
+    function drop() {
+      if (document.hidden) { timer = setTimeout(drop, 1400); return; }
+      const order = SHAPES.map((s) => [Math.random(), s]).sort((p, q) => p[0] - q[0]).map(([, s]) => s);
+      for (const shape of order) {
+        const spots = fits(shape);
+        if (!spots.length) continue;
+        const [c, base] = spots[Math.floor(Math.random() * spots.length)];
+        const H4 = s4.clientHeight, H5 = s5.clientHeight, top = Math.max(...shape.map(([, y]) => y)) * C;
+        const y0 = 24 + top, y1 = H4 + H5 - (base + 1) * C;   // the bottom row's top edge, in screen-4 coordinates
+        const frames = (off) => [
+          { transform: `translateY(${y0 - off}px)`, opacity: 0 },
+          { transform: `translateY(${y0 - off}px)`, opacity: 1, offset: 0.3, easing: "cubic-bezier(.45,0,.85,.4)" },
+          { transform: `translateY(${y1 - off}px)`, opacity: 1 }];
+        const a = piece(shape, c), b2 = piece(shape, c);
+        L4.append(a); L5.append(b2);
+        const opts = { duration: 3200, fill: "forwards" };
+        a.animate(frames(0), opts).finished.then(() => a.remove());
+        b2.animate(frames(H4), opts);
+        pieces.push(b2);
+        for (const [x, y] of shape) h[c + x] = Math.max(h[c + x], base + y + 1);
+        timer = setTimeout(drop, 1800);
+        return;
+      }
+      // the stack is full: fade it out and start over
+      Promise.all(pieces.map((p) => p.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, fill: "forwards" }).finished)).then(build);
     }
     let rt = 0;
     addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 250); });
@@ -1223,6 +1292,7 @@
     renderAll();
     hscroll();
     blocks();
+    fallThrough();
     railProgress();
     panelBlocks();
     convoWatch();
