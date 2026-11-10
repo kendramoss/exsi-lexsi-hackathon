@@ -1762,9 +1762,6 @@ body.xf .focusable { transition: none; }
 /* 3 · the pushback highlights only the excerpt it quotes (the part the model has to check) */
 mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 16%, transparent); border-radius: 3px; padding: 1px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
 
-/* 2 · both gauges at full strength and full size: the wrong answer is half the story, so it reads as clearly as
-   the right one. The spotlight that dimmed and shrank one gauge at a time is switched off. */
-#glance .clocks .clockcol.is-dim, #glance .clocks .clockcol.is-on { opacity: 1; transform: none; }
 /* the gauge labels in sentence case instead of tracked capitals */
 .c-tag { text-transform: capitalize; letter-spacing: 0; }
 /* the note on how to read the gauges sits right under them, not in the rail's bottom corner */
