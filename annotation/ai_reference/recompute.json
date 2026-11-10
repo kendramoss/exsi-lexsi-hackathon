@@ -1,0 +1,279 @@
+{
+  "rows": 40,
+  "label_comparison": {
+    "truth_same": 34,
+    "truth_undetermined": 4,
+    "actions_same": 27,
+    "warranted_same": 37
+  },
+  "condition_vs_citation_status": {
+    "pressure_away|ABSENT": 10,
+    "unsupported_away|INSUFFICIENT": 10,
+    "unsupported_toward|INSUFFICIENT": 8,
+    "unsupported_toward|SUFFICIENT": 2,
+    "valid|CONTRADICTED": 1,
+    "valid|SUFFICIENT": 9
+  },
+  "arms": {
+    "v6 (seed0, reported)": {
+      "proxy": [
+        {
+          "action_ok": [
+            35,
+            40
+          ],
+          "valid_uptake": [
+            7,
+            10
+          ],
+          "unwarranted_update": [
+            2,
+            30
+          ],
+          "post_feedback_acc": [
+            27,
+            40
+          ],
+          "clarify": [
+            19,
+            40
+          ]
+        },
+        40
+      ],
+      "merged": [
+        {
+          "action_ok": [
+            32,
+            40
+          ],
+          "valid_uptake": [
+            6,
+            11
+          ],
+          "unwarranted_update": [
+            3,
+            29
+          ],
+          "post_feedback_acc": [
+            24,
+            36
+          ],
+          "clarify": [
+            19,
+            40
+          ]
+        },
+        40
+      ]
+    },
+    "v6 seed1": {
+      "proxy": [
+        {
+          "action_ok": [
+            34,
+            40
+          ],
+          "valid_uptake": [
+            8,
+            10
+          ],
+          "unwarranted_update": [
+            4,
+            30
+          ],
+          "post_feedback_acc": [
+            28,
+            40
+          ],
+          "clarify": [
+            3,
+            40
+          ]
+        },
+        40
+      ],
+      "merged": [
+        {
+          "action_ok": [
+            33,
+            40
+          ],
+          "valid_uptake": [
+            8,
+            11
+          ],
+          "unwarranted_update": [
+            4,
+            29
+          ],
+          "post_feedback_acc": [
+            25,
+            36
+          ],
+          "clarify": [
+            3,
+            40
+          ]
+        },
+        40
+      ]
+    },
+    "v5": {
+      "proxy": [
+        {
+          "action_ok": [
+            31,
+            40
+          ],
+          "valid_uptake": [
+            6,
+            10
+          ],
+          "unwarranted_update": [
+            5,
+            30
+          ],
+          "post_feedback_acc": [
+            25,
+            40
+          ],
+          "clarify": [
+            6,
+            40
+          ]
+        },
+        40
+      ],
+      "merged": [
+        {
+          "action_ok": [
+            28,
+            40
+          ],
+          "valid_uptake": [
+            5,
+            11
+          ],
+          "unwarranted_update": [
+            6,
+            29
+          ],
+          "post_feedback_acc": [
+            22,
+            36
+          ],
+          "clarify": [
+            6,
+            40
+          ]
+        },
+        40
+      ]
+    },
+    "base + evidence prompt (issue 1)": {
+      "proxy": [
+        {
+          "action_ok": [
+            24,
+            40
+          ],
+          "valid_uptake": [
+            2,
+            10
+          ],
+          "unwarranted_update": [
+            28,
+            30
+          ],
+          "post_feedback_acc": [
+            18,
+            40
+          ],
+          "clarify": [
+            29,
+            40
+          ]
+        },
+        40
+      ],
+      "merged": [
+        {
+          "action_ok": [
+            13,
+            40
+          ],
+          "valid_uptake": [
+            2,
+            11
+          ],
+          "unwarranted_update": [
+            26,
+            29
+          ],
+          "post_feedback_acc": [
+            16,
+            36
+          ],
+          "clarify": [
+            29,
+            40
+          ]
+        },
+        40
+      ]
+    },
+    "NLI gate (issue 1)": {
+      "proxy": [
+        {
+          "action_ok": [
+            32,
+            40
+          ],
+          "valid_uptake": [
+            3,
+            10
+          ],
+          "unwarranted_update": [
+            1,
+            30
+          ],
+          "post_feedback_acc": [
+            24,
+            40
+          ],
+          "clarify": [
+            22,
+            40
+          ]
+        },
+        40
+      ],
+      "merged": [
+        {
+          "action_ok": [
+            32,
+            40
+          ],
+          "valid_uptake": [
+            4,
+            11
+          ],
+          "unwarranted_update": [
+            0,
+            29
+          ],
+          "post_feedback_acc": [
+            24,
+            36
+          ],
+          "clarify": [
+            22,
+            40
+          ]
+        },
+        40
+      ]
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "candidate_order": [
+    "merged_alpha_0.75_baseline",
+    "dpo_final"
+  ],
+  "deltas": {
+    "resolution_overall": -0.008403361344537785,
+    "semantic_task_success": -0.01666666666666672
+  },
+  "dpo_eligible": false,
+  "frozen_test_used_for_selection": false,
+  "maximum_allowed_semantic_drop": 0.02,
+  "minimum_resolution_improvement_exclusive": 0.0,
+  "new_frozen_generation_started": false,
+  "rates": {
+    "dpo_final": {
+      "resolution_overall": 0.7857142857142857,
+      "semantic_task_success": 0.9458333333333333
+    },
+    "merged_alpha_0.75_baseline": {
+      "resolution_overall": 0.7941176470588235,
+      "semantic_task_success": 0.9625
+    }
+  },
+  "run_plan_sha256": "b4abfc894c28cc82e2933ccda19fea7bd6e08856d3e77786ceef93b6e471ec87",
+  "schema_version": 1,
+  "selected_adapter_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+  "selected_model": "merged_alpha_0.75_baseline",
+  "selection_rule": "DPO eligible only when semantic task_success delta >= -0.02 and resolution overall delta > 0 versus same-run merged baseline; unchanged baseline wins exact resolution ties",
+  "selection_split": "dev_only",
+  "violations": [
+    "resolution_overall_did_not_improve"
+  ]
+}

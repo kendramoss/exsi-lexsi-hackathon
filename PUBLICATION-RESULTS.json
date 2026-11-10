@@ -1,0 +1,506 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-11-09T22:25:33Z",
+  "updated_at_utc": "2026-11-10T03:36:45Z",
+  "status": "team_port_and_model_card_links_synced_with_article_and_final_form_blockers",
+  "team_submission_repository": "https://github.com/kendramoss/exsi-lexsi-hackathon",
+  "standalone_github_role": "All standalone Mizore66/evidencetune GitHub URLs in this record are source/preservation only, not the team submission.",
+  "source": {
+    "submission_worktree": "/Users/anasqumhiyeh/.claude/worktrees/evtune-submission",
+    "submission_commit": "52018206d436ab7ac5e96ff385a92ea0fe2b6d76",
+    "demo_worktree": "/Users/anasqumhiyeh/.claude/worktrees/evtune-merged-demo",
+    "demo_commit": "19f2c5fe24a5fcbaece5e7c5a03899d21228dd35",
+    "public_staging": "/Users/anasqumhiyeh/.claude/worktrees/evtune-submission/.public_staging/evidencetune-merged-alpha-0.75",
+    "release": "/Users/anasqumhiyeh/.claude/worktrees/evtune-submission/.release/evidencetune-merge-alpha-0.75",
+    "staging_id": "evidencetune-merged-alpha-0.75-local-public-staging-2026-11-10",
+    "manifest_payload_files": 936,
+    "model_collection_payload_files": 747,
+    "dataset_collection_payload_files": 81,
+    "shared_payload_files_not_separately_uploaded_to_hf": 108,
+    "selected_adapter_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+    "selected_adapter_size_bytes": 120981200,
+    "original_code_license": "MIT",
+    "adapter_license": "CC-BY-NC-4.0",
+    "exclusions": [
+      "Korean XSTest raw prompts, responses, source rows, and review rows",
+      "rejected natural SciFact packs",
+      "credentials and environment files",
+      "vendor caches and generated caches",
+      "third-party Lexsi source trees"
+    ],
+    "prior_replay_verification": {
+      "locked_inputs": 55,
+      "single_turn_records": 3120,
+      "native_resolution_arms": 5,
+      "frozen_records": 1020,
+      "result": "passed for raw and staged evidence"
+    }
+  },
+  "authentication": {
+    "github": {
+      "active_account": "Mizore66",
+      "remote": "https://github.com/Mizore66/evidencetune.git",
+      "credential_recorded": false
+    },
+    "huggingface": {
+      "account": "Mizore66",
+      "client": "/Users/anasqumhiyeh/lexsi-koth/evtune/.venv-hf/bin/python",
+      "huggingface_hub_version": "2.4.0",
+      "auth_type": "existing OAuth",
+      "credential_recorded": false
+    }
+  },
+  "github_actions": {
+    "repository_role": "standalone source/preservation only; not the team submission",
+    "repository": {
+      "url": "https://github.com/Mizore66/evidencetune",
+      "private": false,
+      "default_branch": "main",
+      "main_remote_commit_unchanged": "00fdc6d56cca2e9fe09746387a43ff9a936eff29"
+    },
+    "pushed_branches": [
+      {
+        "branch": "submission/merged-model-release",
+        "commit": "52018206d436ab7ac5e96ff385a92ea0fe2b6d76",
+        "url": "https://github.com/Mizore66/evidencetune/tree/submission/merged-model-release",
+        "anonymous_http_status": 200
+      },
+      {
+        "branch": "experiment/arabic-native-review",
+        "commit": "5885c8d41fd4cd9806b8024a151684fe7cb661a0",
+        "url": "https://github.com/Mizore66/evidencetune/tree/experiment/arabic-native-review",
+        "anonymous_http_status": 200
+      },
+      {
+        "branch": "experiment/layerwise-merge-spike",
+        "commit": "0da03461161592406915aff1ffb27352c94e06dc",
+        "url": "https://github.com/Mizore66/evidencetune/tree/experiment/layerwise-merge-spike",
+        "anonymous_http_status": 200
+      },
+      {
+        "branch": "audit/submission-evidence",
+        "commit": "907f3be3fe135040fa071f2b022775caaca3d810",
+        "url": "https://github.com/Mizore66/evidencetune/tree/audit/submission-evidence",
+        "anonymous_http_status": 200
+      },
+      {
+        "branch": "demo/merged-model",
+        "commit": "19f2c5fe24a5fcbaece5e7c5a03899d21228dd35",
+        "url": "https://github.com/Mizore66/evidencetune/tree/demo/merged-model",
+        "remote_commit_verified": true
+      }
+    ],
+    "draft_pull_requests": [
+      {
+        "number": 13,
+        "url": "https://github.com/Mizore66/evidencetune/pull/13",
+        "base": "main",
+        "head": "submission/merged-model-release",
+        "head_commit": "52018206d436ab7ac5e96ff385a92ea0fe2b6d76",
+        "state": "OPEN",
+        "draft": true,
+        "merge_state": "CLEAN",
+        "anonymous_http_status": 200,
+        "checks": "none reported",
+        "required_footer_present": true
+      },
+      {
+        "number": 14,
+        "url": "https://github.com/Mizore66/evidencetune/pull/14",
+        "base": "submission/merged-model-release",
+        "head": "demo/merged-model",
+        "head_commit": "19f2c5fe24a5fcbaece5e7c5a03899d21228dd35",
+        "state": "OPEN",
+        "draft": true,
+        "merge_state": "CLEAN",
+        "required_footer_present": true,
+        "verification_summary": "14 tests and real Chrome passed in the demo handoff"
+      }
+    ],
+    "merged": false,
+    "main_or_master_pushed": false,
+    "force_pushed": false
+  },
+  "huggingface_model": {
+    "repo_id": "Mizore66/evidencetune-merged-alpha-0.75",
+    "url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75",
+    "created": true,
+    "upload_source": "model_collection at adapter root",
+    "current_upload_source": "/Users/anasqumhiyeh/.claude/worktrees/exsi-submission/.public_staging/evidencetune-merged-alpha-0.75-team-port-linkfix/model_collection",
+    "revision": "8fa4cc8f7c7914ad77f0cae3cf436815d337e7ee",
+    "commit_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/commit/8fa4cc8f7c7914ad77f0cae3cf436815d337e7ee",
+    "private": false,
+    "gated": false,
+    "anonymous_repo_http_status": 200,
+    "payload_file_count_local": 752,
+    "payload_file_count_remote": 752,
+    "missing_files": [],
+    "extra_payload_files": [],
+    "size_mismatches": [],
+    "lfs_sha256_mismatches": [],
+    "anonymous_non_lfs_files_sha256_verified": 746,
+    "anonymous_non_lfs_bytes_verified": 37680780,
+    "anonymous_hash_mismatches": [],
+    "anonymous_download_errors": [],
+    "sha256sums_entries_verified": 751,
+    "sha256sums_mismatches": [],
+    "adapter": {
+      "path": "adapter_model.safetensors",
+      "pinned_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/resolve/8fa4cc8f7c7914ad77f0cae3cf436815d337e7ee/adapter_model.safetensors",
+      "remote_lfs_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+      "anonymous_download_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+      "anonymous_download_size_bytes": 120981200,
+      "matches_approved_adapter": true
+    },
+    "card": {
+      "anonymous_http_status": 200,
+      "base_model": "CohereLabs/tiny-aya-global",
+      "library_name": "peft",
+      "license": "cc-by-nc-4.0",
+      "sha256sums_absolute_blob_link_present": true,
+      "manifest_absolute_blob_link_present": true,
+      "sha256sums_blob_http_status": 200,
+      "manifest_blob_http_status": 200,
+      "forbidden_tree_links": []
+    },
+    "previous_model_repo_untouched": "Mizore66/tiny-aya-global-evidencetune-lora"
+  },
+  "huggingface_dataset": {
+    "repo_id": "Mizore66/evidencetune-merged-data-alpha-0.75",
+    "url": "https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75",
+    "created": true,
+    "upload_source": "dataset_collection at repository root",
+    "current_upload_source": "/Users/anasqumhiyeh/.claude/worktrees/exsi-submission/.public_staging/evidencetune-merged-alpha-0.75-team-port/dataset_collection",
+    "revision": "99931597164433b98c42961991f463a36b656731",
+    "commit_url": "https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75/commit/99931597164433b98c42961991f463a36b656731",
+    "private": false,
+    "gated": false,
+    "anonymous_repo_http_status": 200,
+    "anonymous_card_http_status": 200,
+    "payload_file_count_local": 85,
+    "payload_file_count_remote": 85,
+    "missing_files": [],
+    "extra_payload_files": [],
+    "size_mismatches": [],
+    "lfs_sha256_mismatches": [],
+    "anonymous_non_lfs_files_sha256_verified": 85,
+    "anonymous_non_lfs_bytes_verified": 37965584,
+    "anonymous_hash_mismatches": [],
+    "anonymous_download_errors": [],
+    "sha256sums_entries_verified": 84,
+    "sha256sums_mismatches": [],
+    "card_metadata": {
+      "license": "other",
+      "viewer": false,
+      "viewer_intentionally_disabled": true,
+      "viewer_public_message": "The Dataset Viewer has been disabled on this dataset.",
+      "unexpected_viewer_error_message_present": false
+    },
+    "card_warning": "Hugging Face reported empty or missing YAML metadata; the prepared dataset card was uploaded unchanged and remains publicly readable.",
+    "card_warning_resolved_by_team_port": "The corrected card declares license: other and viewer: false; anonymous API and page checks confirm the intentional disabled state.",
+    "previous_dataset_repo_untouched": "Mizore66/evidencetune-bench"
+  },
+  "huggingface_collection": {
+    "created": true,
+    "slug": "Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08",
+    "url": "https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08",
+    "private": false,
+    "anonymous_http_status": 200,
+    "items": [
+      {
+        "item_id": "Mizore66/evidencetune-merged-alpha-0.75",
+        "item_type": "model",
+        "item_object_id": "6af247b60c67034b1a210bbd"
+      },
+      {
+        "item_id": "Mizore66/evidencetune-merged-data-alpha-0.75",
+        "item_type": "dataset",
+        "item_object_id": "6af247b65e2e4ff623446f95"
+      }
+    ],
+    "exact_item_count": 2,
+    "anonymous_api_verified": true
+  },
+  "huggingface_demo_space": {
+    "repo_id": "Mizore66/evidencetune-merged-demo",
+    "repo_url": "https://huggingface.co/spaces/Mizore66/evidencetune-merged-demo",
+    "public_url": "https://mizore66-evidencetune-merged-demo.static.hf.space/index.html",
+    "created": true,
+    "sdk": "static",
+    "private": false,
+    "gated": false,
+    "revision": "ee5ae752cc7bfddac73c68448d0afa2583e9077b",
+    "commit_url": "https://huggingface.co/spaces/Mizore66/evidencetune-merged-demo/commit/ee5ae752cc7bfddac73c68448d0afa2583e9077b",
+    "runtime_stage": "RUNNING",
+    "hardware": null,
+    "paid_job_started": false,
+    "uploaded_files": [
+      "index.html",
+      "demo.html",
+      "demo_data.json",
+      "demo_merged_data.json",
+      "LICENSE"
+    ],
+    "immutable_repository_verification": {
+      "all_uploaded_files_exactly_match_demo_commit": true,
+      "index_html_sha256": "ff71366fc00dabf11c2de4a7729dbf560b874b428050a6e90d02eaf46ba6eaa9",
+      "historical_demo_html_sha256": "9612be32402e5176aec6c532142270609ab850f6298c1570f2281c33162edd41",
+      "historical_demo_data_sha256": "9aae3e0d25a0857647a104e83e96494f878b6c9498f3505dc979f142cf047fed",
+      "merged_demo_data_sha256": "6e98f3d5e1980e667484602dc3ae2690e46cc8ac1df14b552b67a76572202ad7",
+      "license_sha256": "a757a94bd694a3b43ee41e58bb65a02c9833037cc9ecae5936c3cbe7633b8977"
+    },
+    "public_serving_verification": {
+      "anonymous_index_http_status": 200,
+      "anonymous_merged_payload_http_status": 200,
+      "anonymous_historical_demo_http_status": 200,
+      "anonymous_historical_payload_http_status": 200,
+      "json_payloads_byte_identical": true,
+      "html_serving_note": "The static host injects standard Hugging Face bootstrap/Open Graph metadata into served HTML; immutable repository HTML exactly matches source.",
+      "anonymous_chrome": {
+        "fresh_profile": true,
+        "five_conditions_two_arms_exact_content": "passed",
+        "keyboard_tabs": "passed",
+        "mobile_horizontal_overflow": "passed",
+        "browser_javascript_exceptions": [],
+        "network_requests_limited_to_static_space_host": true
+      }
+    },
+    "hostname_note": "The ordinary *.hf.space hostname returned 404; the Hub embed metadata identified *.static.hf.space as the correct static-Space host. No deployment change was required."
+  },
+  "huggingface_article": {
+    "published": false,
+    "url": null,
+    "source_article": "/Users/anasqumhiyeh/.claude/worktrees/evtune-submission/HF-ARTICLE.md",
+    "source_abstract": "/Users/anasqumhiyeh/.claude/worktrees/evtune-submission/ABSTRACT.md",
+    "official_workflow": "https://huggingface.co/new-blog",
+    "official_documentation": "https://huggingface.co/docs/hub/blog-articles",
+    "official_api_available_in_installed_client": false,
+    "blockers": [
+      "Article creation is a browser workflow; no article method exists in the installed official huggingface_hub client.",
+      "Mizore66 has isPro=false and no Team or Enterprise organization memberships, so the documented personal-namespace publishing eligibility is not currently met.",
+      "No interactive login, subscription purchase, or organization change was attempted."
+    ],
+    "remaining_user_steps": [
+      "Ensure the Hugging Face account email is confirmed and obtain active PRO eligibility, or use a qualifying Team/Enterprise organization namespace with the required role.",
+      "Open https://huggingface.co/new-blog in an authenticated browser and select the eligible namespace.",
+      "Use HF-ARTICLE.md for the Markdown body and ABSTRACT.md if the editor requests a summary.",
+      "Add the verified model, dataset, collection, team submission GitHub, and static demo URLs recorded in this file, review the limitations and licenses, then publish manually."
+    ]
+  },
+  "team_port_correction": {
+    "updated_at_utc": "2026-11-10T03:24:22Z",
+    "status": "synced_with_one_model_card_link_blocker",
+    "prior_action_history_preserved": true,
+    "team_submission_repository_preserved": "https://github.com/kendramoss/exsi-lexsi-hackathon",
+    "source_staging": "/Users/anasqumhiyeh/.claude/worktrees/exsi-submission/.public_staging/evidencetune-merged-alpha-0.75-team-port",
+    "upload_mode": "additive upload_folder with no delete patterns",
+    "deleted_remote_files": [],
+    "prior_revisions": {
+      "model": "c5aaae3597bb64d3462eb815bcd96e349fba0a3e",
+      "dataset": "de1b44f365e0e92abd44a92091b59f5db225ce9f"
+    },
+    "new_revisions": {
+      "model": "17090fee692ba429611bcf671312872d6a756a13",
+      "model_commit_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/commit/17090fee692ba429611bcf671312872d6a756a13",
+      "dataset": "99931597164433b98c42961991f463a36b656731",
+      "dataset_commit_url": "https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75/commit/99931597164433b98c42961991f463a36b656731"
+    },
+    "new_files": {
+      "model": [
+        "LICENSE-DECISION.md",
+        "NOTICE.md",
+        "SHA256SUMS",
+        "code/release/REPRODUCE.md",
+        "manifest.json"
+      ],
+      "dataset": [
+        "LICENSE-DECISION.md",
+        "NOTICE.md",
+        "SHA256SUMS",
+        "manifest.json"
+      ]
+    },
+    "local_staging_verification": {
+      "builder_status": "PASS",
+      "builder_files_verified": 985,
+      "builder_korean_raw_rows": 0,
+      "source_adapters_verified": 2,
+      "model_manifest_entries": 752,
+      "model_local_files": 752,
+      "dataset_manifest_entries": 85,
+      "dataset_local_files": 85,
+      "missing_files": [],
+      "extra_files": [],
+      "size_mismatches": [],
+      "sha256_mismatches": []
+    },
+    "remote_verification": {
+      "all_checks_used_anonymous_api_or_downloads": true,
+      "model": {
+        "payload_files": 752,
+        "missing_files": [],
+        "extra_files": [],
+        "size_mismatches": [],
+        "lfs_sha256_mismatches": [],
+        "anonymous_non_lfs_files_sha256_verified": 746,
+        "anonymous_non_lfs_bytes_verified": 37680634,
+        "anonymous_hash_mismatches": [],
+        "anonymous_download_errors": [],
+        "sha256sums_entries_verified": 751,
+        "sha256sums_mismatches": [],
+        "private": false,
+        "gated": false
+      },
+      "dataset": {
+        "payload_files": 85,
+        "missing_files": [],
+        "extra_files": [],
+        "size_mismatches": [],
+        "lfs_sha256_mismatches": [],
+        "anonymous_non_lfs_files_sha256_verified": 85,
+        "anonymous_non_lfs_bytes_verified": 37965584,
+        "anonymous_hash_mismatches": [],
+        "anonymous_download_errors": [],
+        "sha256sums_entries_verified": 84,
+        "sha256sums_mismatches": [],
+        "private": false,
+        "gated": false
+      },
+      "korean_raw_or_review_rows": 0,
+      "forbidden_korean_scifact_credential_or_cache_paths": []
+    },
+    "adapter_verification": {
+      "pinned_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/resolve/17090fee692ba429611bcf671312872d6a756a13/adapter_model.safetensors",
+      "anonymous_download_size_bytes": 120981200,
+      "anonymous_download_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+      "matches_approved_adapter": true
+    },
+    "card_and_link_verification": {
+      "anonymous_model_card_http_status": 200,
+      "anonymous_dataset_card_http_status": 200,
+      "model_card_license": "cc-by-nc-4.0",
+      "dataset_card_license": "other",
+      "dataset_viewer": false,
+      "dataset_viewer_public_message": "The Dataset Viewer has been disabled on this dataset.",
+      "unexpected_dataset_viewer_error_message_present": false,
+      "verified_http_200": [
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/code/release/REPRODUCE.md",
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/manifest.json",
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/merge_provenance.json",
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/tree/main/evidence/",
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/raw/17090fee692ba429611bcf671312872d6a756a13/NOTICE.md",
+        "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/raw/17090fee692ba429611bcf671312872d6a756a13/LICENSE-DECISION.md",
+        "https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75/blob/main/NOTICE.md",
+        "https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75/blob/main/LICENSE-DECISION.md",
+        "https://github.com/kendramoss/exsi-lexsi-hackathon",
+        "https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08",
+        "https://mizore66-evidencetune-merged-demo.static.hf.space/index.html"
+      ]
+    },
+    "blockers": [
+      {
+        "kind": "model_card_checksum_link",
+        "source_markdown": "[SHA256SUMS](SHA256SUMS)",
+        "rendered_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/tree/main/SHA256SUMS",
+        "rendered_http_status": 404,
+        "working_direct_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/SHA256SUMS",
+        "working_direct_http_status": 200,
+        "reason_not_silently_changed": "Changing the supplied card requires regenerating its reviewed model and parent manifest/SHA256SUMS hash chain.",
+        "required_followup": "Change the card to the absolute blob URL, regenerate all affected integrity inventories in a reviewed correction, then upload and repeat verification."
+      }
+    ],
+    "not_performed": {
+      "main_merge": false,
+      "final_form_submission": false,
+      "paid_jobs": false,
+      "unrelated_or_historical_repository_deletion": false,
+      "results_commit": false
+    }
+  },
+  "model_card_link_fix": {
+    "updated_at_utc": "2026-11-10T03:36:45Z",
+    "status": "PASS",
+    "prior_model_revision": "17090fee692ba429611bcf671312872d6a756a13",
+    "new_model_revision": "8fa4cc8f7c7914ad77f0cae3cf436815d337e7ee",
+    "commit_url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/commit/8fa4cc8f7c7914ad77f0cae3cf436815d337e7ee",
+    "source_staging": "/Users/anasqumhiyeh/.claude/worktrees/exsi-submission/.public_staging/evidencetune-merged-alpha-0.75-team-port-linkfix",
+    "source_note": "The supplied team-port output still contained relative links and predated the corrected generator. A fresh non-destructive rebuild from that generator produced this linkfix tree; the earlier staging tree was preserved.",
+    "upload_mode": "additive upload_folder with no delete patterns",
+    "deleted_remote_files": [],
+    "changed_payload_files": [
+      "README.md",
+      "SHA256SUMS",
+      "manifest.json"
+    ],
+    "added_payload_files": [],
+    "removed_payload_files": [],
+    "public_staging_tests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "staging_verifier": {
+      "status": "PASS",
+      "files_verified": 985,
+      "model_files": 752,
+      "dataset_files": 85,
+      "korean_raw_rows": 0,
+      "source_adapters_verified": 2
+    },
+    "remote_verification": {
+      "local_files": 752,
+      "remote_payload_files": 752,
+      "missing_files": [],
+      "extra_files": [],
+      "size_mismatches": [],
+      "lfs_sha256_mismatches": [],
+      "anonymous_non_lfs_files_sha256_verified": 746,
+      "anonymous_non_lfs_bytes_verified": 37680780,
+      "anonymous_hash_mismatches": [],
+      "anonymous_download_errors": [],
+      "adapter_remote_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+      "private": false,
+      "gated": false
+    },
+    "anonymous_card_link_verification": {
+      "model_page_http_status": 200,
+      "sha256sums": {
+        "url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/SHA256SUMS",
+        "absolute_blob_link_present": true,
+        "http_status": 200
+      },
+      "manifest": {
+        "url": "https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/manifest.json",
+        "absolute_blob_link_present": true,
+        "http_status": 200
+      },
+      "forbidden_tree_links": [],
+      "forbidden_patterns_checked": [
+        "tree/main/SHA256SUMS",
+        "tree/main/manifest.json"
+      ]
+    },
+    "resolves_prior_blocker": "model_card_checksum_link",
+    "not_performed": {
+      "deletes": false,
+      "main_merge": false,
+      "final_form_submission": false,
+      "results_commit": false,
+      "paid_jobs": false
+    }
+  },
+  "non_destructive_warnings": [
+    "Two create_repo calls succeeded but their response-formatting expressions referenced unsupported attributes; the repositories were inspected before upload and were not recreated.",
+    "The first collection create request returned HTTP 400 because its description exceeded 150 characters; no collection was created by that request. A corrected request succeeded.",
+    "The dataset upload emitted a missing-YAML card warning; it did not block upload or public visibility."
+  ],
+  "not_performed": {
+    "final_hackathon_form_submitted": false,
+    "sponsors_contacted": false,
+    "main_or_master_merged_or_pushed": false,
+    "force_push": false,
+    "paid_jobs_started": false,
+    "historical_evidence_changed": false,
+    "publication_checklist_approval_gates_changed": false,
+    "publication_results_committed": false
+  }
+}

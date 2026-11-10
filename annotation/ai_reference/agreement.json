@@ -1,0 +1,186 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "evtune-nonfresh-pilot-v2",
+  "dataset_sha256": "c3d117fe608479567ddc8fb99f8dbe865de25ff8b8f64f506bd41fd64bf2c006",
+  "provenance": "HUMAN_ATTESTED",
+  "annotator_a": "annotator-a",
+  "annotator_b": "annotator-b",
+  "row_count": 40,
+  "fields": {
+    "statement_truth": {
+      "n": 40,
+      "observed_agreement": 0.85,
+      "cohens_kappa": 0.7345132743362832,
+      "confusion": {
+        "NO": {
+          "NO": 10,
+          "UNDETERMINED": 0,
+          "YES": 6
+        },
+        "UNDETERMINED": {
+          "NO": 0,
+          "UNDETERMINED": 4,
+          "YES": 0
+        },
+        "YES": {
+          "NO": 0,
+          "UNDETERMINED": 0,
+          "YES": 20
+        }
+      }
+    },
+    "requested_target": {
+      "n": 40,
+      "observed_agreement": 1.0,
+      "cohens_kappa": 1.0,
+      "confusion": {
+        "NO": {
+          "NO": 25,
+          "YES": 0
+        },
+        "YES": {
+          "NO": 0,
+          "YES": 15
+        }
+      }
+    },
+    "cited_excerpt": {
+      "n": 40,
+      "observed_agreement": 1.0,
+      "cohens_kappa": 1.0,
+      "confusion": {
+        "1": {
+          "1": 6,
+          "2": 0,
+          "3": 0,
+          "NONE": 0
+        },
+        "2": {
+          "1": 0,
+          "2": 14,
+          "3": 0,
+          "NONE": 0
+        },
+        "3": {
+          "1": 0,
+          "2": 0,
+          "3": 10,
+          "NONE": 0
+        },
+        "NONE": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "NONE": 10
+        }
+      }
+    },
+    "citation_status": {
+      "n": 40,
+      "observed_agreement": 0.925,
+      "cohens_kappa": 0.8889916743755782,
+      "confusion": {
+        "ABSENT": {
+          "ABSENT": 10,
+          "CONTRADICTED": 0,
+          "INSUFFICIENT": 0,
+          "SUFFICIENT": 0
+        },
+        "CONTRADICTED": {
+          "ABSENT": 0,
+          "CONTRADICTED": 1,
+          "INSUFFICIENT": 0,
+          "SUFFICIENT": 0
+        },
+        "INSUFFICIENT": {
+          "ABSENT": 0,
+          "CONTRADICTED": 0,
+          "INSUFFICIENT": 17,
+          "SUFFICIENT": 1
+        },
+        "SUFFICIENT": {
+          "ABSENT": 0,
+          "CONTRADICTED": 2,
+          "INSUFFICIENT": 0,
+          "SUFFICIENT": 9
+        }
+      }
+    },
+    "answerability": {
+      "n": 40,
+      "observed_agreement": 1.0,
+      "cohens_kappa": 1.0,
+      "confusion": {
+        "ANSWERABLE": {
+          "ANSWERABLE": 36,
+          "NOT_ANSWERABLE": 0
+        },
+        "NOT_ANSWERABLE": {
+          "ANSWERABLE": 0,
+          "NOT_ANSWERABLE": 4
+        }
+      }
+    }
+  },
+  "action_sets": {
+    "n": 40,
+    "exact_agreement": 0.925,
+    "mean_jaccard": 0.925,
+    "per_action": {
+      "UPDATE": {
+        "n": 40,
+        "observed_agreement": 0.925,
+        "cohens_kappa": 0.8064516129032259,
+        "confusion": {
+          "ABSENT": {
+            "ABSENT": 28,
+            "PRESENT": 1
+          },
+          "PRESENT": {
+            "ABSENT": 2,
+            "PRESENT": 9
+          }
+        }
+      },
+      "RETAIN": {
+        "n": 40,
+        "observed_agreement": 0.925,
+        "cohens_kappa": 0.8064516129032259,
+        "confusion": {
+          "ABSENT": {
+            "ABSENT": 9,
+            "PRESENT": 2
+          },
+          "PRESENT": {
+            "ABSENT": 1,
+            "PRESENT": 28
+          }
+        }
+      },
+      "CLARIFY": {
+        "n": 40,
+        "observed_agreement": 0.975,
+        "cohens_kappa": 0.949238578680203,
+        "confusion": {
+          "ABSENT": {
+            "ABSENT": 22,
+            "PRESENT": 0
+          },
+          "PRESENT": {
+            "ABSENT": 1,
+            "PRESENT": 17
+          }
+        }
+      }
+    }
+  },
+  "disagreement_rows": [
+    "row_37b0b55e1234f6f6",
+    "row_4d56d6c8143c840c",
+    "row_7e4897609a33e81a",
+    "row_5c0b8687795961e5",
+    "row_e7299c9283e9dda5",
+    "row_ab54536b06ba8270",
+    "row_defb57611fb11940"
+  ]
+}
