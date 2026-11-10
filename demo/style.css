@@ -1289,10 +1289,12 @@ body.xf .focusable { transition: none; }
 #s1 .convo.flow > .trunk, #s1 .convo.flow > .fork, #s1 .convo.flow > .branches { align-self: stretch; width: 100%; box-sizing: border-box; }
 /* the split: fork touches the centred pushback, and fork + columns grow open instead of popping in */
 #s1 .flow .fork { margin: 0 0 8px; }
-#s1 .convo.flow.split .fork { animation: growin 500ms cubic-bezier(.2, .7, .2, 1); }
+#s1 .convo.flow.split .fork { animation: forkin 500ms cubic-bezier(.2, .7, .2, 1); }
 #s1 .convo.flow.split .branches { animation: growin 700ms cubic-bezier(.2, .7, .2, 1); }
 /* no end keyframe: each element grows to its own height (the fork's is a fixed 44px, not auto, which would snap at the end) */
-@keyframes growin { 0% { height: 0; overflow: clip; } 99.9% { overflow: clip; } }
+/* the fork has a fixed 44px height, so it grows to its own value; the columns grow to auto, which needs an explicit end */
+@keyframes forkin { 0% { height: 0; overflow: clip; } 99.9% { overflow: clip; } }
+@keyframes growin { from { height: 0; overflow: clip; } 99.9% { height: auto; overflow: clip; } to { height: auto; } }
 @media (prefers-reduced-motion: reduce) { #s1 .convo.flow.split .fork, #s1 .convo.flow.split .branches { animation: none; } }
 #s1 .flow .chat-row.push { padding: 0; gap: 0; }
 #s1 .convo.flow { gap: 0; row-gap: 0; }
@@ -1412,3 +1414,112 @@ body.xf .focusable { transition: none; }
 #glance .clockcol:not(.is-done) .tear-bar i { scale: 0 1; }
 .tear-cap { padding: 0 12px 12px; font: 400 13px/1.3 var(--sans); color: #3c76c6; }
 .tear-cap b { font-weight: 500; color: #c32a22; }
+
+/* 2 · the two clock cards grow with the panel instead of stopping at 320px; height-capped so the active
+   card (scaled 1.12) still fits the screen. Phones keep the stacked size above. */
+@media (min-width: 901px) and (min-height: 601px) {
+  #glance .clocks { gap: clamp(28px, 3vw, 64px); }
+  #glance .clockcol .bigclock { width: min(26vw, 52vh, 520px); padding: clamp(20px, 1.8vw, 36px); gap: clamp(14px, 1.2vw, 22px); }
+  #glance .bigclock .clock.gauge { width: 100%; max-width: none; }
+  #glance .clock-name { font-size: clamp(22px, 1.7vw, 32px); }
+  #glance .tear-head { font-size: clamp(12px, .8vw, 15px); }
+  #glance .tear-cap { font-size: clamp(13px, .85vw, 16px); }
+  #glance .tear-bar { height: clamp(22px, 1.6vw, 30px); }
+}
+/* a flex item can't go below its content height unless told to, which made the reply columns pop in at full
+   height instead of growing from 0 at the split */
+#s1 .convo.flow > .fork, #s1 .convo.flow > .branches, #s1 .convo.flow > .trunk { min-height: 0; }
+
+/* 2 · proof strip under the two clocks: how often each model asks for the source when the quote doesn't settle it */
+#glance .panel { flex-direction: column; gap: clamp(20px, 3vh, 36px); }
+.g-proof { width: min(840px, calc(100% - 48px)); box-sizing: border-box; background: #f5f9ff; color: #0b55b8; padding: clamp(20px, 2.6vh, 28px) clamp(20px, 2vw, 32px);
+  display: grid; gap: 14px; border-radius: 0 24px 0 24px; position: relative; }
+.gp-claim { margin: 0; font: 400 clamp(19px, 1.3vw, 24px)/1.3 var(--display); color: #3c76c6; }
+.gp-claim b { font-weight: 500; color: #0b55b8; }
+.gp-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 88px; gap: 16px; align-items: center; font-size: 16px; color: #3c76c6; }
+.gp-row.me { color: #0b55b8; font-weight: 500; }
+.gp-track { height: 24px; background: rgba(11, 85, 184, .08); display: flex; }
+.gp-row.me .gp-track { height: 32px; }
+.gp-track i { display: block; height: 100%; background: #7d9fd4; transform-origin: 0 50%; scale: 0 1; transition: scale 900ms cubic-bezier(.2, .7, .2, 1) 300ms; }
+.gp-row.me .gp-track i { background: #0b55b8; transition-delay: 600ms; }
+#glance.proof-in .gp-track i { scale: 1 1; }
+.gp-val { font: 400 24px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+.gp-val small { font-size: 14px; color: #7d9fd4; }
+.gp-foot { margin: 0; font: 400 13px/1.4 var(--mono); color: #7d9fd4; }
+@media (prefers-reduced-motion: reduce) { .gp-track i { transition: none; scale: 1 1; } }
+@media (max-width: 900px) { .gp-row { grid-template-columns: minmax(0, 1fr) 64px; } .gp-name { grid-column: 1 / -1; } }
+/* the cards no longer carry the per-card strip, so they can sit a little higher */
+#glance .panel { padding-bottom: 6vh; }
+
+/* 3 · step controls: one bar under the chat (‹, five step dots, ›) with square keycap buttons */
+#s1 .ch-chat .convo-foot { justify-content: center; margin-top: clamp(16px, 2.4vh, 28px); max-width: none; }
+.convo-ctl { display: inline-flex; align-items: center; gap: 16px; padding: 8px; border-radius: 16px; background: rgba(245, 249, 255, .1); }
+.ckey { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; cursor: pointer;
+  background: #f5f9ff; color: #0b55b8; box-shadow: 0 3px 0 rgba(4, 30, 70, .45);
+  transition: translate 120ms var(--ease), box-shadow 120ms var(--ease), opacity 200ms var(--ease); }
+.ckey svg { width: 22px; height: 22px; }
+.ckey path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ckey:hover:not(:disabled) { background: #ffffff; }
+.ckey:active:not(:disabled) { translate: 0 2px; box-shadow: 0 1px 0 rgba(4, 30, 70, .45); }
+.ckey:disabled { opacity: .35; cursor: default; box-shadow: none; }
+.ckey:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
+.cdots { display: flex; align-items: center; gap: 8px; }
+.cdots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(245, 249, 255, .3); transition: width 300ms var(--ease), background-color 300ms var(--ease); }
+.cdots i.done { background: rgba(245, 249, 255, .6); }
+.cdots i.on { width: 24px; background: #f5f9ff; }
+@media (max-width: 760px) { .convo-ctl { display: none; } }
+
+/* 2 · the clocks row is exactly as wide as the proof card under it, and stays that wide while it animates:
+   each card grows/shrinks from its outer edge, so the active one swells inward into the room the dimmed one
+   gives up, and nothing ever pokes past the edges of the card below. */
+#glance .panel { --gw: min(840px, calc(100% - 48px)); }
+#glance .g-proof { width: var(--gw); }
+#glance .clocks { width: var(--gw); display: flex; justify-content: space-between; gap: 32px; }
+#glance .clocks .clockcol { flex: 1 1 0; min-width: 0; }
+#glance .clocks .clockcol .bigclock { width: 100%; box-sizing: border-box; }
+#glance .clocks .clockcol:first-child { transform-origin: 0 50%; }
+#glance .clocks .clockcol:last-child { transform-origin: 100% 50%; }
+#glance .clocks .clockcol.is-on { transform: scale(1.1); }
+#glance .clocks .clockcol.is-dim { transform: scale(.8); }
+
+/* 5 · one tight block (label, one headline with the gain as a percentage, bars, key + link), centred.
+   Every kind of slip is red, so less red reads as better; EvidenceTune's right moves are the one solid bar. */
+#s2.fluke .fl-inner { grid-template-rows: auto auto auto; align-content: center; gap: 36px; padding: 6vh max(88px, calc((100% - 1040px) / 2)); }
+#s2 .fl-top { flex-direction: column; justify-content: flex-start; gap: 16px; }
+#s2 .fl-meta { padding-top: 0; font-size: 14px; }
+#s2 .fl-hl { max-width: 22ch; color: #a9c8f5; font-size: clamp(36px, 3.2vw, 52px); }
+#s2 .fl-hl b { font-weight: 400; color: #f5f9ff; }
+#s2 .fl-bars { gap: 14px; }
+#s2 .fl-row { grid-template-columns: 190px minmax(0, 1fr) 112px; }
+#s2 .fl-val { font-size: 24px; }
+#s2 .fl-val small { font-size: 15px; color: #c9dcf8; }
+#s2 .fl-row.me .fl-val { font-size: 32px; }
+#s2 .fl-foot { padding-top: 20px; border-top: 1px solid rgba(245, 249, 255, .18); }
+#s2 .s-in { background: #ff6f64; }
+#s2 .s-ig { background: rgba(255, 143, 134, .55); box-shadow: none; }
+#s2 .s-ask { background: repeating-linear-gradient(135deg, #ff8f86 0 3px, rgba(255, 143, 134, .18) 3px 8px); }
+#s2 .fl-row:not(.me) .s-ok { background: rgba(245, 249, 255, .3); }
+
+/* 3 · verdict under each reply: a quiet bar, line icon + a few words + right/wrong */
+.flow .cw-verdict.v4 { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: rgba(245, 249, 255, .08);
+  font: 400 14px/1.3 var(--sans); color: #d6e3f6; }
+.flow .cw-verdict.v4 .vi { width: 18px; height: 18px; flex: none; }
+.flow .cw-verdict.v4 .vi path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.flow .cw-verdict.v4 .vt { min-width: 0; }
+.flow .cw-verdict.v4 strong { color: #f5f9ff; font-weight: 500; }
+.flow .cw-verdict.v4 em { margin-left: auto; padding-left: 8px; font: 400 12px var(--mono); font-style: normal; }
+.flow .cw-verdict.v4.ko .vi, .flow .cw-verdict.v4.ko em { color: #ffa29b; }
+.flow .cw-verdict.v4.ok .vi, .flow .cw-verdict.v4.ok em { color: #7fe0b8; }
+
+/* 5 · head to head: one tile per test where only one model made the right move */
+#s2 .fl-tiles { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px; height: clamp(48px, 9vh, 80px); }
+#s2 .fl-tiles i { display: block; border-radius: 2px; opacity: 0; translate: 0 8px;
+  transition: opacity 400ms var(--ease), translate 400ms var(--ease); transition-delay: calc(900ms + var(--i) * 35ms); }
+#s2 .fl-tiles i.t, #s2 .fl-key i.t { background: #f5f9ff; }
+#s2 .fl-tiles i.r, #s2 .fl-key i.r { background: rgba(245, 249, 255, .28); }
+#s2.shown .fl-tiles i { opacity: 1; translate: 0 0; }
+#s2 .fl-note { margin: 4px 0 0; font: 400 13px/1.4 var(--mono); color: #c9dcf8; }
+#s2 .fl-key i { width: 16px; height: 16px; }
+#s2 .fl-key { font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { #s2 .fl-tiles i { transition: none; opacity: 1; translate: 0 0; } }
+@media (max-width: 900px) { #s2 .fl-tiles { gap: 3px; height: 40px; } }

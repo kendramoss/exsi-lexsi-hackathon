@@ -119,6 +119,24 @@
     return ["ko", "asks, but ends up wrong"];
   }
 
+  // Screen 3 verdict under each reply: a line icon for what it did, a few words, and right/wrong at the end.
+  const VICON = {
+    turn: ["M9 14 4 9l5-5", "M4 9h10.5a5.5 5.5 0 0 1 0 11H11"],                       // switched its answer
+    hold: ["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"],                               // stayed on its answer
+    look: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "m20 20-3.5-3.5"],                  // asked for the source
+  };
+  function verdictLine(p, k) {
+    const icon = (name) => svg("svg", { viewBox: "0 0 24 24", class: "vi", "aria-hidden": "true" }, ...VICON[name].map((d) => svg("path", { d })));
+    const ans = el("strong", {}, p?.final_answer ?? "no answer");
+    const a = p?.parsed_action.action, s = p?.score || {};
+    let ic = "hold", words;
+    if (!p) words = ["No result"];
+    else if (a === "update") { ic = "turn"; words = [s.unwarranted_update ? "Switched to " : "Changed to ", ans]; }
+    else if (a === "clarify") { ic = "look"; words = s.unnecessary_clarification ? ["Asked when it didn’t need to"] : ["Asked for proof, stayed on ", ans]; }
+    else words = [k === "ok" ? "Stayed on " : "Ignored the fix, stayed on ", ans];
+    return [icon(ic), el("span", { class: "vt" }, ...words), el("em", {}, k === "ok" ? "right" : "wrong")];
+  }
+
   // ---------- head ----------
   function renderHead() {
   }
@@ -165,7 +183,7 @@
     const branch = (pol, p, who) => {
       const [k, t] = did(p);
       const list = el("div", { class: "branch-list" });
-      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), el("span", {}, `${cap(t)} `, el("span", { class: "nw" }, "· ends on ", el("strong", {}, p?.final_answer ?? "none"))));
+      const verdict = el("div", { class: `cw-verdict v4 ${k}` }, ...verdictLine(p, k));
       const node = el("div", { class: `branch ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
         el("header", { class: "branch-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }), el("b", {}, label(pol))), list, verdict);
       return { node, list, verdict, msgs: replies(p) };
@@ -221,18 +239,97 @@
     const tr = trunk.getBoundingClientRect(), br = bub.getBoundingClientRect();
     const dx = ((tr.left + tr.width / 2) - (br.left + br.width / 2)) / z;
     void bub.offsetWidth;
-    bub.style.transition = animate ? "translate 600ms cubic-bezier(.2, .7, .2, 1)" : "none";
+    bub.style.transition = animate ? `translate 650ms ${EASE}` : "none";
     bub.style.translate = `${dx}px 0px`;
+  }
+
+  // One step forward or back, from the ‹ › controls or the ← → keys.
+  let convoVisited = false;   // set once the reader has reached the chat; after that it resumes where it was
+  function convoStep(dir) {
+    convoVisited = true;
+    const n = convoStepAt + dir;
+    if (n < 1 || n > CONVO_STEPS) return false;
+    convoShow(n);
+    return true;
+  }
+  // The step controls and the rail's step label follow the current step.
+  function convoUi(n) {
+    document.querySelectorAll("#convo-tl li").forEach((li) => {
+      const k = +li.dataset.step;
+      li.classList.toggle("done", k < n);
+      li.classList.toggle("now", k === n);
+      if (k === n) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
+    });
+    const hint = $("#convo-step");
+    if (hint) hint.textContent = `Step ${n} of ${CONVO_STEPS}`;
+    const prev = $("#convo-prev"), next = $("#convo-next"), dots = $("#convo-dots");
+    if (prev) prev.disabled = n <= 1;
+    if (next) next.disabled = n >= CONVO_STEPS;
+    if (dots) dots.replaceChildren(...Array.from({ length: CONVO_STEPS }, (_, i) => el("i", { class: i + 1 < n ? "done" : i + 1 === n ? "on" : null })));
+  }
+
+  // Going back plays the step in reverse instead of snapping: the newest messages close up, and leaving the
+  // split, the replies fade, the fork and columns shrink away while the earlier messages unfold again.
+  const EASE = "cubic-bezier(.45, 0, .2, 1)";   // ease in and out, so folding and unfolding read the same both ways
+  // Fold the earlier messages away (or back open) using their real heights, so the motion is even from start
+  // to end instead of racing through a generous max-height.
+  function foldRows(trunk, fold, anims) {
+    const rows = [...trunk.children].filter((r) => !r.classList.contains("push"));
+    rows.forEach((r) => (r.style.transition = "none"));
+    if (!fold) trunk.classList.remove("past");
+    const hs = rows.map((r) => r.scrollHeight);
+    if (fold) trunk.classList.add("past");
+    rows.forEach((r, i) => {
+      const open = { maxHeight: `${hs[i]}px`, opacity: 1, marginTop: "0px" }, shut = { maxHeight: "0px", opacity: 0, marginTop: "-10px" };
+      const a = r.animate(fold ? [open, shut] : [shut, open], { duration: 650, easing: EASE });
+      anims.push(a);
+      a.finished.then(() => (r.style.transition = "")).catch(() => {});
+    });
+  }
+  function convoBack(from, to) {
+    const W = convoWins, convoEl = $("#convo");
+    const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
+    const keep = (a) => (W.backAnims.push(a), a);
+    const exitRow = (r) => {
+      r.style.overflow = "clip";
+      const a = keep(r.animate([{ height: `${r.offsetHeight}px`, opacity: 1, marginTop: "0px" },
+        { height: "0px", opacity: 0, marginTop: r.previousElementSibling ? "-10px" : "0px" }], { duration: 420, easing: EASE, fill: "forwards" }));
+      a.finished.then(() => r.remove()).catch(() => {});
+    };
+    if (from === 5) W.branches.forEach((b) => { b.verdict.classList.remove("show"); [...b.list.children].slice(1).forEach(exitRow); });
+    if (from === 4) {
+      W.branches.forEach((b) => { b.node.classList.remove("show"); [...b.list.children].forEach(exitRow); });
+      at(300, () => {
+        const brs = convoEl.querySelector(".branches");
+        const shrink = (node, ms) => { node.style.overflow = "clip"; return keep(node.animate([{ height: `${node.offsetHeight}px` }, { height: "0px" }], { duration: ms, easing: EASE, fill: "forwards" })); };
+        W.fork.classList.remove("show");
+        const done = Promise.all([shrink(W.fork, 500).finished, shrink(brs, 600).finished]);
+        foldRows(W.trunk, false, W.backAnims);                  // the earlier messages unfold as the split closes
+        const bub = W.trunk.querySelector(".chat-row.push .bubble");
+        if (bub) { bub.style.transition = `translate 650ms ${EASE}`; bub.style.translate = "0px 0px"; }
+        done.then(() => {
+          if (convoStepAt !== to) return;
+          convoEl.classList.remove("split");
+          W.backAnims.forEach((a) => a.cancel()); W.backAnims = [];
+          W.fork.style.overflow = brs.style.overflow = "";
+          W.branches.forEach((b) => b.list.replaceChildren());
+        }).catch(() => {});
+      });
+    }
+    if (from === 3 || from === 2) { const r = W.trunk.children[from - 1]; if (r) exitRow(r); }
   }
 
   function convoShow(n, wait = 0) {
     const W = convoWins;
     if (!W.trunk) return;
     convoTimers.forEach(clearTimeout); convoTimers = [];
+    (W.backAnims || []).forEach((a) => a.cancel()); W.backAnims = [];
+    W.fork.style.overflow = ""; const brs = $("#convo .branches"); if (brs) brs.style.overflow = "";
     const prev = convoStepAt;
     convoStepAt = n; convoPlayed = true;
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
+    if (!still && n === prev - 1) { convoBack(prev, n); convoUi(n); return; }
     // Messages already seen appear at once; new ones are typed (dots), then sent (a short rise and fade in).
     const deliver = (list, items, t0 = 0) => {
       list.replaceChildren();
@@ -253,8 +350,14 @@
     // the earlier messages fold away, then the fork draws, then the two columns rise in, then the replies pop.
     const staged = split && prev < 4 && !still;
     const convoEl = $("#convo");
-    W.trunk.classList.toggle("past", split);
-    if (split) at(0, () => centerPush(staged));
+    // deliver() just rebuilt the rows; let them lay out at full height first, or the fold has no "before"
+    // state and the earlier messages vanish in one frame instead of folding away
+    if (staged) { void W.trunk.offsetHeight; foldRows(W.trunk, true, W.backAnims); }
+    else W.trunk.classList.toggle("past", split);
+    // Arriving at the split it slides over (animated); on any later step the rebuilt bubble is centred in the
+    // same frame, or it shows for one frame at its default right-hand spot and visibly flicks sideways.
+    if (split && staged) at(0, () => centerPush(true));
+    else if (split) centerPush(false);
     if (staged) {
       convoEl.classList.remove("split"); W.fork.classList.remove("show");
       W.branches.forEach((b) => b.node.classList.remove("show"));
@@ -271,14 +374,7 @@
       b.verdict.classList.remove("show");
       if (n >= 5) { if (still || prev >= 5) b.verdict.classList.add("show"); else at(end + 200, () => b.verdict.classList.add("show")); }
     });
-    document.querySelectorAll("#convo-tl li").forEach((li) => {
-      const k = +li.dataset.step;
-      li.classList.toggle("done", k < n);
-      li.classList.toggle("now", k === n);
-      if (k === n) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
-    });
-    const hint = $("#convo-step");
-    if (hint) hint.textContent = n < CONVO_STEPS ? `Scroll to continue · ${n} / ${CONVO_STEPS}` : "Scroll on for Chapter 02 ↓";
+    convoUi(n);
   }
 
   // Play: people's messages pop in, the AI shows typing dots first. Both windows share the timing, so they
@@ -312,6 +408,11 @@
   function convoWatch() {
     const box = $("#convo");
     $("#replay").addEventListener("click", playConvo);
+    // ‹ › step the chat; a short lock keeps a double click from skipping a step mid-animation
+    let lock = 0;
+    const press = (dir) => { const now = performance.now(); if (now < lock) return; if (convoStep(dir)) lock = now + 380; };
+    $("#convo-prev")?.addEventListener("click", () => press(-1));
+    $("#convo-next")?.addEventListener("click", () => press(1));
     if (!("IntersectionObserver" in window)) { playConvo(); return; }
     const io = new IntersectionObserver((es) => { if (innerWidth < 760 && es.some((e) => e.isIntersecting)) { io.disconnect(); playConvo(); } }, { threshold: 0.7 });
     io.observe(box);
@@ -390,19 +491,31 @@
     const mine = rows.at(-1), others = rows.slice(0, -1);
     const clean = mine.counts.ok === n;
     const name = (id) => short(id).replace(/^With /, "");
-    $("#fl-a").textContent = others.length === 1 ? `${name(others[0].c.id)} slips ${n - others[0].counts.ok} of ${n} times`
-      : others.every((r) => r.counts.ok < n) ? "Each shortcut slips in its own way" : "Most shortcuts slip somewhere";
-    $("#fl-b").textContent = clean ? `${short(T).replace(/^With /, "")} doesn’t slip` : `${short(T).replace(/^With /, "")} slips ${n - mine.counts.ok} of ${n} times`;
-    $("#fl-meta").textContent = `${n} test cases each`;
-    const used = SLIP.filter((x) => rows.some((r) => r.counts[x.k]));
-    $("#fl-bars").setAttribute("aria-label", rows.map((r) => `${label(r.c.id)}: ${r.counts.ok} of ${n} right` +
-      used.filter((x) => x.k !== "ok" && r.counts[x.k]).map((x) => `, ${r.counts[x.k]} ${x.label.toLowerCase()}`).join("")).join("; "));
-    $("#fl-bars").replaceChildren(...rows.map((r, i) => el("div", { class: `fl-row${r.me ? " me" : ""}`, style: `--d:${r.me ? 260 + i * 140 : i * 140}ms` },
-      el("span", { class: "fl-name" }, label(r.c.id)),
-      el("span", { class: "fl-track" }, ...used.filter((x) => r.counts[x.k]).map((x) =>
-        el("i", { class: `fl-seg s-${x.k}`, style: `width:${(r.counts[x.k] / n) * 100}%`, title: `${label(r.c.id)}: ${r.counts[x.k]} of ${n} · ${x.label}` }))),
-      el("span", { class: "fl-val" }, `${r.counts.ok}/${n}`))));
-    $("#fl-key").replaceChildren(...used.map((x) => el("li", {}, el("i", { class: `s-${x.k}`, "aria-hidden": "true" }), x.label)));
+    // Head to head: leave out the tests both models got right (or both got wrong) and show only where they
+    // disagree, one tile per test. Counted from the saved "right move" scores; the paired (McNemar) exact test
+    // says whether the split could be chance. The headline is worded from the counts, never assumed.
+    const R = state.ref;
+    const ok = (id, cs) => !!predOf(cs.case_id, id)?.score?.action_acceptable;
+    let onlyT = 0, onlyR = 0, both = 0, neither = 0;
+    cases.forEach((cs) => { const a = ok(T, cs), b = ok(R, cs); if (a && b) both++; else if (a) onlyT++; else if (b) onlyR++; else neither++; });
+    const d = onlyT + onlyR, lo = Math.min(onlyT, onlyR);
+    let tail = 0, c = 1;                      // P(X <= lo) for X ~ Binomial(d, 1/2), computed in place
+    for (let k = 0; k <= lo; k++) { if (k) c = (c * (d - k + 1)) / k; tail += c; }
+    const p = d ? Math.min(1, (2 * tail) / 2 ** d) : 1;
+    const pTxt = p < 0.001 ? "p < 0.001" : `p = ${p.toFixed(p < 0.01 ? 3 : 2)}`;
+    const hl = $("#s2-title");
+    if (!d) hl.replaceChildren(name(T), " and ", name(R).toLowerCase(), " ", el("b", {}, "never disagree"), ` on the ${n} tests`);
+    else if (onlyT > onlyR) hl.replaceChildren("When only one model makes the right move, it’s ", el("b", {}, `${name(T)} ${onlyT} times, ${name(R).toLowerCase()} ${onlyR}`));
+    else hl.replaceChildren("When only one model makes the right move, it’s ", el("b", {}, `${name(R)} ${onlyR} times, ${name(T)} ${onlyT}`));
+    $("#fl-meta").textContent = `Is it a fluke? · ${n} tests each`;
+    $("#fl-bars").setAttribute("aria-label", `Of ${d} tests where only one model made the right move, ${label(T)} was right on ${onlyT} and ${label(R)} on ${onlyR}`);
+    $("#fl-bars").replaceChildren(
+      el("div", { class: "fl-tiles", style: `--n:${Math.max(d, 1)}` },
+        ...Array.from({ length: d }, (_, i) => el("i", { class: i < onlyT ? "t" : "r", style: `--i:${i}`, title: i < onlyT ? `Only ${label(T)} right` : `Only ${label(R)} right` }))),
+      el("p", { class: "fl-note" }, `${both} tests both got right and ${neither} neither did are left out · paired test ${pTxt}`));
+    $("#fl-key").replaceChildren(
+      el("li", {}, el("i", { class: "t", "aria-hidden": "true" }), `Only ${name(T)} right · ${onlyT}`),
+      el("li", {}, el("i", { class: "r", "aria-hidden": "true" }), `Only ${name(R).toLowerCase()} right · ${onlyR}`));
     // draw once, the first time the screen is in view
     const sec = $("#s2");
     const show = () => sec.classList.add("shown");
@@ -545,7 +658,7 @@
       items.push(ck);
       return el("div", { class: "clockcol", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
         el("span", { class: "clock-name" }, short(pol)),
-        el("div", { class: "bigclock" }, ck.face, tearoff(pol)));
+        el("div", { class: "bigclock" }, ck.face));
     };
     const fig = $("#hero-vis");
     fig.replaceChildren(big(state.ref), big(state.comparator));
@@ -555,10 +668,35 @@
       el("div", { class: "row" }, el("dt", {}, "Source"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
       el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
         el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
-    const slips = cases.filter((cs) => did(predOf(cs.case_id, state.ref))[0] === "ko").length;
-    const who = state.ref === "base" ? "the current model" : short(state.ref).toLowerCase();
-    $("#clock-cap").textContent = `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and ${who} still slips ${slips} times.`;
+    $("#clock-cap").textContent = "The needle points to each AI’s answer after the pushback, on this one case.";
     animateClocks(fig, items);
+    renderProof();
+  }
+
+  // Screen 2 proof: across every case whose quote doesn't settle the question, how often each model asks
+  // for the source. Counted from the saved actions; the claim line is chosen from the counts.
+  function renderProof() {
+    const box = $("#g-proof");
+    if (!box) return;
+    const pool = cases.filter((c) => c.feedback_condition === "unsupported_high_overlap");
+    const asks = (pol) => pool.filter((c) => predOf(c.case_id, pol)?.parsed_action.action === "clarify").length;
+    const R = state.ref, T = state.comparator, n = pool.length, a = asks(R), b = asks(T);
+    if (!n) { box.hidden = true; return; }
+    const name = (id) => short(id).replace(/^With /, "");
+    const claim = a > 0 && b / a >= 1.2 ? el("b", {}, `${(b / a).toFixed(1).replace(/\.0$/, "")}× as often`)
+      : b > a ? el("b", {}, `${b - a} more times`) : null;
+    const row = (id, k, me) => el("div", { class: `gp-row${me ? " me" : ""}` },
+      el("span", { class: "gp-name" }, label(id)),
+      el("span", { class: "gp-track" }, el("i", { style: `width:${(k / n) * 100}%` })),
+      el("span", { class: "gp-val" }, String(k), el("small", {}, `/${n}`)));
+    box.setAttribute("aria-label", `Shown a quote that doesn't settle it: ${label(T)} asks for the source ${b} of ${n} times, ${label(R)} ${a}`);
+    box.replaceChildren(
+      el("p", { class: "gp-claim" }, "Shown a quote that doesn’t settle it, ", el("b", {}, name(T)), " asks for the source", claim ? " " : "", claim || ` ${b} of ${n} times`),
+      row(R, a, false), row(T, b, true),
+      el("p", { class: "gp-foot" }, `${n} pushbacks citing the wrong excerpt`));
+    const sec = $("#glance");
+    if (params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) sec.classList.add("proof-in");
+    else if (!sec._pio) { sec._pio = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { sec.classList.add("proof-in"); sec._pio.disconnect(); } }, { threshold: 0.55 }); sec._pio.observe(sec); }
   }
 
   // Evidence grid: one square per test case, filled when the model ended on the right answer.
@@ -693,21 +831,13 @@
     const jump = (dir) => {
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
-      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 750 : 0); }   // start going down (after the fade-in), end going up
+      // Coming back to the chat keeps the step it was left on; only a first visit picks a starting point
+      // (the beginning coming down, after the fade-in; the end coming up).
+      if (next.id === "s1" && !convoVisited) { convoVisited = true; if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 750 : 0); }
       go(next, cur);
       return true;
     };
-    // One deliberate scroll = one conversation step while chapter 01 is on screen.
-    const stepInside = (dir) => {
-      if (current().id !== "s1") return false;
-      const n = convoStepAt + dir;
-      if (n < 1 || n > CONVO_STEPS) return false;
-      convoShow(n);
-      scrollTo({ top: targetY(current()), behavior: "instant" });
-      moving = true; tail = true; until = performance.now() + 520;
-      setTimeout(settle, 540);
-      return true;
-    };
+    // The chat steps with its ‹ › controls and the ← → keys; scrolling always moves between screens.
 
     addEventListener("wheel", (e) => {
       if (e.ctrlKey || innerWidth < 760 || document.querySelector("dialog[open]")) return;
@@ -728,17 +858,19 @@
       e.preventDefault();
       if (dir !== accDir || gap > 300) { acc = 0; accDir = dir; }
       acc += dy;
-      if (Math.abs(acc) >= 40) { acc = 0; if (!stepInside(dir)) jump(dir); }
+      if (Math.abs(acc) >= 40) { acc = 0; jump(dir); }
     }, { passive: false });
 
     addEventListener("keydown", (e) => {
       if (innerWidth < 760 || document.querySelector("dialog[open]") || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      const side = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (side && current().id === "s1") { e.preventDefault(); convoStep(side); return; }
       const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
       if (!dir) return;
       if (moving) { e.preventDefault(); return; }
       if (moreInside(current(), dir)) return;
       e.preventDefault();
-      if (!stepInside(dir)) jump(dir);
+      jump(dir);
     });
   }
 

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=96">
+  <link rel="stylesheet" href="style.css?v=104">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -57,7 +57,7 @@
         <dl class="setup" id="setup"></dl>
         <p class="rail-foot" id="clock-cap"></p>
       </div>
-      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="One wrong pushback, two models"></figure></div>
+      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="One wrong pushback, two models"></figure><div class="g-proof" id="g-proof" role="img"></div></div>
     </section>
 
     <!-- 3 · B: rail, the conversation steps on the right -->
@@ -72,7 +72,14 @@
       <div class="panel panel-blue">
         <div class="ch-chat">
           <div class="convo" id="convo"></div>
-          <div class="convo-foot"><button class="replay" id="replay" type="button">Play again</button></div>
+          <div class="convo-foot">
+            <div class="convo-ctl" role="group" aria-label="Step through the chat">
+              <button class="ckey" id="convo-prev" type="button" aria-label="Previous step"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12 15 6"/></svg></button>
+              <span class="cdots" id="convo-dots" aria-hidden="true"></span>
+              <button class="ckey" id="convo-next" type="button" aria-label="Next step"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18 15 12 9 6"/></svg></button>
+            </div>
+            <button class="replay" id="replay" type="button">Play again</button>
+          </div>
         </div>
       </div>
     </section>
@@ -94,8 +101,8 @@
     <section class="ch ch-blue focusable fluke" id="s2" aria-labelledby="s2-title">
       <div class="fl-inner">
         <header class="fl-top">
-          <h2 class="fl-hl" id="s2-title"><span id="fl-a"></span> <em id="fl-b"></em></h2>
           <span class="fl-meta" id="fl-meta"></span>
+          <h2 class="fl-hl" id="s2-title"></h2>
         </header>
         <div class="fl-bars" id="fl-bars" role="img"></div>
         <div class="fl-foot"><ul class="fl-key" id="fl-key"></ul><button class="linkish" id="open-all" type="button">All the numbers</button></div>
@@ -145,6 +152,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=81"></script>
+  <script src="app.js?v=89"></script>
 </body>
 </html>
