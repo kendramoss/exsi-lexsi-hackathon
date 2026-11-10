@@ -1796,3 +1796,10 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 :root[data-edge="light"] .dots a { border-color: #f5f9ff; }
 :root[data-edge="light"] .dots a:hover { background: rgba(245, 249, 255, .3); }
 :root[data-edge="light"] .dots a[aria-current] { background: #f5f9ff; border-color: #f5f9ff; }
+
+/* 5 · the highlighted row's arrows become a line of moving dots (the plain line under them is hidden, its
+   arrowhead stays); the other rows keep their plain solid arrows */
+.fr.on .fa { stroke: transparent; }
+.fr.on .ff { stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 0.1 9; animation: fair-dots .9s linear infinite; }
+@keyframes fair-dots { to { stroke-dashoffset: -27.3; } }
+@media (prefers-reduced-motion: reduce) { .fr.on .ff { animation: none; } }
