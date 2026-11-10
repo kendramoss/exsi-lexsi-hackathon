@@ -1628,3 +1628,43 @@ body.xf .focusable { transition: none; }
   #s3 { justify-content: safe center; padding-top: clamp(48px, 9vh, 96px); padding-bottom: clamp(32px, 6vh, 64px); gap: clamp(16px, 3vh, 32px); }
   .fair-svg { max-height: 44vh; }
 }
+
+/* 4 · one bar morphs from plain training into EvidenceTune; names and numbers crossfade */
+.ls-morph .ls-sg { position: relative; transition: flex-grow 900ms cubic-bezier(.45, 0, .2, 1); }
+.ls-morph .ls-sg b { position: absolute; left: clamp(10px, 1.2vw, 18px); top: 50%; translate: 0 -50%; transition: opacity 400ms var(--ease); }
+.ls-morph .ls-sg b.to, .ls-morph.is-to .ls-sg b.from { opacity: 0; }
+.ls-morph.is-to .ls-sg b.to { opacity: 1; transition-delay: 450ms; }
+.ls-swap { position: relative; display: block; height: 1.3em; }
+.ls-swap em { position: absolute; left: 0; font-style: normal; transition: opacity 400ms var(--ease); }
+.ls-swap .to, .ls-morph.is-to .ls-swap .from { opacity: 0; }
+.ls-morph.is-to .ls-swap .to { opacity: 1; color: #0b55b8; font-weight: 500; }
+.ls-delta { margin: 4px 0 0; font: 400 clamp(17px, 1.4vw, 21px)/1.3 var(--display); color: #3c76c6; opacity: 0; translate: 0 6px; transition: opacity 400ms var(--ease), translate 400ms var(--ease); }
+.ls-delta b { font: 400 clamp(22px, 2vw, 28px) var(--display); color: #0b55b8; margin-right: 6px; }
+.ls-delta.is-to { opacity: 1; translate: 0 0; transition-delay: 600ms; }
+.ls-morph .ls-bar { height: clamp(88px, 15vh, 140px); }
+
+/* 6 · see the work: the four pieces of the logo drift slowly behind the cards */
+#s4 { position: relative; overflow: hidden; }
+#s4 > :not(.s4-shapes) { position: relative; z-index: 1; }
+.s4-shapes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.s4-shapes i { position: absolute; display: block; background: rgba(245, 249, 255, .07); will-change: transform; }
+.s4-shapes .q1 { width: min(34vw, 620px); aspect-ratio: 1; border-radius: 100% 0 0 0; left: -6vw; top: -18vh; animation: s4-dr1 26s ease-in-out infinite alternate; }
+.s4-shapes .c1 { width: min(16vw, 300px); aspect-ratio: 1; border-radius: 50%; right: 6%; top: -6vh; animation: s4-dr2 22s ease-in-out infinite alternate; }
+.s4-shapes .sq { width: min(28vw, 520px); aspect-ratio: 1; left: 38%; bottom: -32vh; animation: s4-dr3 30s ease-in-out infinite alternate; }
+.s4-shapes .q2 { width: min(30vw, 560px); aspect-ratio: 1; border-radius: 0 0 100% 0; right: -8vw; bottom: -22vh; animation: s4-dr1 28s ease-in-out infinite alternate-reverse; }
+@keyframes s4-dr1 { to { transform: translate(80px, 60px) rotate(8deg); } }
+@keyframes s4-dr2 { to { transform: translate(-120px, 90px); } }
+@keyframes s4-dr3 { to { transform: translate(-90px, -60px) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { .s4-shapes i { animation: none; } }
+
+/* 4 · both bar labels share one style; the line under the bar swaps with the bar */
+.ls-swap em, .ls-morph.is-to .ls-swap .to { color: #0b55b8; font-weight: 500; }
+.ls-delta { display: grid; opacity: 1; translate: none; }
+.ls-delta p { grid-area: 1 / 1; margin: 0; font: 400 clamp(17px, 1.4vw, 21px)/1.35 var(--display); color: #3c76c6; transition: opacity 400ms var(--ease), translate 400ms var(--ease); }
+.ls-delta .from b { font: inherit; font-weight: 500; margin: 0; color: #0b55b8; }
+.ls-delta .to b { font: 400 clamp(22px, 2vw, 28px) var(--display); margin-right: 6px; }
+.ls-delta .to, .ls-delta.is-to .from { opacity: 0; translate: 0 6px; }
+.ls-delta.is-to .to { opacity: 1; translate: 0 0; transition-delay: 600ms; }
+/* 4 · the mistake half of the explainer in red; the under-bar lines are plain sentences */
+#listen .ls-bad { color: #c32a22; font-weight: 500; }
+.ls-delta .to b { font: inherit; font-weight: 500; margin: 0; color: #0b55b8; }

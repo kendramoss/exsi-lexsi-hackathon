@@ -769,8 +769,35 @@
           k[a] ? el("b", {}, `${Math.round((100 * k[a]) / tot)}%`) : "")))); };
     const pc = (pol) => Math.round((100 * count(pol).clarify) / n);
     box.setAttribute("aria-label", `Of ${n} quotes that don't settle the question, ${label(T)} asked for proof ${pc(T)}% of the time, ${label(R)} ${pc(R)}%`);
-    box.replaceChildren(bar(R, false), bar(T, true),
-      el("ul", { class: "ls-key" }, ...MOVES.map(([, cls, t]) => el("li", {}, el("i", { class: cls }), t))));
+    const key = el("ul", { class: "ls-key" }, ...MOVES.map(([, cls, t]) => el("li", {}, el("i", { class: cls }), t)));
+    // Reduced motion: both bars, side by side. Otherwise one bar that morphs from plain training into EvidenceTune.
+    if (params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches) { box.replaceChildren(bar(R, false), bar(T, true), key); return; }
+    const kR = count(R), kT = count(T), totR = MOVES.reduce((s, [a]) => s + kR[a], 0) || 1, totT = MOVES.reduce((s, [a]) => s + kT[a], 0) || 1;
+    const pct = (k, tot, a) => Math.round((100 * k[a]) / tot);
+    const name2 = (id) => label(id).replace(/^With /, "");
+    const segs = MOVES.map(([a, cls]) => el("span", { class: `ls-sg ${cls}`, style: `flex-grow:${kR[a] / totR}` },
+      el("b", { class: "from" }, kR[a] ? `${pct(kR, totR, a)}%` : ""), el("b", { class: "to" }, kT[a] ? `${pct(kT, totT, a)}%` : "")));
+    const name = el("span", { class: "ls-name ls-swap" }, el("em", { class: "from" }, label(R)), el("em", { class: "to" }, label(T)));
+    // One line under the bar, swapping with it: what plain training does, then what changed with EvidenceTune.
+    const delta = el("div", { class: "ls-delta" },
+      el("p", { class: "from" }, `${label(R)} asks for proof on ${pct(kR, totR, "clarify")}% of these quotes`),
+      el("p", { class: "to" }, `${name2(T)} asks for proof on `, el("b", {}, `${pc(T)}%`), `, up from ${pc(R)}%`));
+    const wrapM = el("div", { class: "ls-mdl ls-morph" }, name, el("div", { class: "ls-bar" }, ...segs));
+    box.replaceChildren(wrapM, delta, key);
+    let on = false, timer = 0;
+    const flip = () => {
+      on = !on;
+      wrapM.classList.toggle("is-to", on); delta.classList.toggle("is-to", on);
+      segs.forEach((s, i) => { const a = MOVES[i][0]; s.style.flexGrow = on ? kT[a] / totT : kR[a] / totR; });
+      timer = setTimeout(flip, on ? 4200 : 2400);
+    };
+    const sec = $("#listen");
+    if (sec._mio) sec._mio.disconnect();
+    sec._mio = new IntersectionObserver((es) => {
+      clearTimeout(timer);
+      if (es.some((e) => e.isIntersecting)) timer = setTimeout(flip, 1400);
+    }, { threshold: 0.5 });
+    sec._mio.observe(sec);
   }
 
   // Screen 2 proof: across every case whose quote doesn't settle the question, how often each model asks

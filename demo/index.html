@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=120">
+  <link rel="stylesheet" href="style.css?v=124">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -86,7 +86,7 @@
     <section class="ch ch-light focusable" id="listen" aria-labelledby="listen-title">
       <div class="ls-inner">
         <h2 id="listen-title">Give it a wrong quote, and EvidenceTune asks for the right one</h2>
-        <p class="ls-why">This quote proves nothing, so asking for proof (navy) is the best move and switching (red) is a mistake</p>
+        <p class="ls-why">This quote proves nothing, so asking for proof is the best move and <span class="ls-bad">switching is a mistake</span></p>
         <div class="ls-chart" id="ls-chart" role="img"></div>
       </div>
     </section>
@@ -107,6 +107,7 @@
 
     <!-- 7 · the end -->
     <section class="ch ch-blue focusable" id="s4" data-surface="blue" aria-labelledby="s4-title">
+      <div class="s4-shapes" aria-hidden="true"><i class="q1"></i><i class="c1"></i><i class="sq"></i><i class="q2"></i></div>
       <header class="end-head"><h2 id="s4-title">See the work</h2></header>
       <div class="tiles">
         <a class="tile model" href="https://huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</em></span><img src="assets/previews/model.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Model</small><b>EvidenceTune adapter <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</span></span></a>
@@ -130,6 +131,6 @@
     </dialog>
   </main>
 
-  <script src="app.js?v=100"></script>
+  <script src="app.js?v=103"></script>
 </body>
 </html>
