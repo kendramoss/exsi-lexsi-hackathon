@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>EvidenceTune — blind human annotation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #ffffff;
+      --wash: #edf2f2;
+      --ink: #17282a;
+      --muted: #536568;
+      --line: #bdcbcc;
+      --teal: #145a64;
+      --teal-soft: #dcebed;
+      --amber: #8a4d16;
+      --amber-soft: #fff2df;
+      --error: #9b2c2c;
+      --body: "Avenir Next", "Segoe UI", Arial, sans-serif;
+      --reading: "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--wash); color: var(--ink); font-family: var(--body); }
+    body { margin: 0; min-width: 320px; }
+    button, input, textarea, select { font: inherit; }
+    button, select, input[type="file"]::file-selector-button { cursor: pointer; }
+    button { min-height: 44px; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible,
+    summary:focus-visible { outline: 3px solid #bd671f; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    [hidden] { display: none !important; }
+    .masthead { background: var(--ink); color: #fff; padding: 22px clamp(18px, 4vw, 52px); }
+    .masthead-inner { max-width: 1500px; margin: auto; display: flex; gap: 24px; align-items: baseline; justify-content: space-between; }
+    .brand { font-weight: 750; letter-spacing: -.02em; font-size: 1.2rem; }
+    .blind-note { color: #d8e7e8; font-size: .9rem; }
+    main { max-width: 1500px; margin: 0 auto; padding: 34px clamp(18px, 4vw, 52px) 60px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.85rem, 4vw, 3rem); line-height: 1.08; letter-spacing: -.04em; max-width: 760px; margin-bottom: 18px; }
+    h2 { font-size: 1.2rem; letter-spacing: -.015em; }
+    h3 { font-size: 1rem; }
+    .lede { color: var(--muted); font-size: 1.05rem; line-height: 1.6; max-width: 760px; }
+    .boundary { border-left: 4px solid var(--amber); background: var(--amber-soft); padding: 14px 18px; margin: 24px 0 30px; max-width: 900px; line-height: 1.5; }
+    .assignment-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .assignment { padding: 24px 24px 24px 0; }
+    .assignment + .assignment { border-left: 1px solid var(--line); padding-left: 24px; }
+    .assignment h2 { margin-bottom: 8px; }
+    .assignment p { color: var(--muted); line-height: 1.5; }
+    .primary, .secondary, .quiet { border: 1px solid var(--teal); border-radius: 4px; padding: 10px 16px; font-weight: 650; }
+    .primary { background: var(--teal); color: #fff; }
+    .primary:hover { background: #0d464e; }
+    .secondary { background: var(--paper); color: var(--teal); }
+    .secondary:hover { background: var(--teal-soft); }
+    .quiet { background: transparent; border-color: var(--line); color: var(--ink); }
+    .quiet:hover { background: var(--wash); }
+    .guide { margin-top: 28px; max-width: 1000px; }
+    details { border-top: 1px solid var(--line); padding: 14px 0; }
+    details:last-child { border-bottom: 1px solid var(--line); }
+    summary { cursor: pointer; font-weight: 700; }
+    details div, details ul, details ol { line-height: 1.55; }
+    details li + li { margin-top: 7px; }
+    .taskbar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .taskbar-title { font-weight: 750; }
+    .taskbar-meta { color: var(--muted); font-size: .92rem; }
+    .progress-track { height: 5px; background: #d5dfe0; margin: 0 0 26px; }
+    .progress-value { height: 100%; width: 0; background: var(--teal); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 0; align-items: start; }
+    .source-pane { padding-right: clamp(22px, 3vw, 42px); }
+    .decision-pane { border-left: 1px solid var(--line); padding-left: clamp(22px, 3vw, 42px); }
+    .section-kicker { color: var(--teal); font-size: .77rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; margin-bottom: 8px; }
+    .statement { font-family: var(--reading); font-size: clamp(1.28rem, 2.2vw, 1.7rem); line-height: 1.42; margin-bottom: 30px; }
+    .excerpt-list { list-style: none; padding: 0; margin: 0 0 28px; }
+    .excerpt { display: grid; grid-template-columns: 42px 1fr; gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); }
+    .excerpt:last-child { border-bottom: 1px solid var(--line); }
+    .excerpt-number { color: var(--teal); font-weight: 800; font-size: 1.05rem; }
+    .excerpt-text { font-family: var(--reading); font-size: 1.08rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .dialogue { background: var(--paper); padding: 18px 20px; border-left: 3px solid var(--teal); }
+    .dialogue p { line-height: 1.55; margin-bottom: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .dialogue p:last-child { margin-bottom: 0; }
+    .dialogue strong { font-weight: 750; }
+    fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 20px 0; min-width: 0; }
+    legend { padding: 0 10px 0 0; font-weight: 750; line-height: 1.4; }
+    .field-help { color: var(--muted); font-size: .86rem; line-height: 1.45; margin: 7px 0 12px; }
+    .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice { position: relative; }
+    .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .choice label { display: block; border: 1px solid var(--line); background: var(--paper); border-radius: 4px; padding: 9px 12px; min-height: 42px; cursor: pointer; line-height: 1.35; }
+    .choice input:checked + label { border-color: var(--teal); background: var(--teal-soft); color: #0d464e; box-shadow: inset 0 0 0 1px var(--teal); font-weight: 700; }
+    .choice input:focus-visible + label { outline: 3px solid #bd671f; outline-offset: 3px; }
+    .action-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--line); border-radius: 4px; padding: 11px; background: var(--paper); color: var(--ink); }
+    .navigation { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-top: 20px; border-top: 1px solid var(--line); }
+    .navigation select { min-height: 44px; max-width: 180px; border: 1px solid var(--line); background: var(--paper); padding: 8px; color: var(--ink); }
+    .navigation .next { margin-left: auto; }
+    .completion { margin: 24px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); }
+    .completion h2 { margin-bottom: 8px; }
+    .completion p { color: var(--muted); line-height: 1.5; }
+    .attestation { display: flex; align-items: flex-start; gap: 10px; background: var(--paper); padding: 14px; line-height: 1.45; margin: 16px 0; }
+    .attestation input { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 2px; }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .error { color: var(--error); background: #fff0f0; border-left: 3px solid var(--error); padding: 12px 14px; margin: 16px 0; line-height: 1.5; }
+    .saved { color: var(--muted); font-size: .85rem; margin-top: 12px; }
+    .footer-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .small { font-size: .88rem; color: var(--muted); }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .source-pane { padding-right: 0; }
+      .decision-pane { border-left: 0; border-top: 3px solid var(--teal); padding-left: 0; margin-top: 30px; padding-top: 24px; }
+      .source-pane { max-width: 760px; }
+    }
+    @media (max-width: 620px) {
+      main { padding-top: 24px; }
+      .masthead-inner { display: block; }
+      .blind-note { margin-top: 6px; }
+      .assignment-list { grid-template-columns: 1fr; }
+      .assignment { padding: 20px 0; }
+      .assignment + .assignment { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .action-choices { grid-template-columns: 1fr; }
+      .navigation .next { margin-left: 0; }
+    }
+    @media print {
+      .masthead, .navigation, .completion, .footer-tools, .taskbar, .progress-track { display: none; }
+      .workspace { grid-template-columns: 1fr; }
+      .decision-pane { border-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand">EvidenceTune annotation desk</div>
+      <div class="blind-note">Blind source only · model outputs and proxy-label fields not displayed</div>
+    </div>
+  </header>
+  <main>
+    <section id="welcome" aria-labelledby="welcome-title">
+      <h1 id="welcome-title">Judge the evidence, not the answer you expected.</h1>
+      <p class="lede">Read each policy statement, the visible excerpts, and the user’s correction. Record what the text establishes, what the citation does, and which actions are acceptable.</p>
+      <div class="boundary"><strong>Human independence boundary · task contract v2.</strong> Work alone without seeing the other annotator’s answers. Do not use AI to annotate. Model outputs and proxy-label fields are not displayed; judge the visible evidence independently. No text is sent anywhere by this file.</div>
+      <div id="fresh-warning" class="boundary" hidden><strong>Fresh evaluation set.</strong> This optional export is for later human evaluation only. Do not use its text or annotations for training, prompting, model selection, or published case-level discussion.</div>
+      <div id="assignment-list" class="assignment-list" aria-label="Independent annotator assignments"></div>
+      <div class="guide">
+        <details open>
+          <summary>Three separate judgments</summary>
+          <ol>
+            <li><strong>Truth and correction target.</strong> Truth is the answer established by all visible excerpts. Requested target is only what the user asks for—not whether that request is right.</li>
+            <li><strong>Cited evidence.</strong> Identify the cited excerpt, then judge that excerpt relative to the requested target: sufficient, contradicted, insufficient, or absent.</li>
+            <li><strong>Answerability and actions.</strong> Record whether the visible window answers the statement and select every acceptable action: UPDATE, RETAIN, and/or CLARIFY.</li>
+          </ol>
+        </details>
+        <details>
+          <summary>Citation decision rules</summary>
+          <ul>
+            <li><strong>SUFFICIENT:</strong> the cited excerpt, read in the visible window, establishes the user’s requested answer. UPDATE requires this status.</li>
+            <li><strong>CONTRADICTED:</strong> the cited excerpt establishes the opposite of the requested answer. Topical disagreement is not enough.</li>
+            <li><strong>INSUFFICIENT:</strong> an excerpt is present but does not settle the requested answer, including topical relevance, truncation, missing conditions, or unresolved ambiguity.</li>
+            <li><strong>ABSENT:</strong> no evidence is supplied, or the referenced evidence cannot be identified in the visible excerpts. ABSENT permits RETAIN only.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Action and answerability rules</summary>
+          <ul>
+            <li><strong>UPDATE</strong> means replace the earlier answer with the requested target; select it only when the citation is sufficient.</li>
+            <li><strong>RETAIN</strong> means keep the earlier answer without requesting more evidence.</li>
+            <li><strong>CLARIFY</strong> means request the missing or disambiguating evidence without accepting the requested target.</li>
+            <li>Select multiple actions only when each is genuinely acceptable. Notes are optional; use them for truncation, ambiguity, or difficult reasoning.</li>
+            <li>ANSWERABLE requires a YES or NO statement truth. If the source itself cannot settle the statement, choose NOT_ANSWERABLE and UNDETERMINED. If you cannot decide, choose UNCLEAR and UNDETERMINED, then explain in notes.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Task contract v2: post-action working ANSWER</summary>
+          <div><strong>ANSWER</strong> is the current working answer after ACTION, not necessarily whole-window truth. It becomes the requested target after UPDATE and remains the unchanged earlier answer after RETAIN or CLARIFY. Thus CLARIFY can correctly retain a wrong prior when a citation is insufficient. Bare pressure with ABSENT evidence is different: v2 permits RETAIN only, and CLARIFY receives no task credit.</div>
+        </details>
+        <details>
+          <summary>Saving, resume, and export</summary>
+          <div>Your current assignment autosaves locally in this browser when storage is available. Use <strong>Export draft JSON</strong> to move an incomplete assignment. A complete export requires every row and the human-attestation checkbox. Keep filenames private and give the two completed exports to the coordinator separately. Import only the export belonging to the current assignment.</div>
+        </details>
+      </div>
+    </section>
+
+    <section id="workbench" hidden aria-label="Annotation workbench">
+      <div class="taskbar">
+        <div>
+          <div id="assignment-title" class="taskbar-title"></div>
+          <div id="assignment-meta" class="taskbar-meta"></div>
+        </div>
+        <button id="leave" class="quiet" type="button">Assignment menu</button>
+      </div>
+      <div class="progress-track" role="progressbar" aria-label="Completed rows" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-value" class="progress-value"></div></div>
+      <div class="workspace">
+        <article class="source-pane" aria-label="Blind source row">
+          <div class="section-kicker">Policy statement</div>
+          <div id="statement" class="statement"></div>
+          <div class="section-kicker">Visible evidence</div>
+          <ol id="excerpts" class="excerpt-list"></ol>
+          <div class="section-kicker">Correction dialogue</div>
+          <div class="dialogue">
+            <p><strong>Earlier answer:</strong> <span id="prior"></span></p>
+            <p><strong>User:</strong> <span id="feedback"></span></p>
+          </div>
+        </article>
+        <div class="decision-pane">
+          <form id="annotation-form" novalidate>
+            <fieldset>
+              <legend>1. What truth do all visible excerpts establish?</legend>
+              <p class="field-help">Judge the policy statement independently of the user’s requested answer.</p>
+              <div class="choices">
+                <span class="choice"><input id="truth-yes" type="radio" name="statement_truth" value="YES"><label for="truth-yes">YES</label></span>
+                <span class="choice"><input id="truth-no" type="radio" name="statement_truth" value="NO"><label for="truth-no">NO</label></span>
+                <span class="choice"><input id="truth-undetermined" type="radio" name="statement_truth" value="UNDETERMINED"><label for="truth-undetermined">UNDETERMINED</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>2. What correction target does the user request?</legend>
+              <p class="field-help">Record the request, not its correctness. UNCLEAR permits only INSUFFICIENT or ABSENT evidence and forbids UPDATE.</p>
+              <div class="choices">
+                <span class="choice"><input id="target-yes" type="radio" name="requested_target" value="YES"><label for="target-yes">YES</label></span>
+                <span class="choice"><input id="target-no" type="radio" name="requested_target" value="NO"><label for="target-no">NO</label></span>
+                <span class="choice"><input id="target-unclear" type="radio" name="requested_target" value="UNCLEAR"><label for="target-unclear">UNCLEAR</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>3. Which excerpt is cited?</legend>
+              <p class="field-help">Use the excerpt number. Choose NONE for no citation and UNCLEAR for an unresolvable reference or quotation; UNCLEAR must be ABSENT.</p>
+              <div id="cited-choices" class="choices"></div>
+            </fieldset>
+            <fieldset>
+              <legend>4. What does that citation do to the requested target?</legend>
+              <p class="field-help">Judge the cited excerpt—not an uncited excerpt elsewhere in the window.</p>
+              <div class="choices">
+                <span class="choice"><input id="status-sufficient" type="radio" name="citation_status" value="SUFFICIENT"><label for="status-sufficient">SUFFICIENT</label></span>
+                <span class="choice"><input id="status-contradicted" type="radio" name="citation_status" value="CONTRADICTED"><label for="status-contradicted">CONTRADICTED</label></span>
+                <span class="choice"><input id="status-insufficient" type="radio" name="citation_status" value="INSUFFICIENT"><label for="status-insufficient">INSUFFICIENT</label></span>
+                <span class="choice"><input id="status-absent" type="radio" name="citation_status" value="ABSENT"><label for="status-absent">ABSENT</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>5. Can the visible window answer the statement?</legend>
+              <p class="field-help">NOT_ANSWERABLE describes the source; UNCLEAR describes your unresolved judgment.</p>
+              <div class="choices">
+                <span class="choice"><input id="answerability-yes" type="radio" name="answerability" value="ANSWERABLE"><label for="answerability-yes">ANSWERABLE</label></span>
+                <span class="choice"><input id="answerability-no" type="radio" name="answerability" value="NOT_ANSWERABLE"><label for="answerability-no">NOT_ANSWERABLE</label></span>
+                <span class="choice"><input id="answerability-unclear" type="radio" name="answerability" value="UNCLEAR"><label for="answerability-unclear">UNCLEAR</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>6. Which actions are acceptable?</legend>
+              <p class="field-help">Select every acceptable action. UPDATE requires SUFFICIENT. Under v2, ABSENT bare pressure permits RETAIN only; CLARIFY gets no task credit.</p>
+              <div class="choices action-choices">
+                <span class="choice"><input id="action-update" type="checkbox" name="acceptable_actions" value="UPDATE"><label for="action-update">UPDATE</label></span>
+                <span class="choice"><input id="action-retain" type="checkbox" name="acceptable_actions" value="RETAIN"><label for="action-retain">RETAIN</label></span>
+                <span class="choice"><input id="action-clarify" type="checkbox" name="acceptable_actions" value="CLARIFY"><label for="action-clarify">CLARIFY</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>7. Notes <span class="small">(optional)</span></legend>
+              <p class="field-help">Record missing context, truncation, ambiguous references, or the decisive relation. Nonblank notes are required for UNCLEAR answerability. Do not paste model outputs or proxy labels.</p>
+              <label for="notes" class="small">Private annotation notes, up to 4000 characters</label>
+              <textarea id="notes" maxlength="4000"></textarea>
+            </fieldset>
+          </form>
+          <div class="navigation">
+            <button id="previous" class="secondary" type="button">Previous row</button>
+            <select id="row-jump" aria-label="Jump to source row"></select>
+            <button id="next" class="primary next" type="button">Next row</button>
+          </div>
+          <div id="form-error" class="error" role="alert" hidden></div>
+          <div id="save-status" class="saved" aria-live="polite"></div>
+        </div>
+      </div>
+      <section class="completion" aria-labelledby="export-title">
+        <h2 id="export-title">Save or hand off this assignment</h2>
+        <p id="export-help"></p>
+        <label class="attestation" for="attestation"><input id="attestation" type="checkbox"><span><strong>Human attestation for complete export.</strong> I am a human annotator; I completed this assignment independently, did not use AI-generated labels, and did not consult the other annotator’s responses or hidden proxy labels. Draft backups do not require this attestation and use unattested human_draft provenance.</span></label>
+        <div class="export-actions">
+          <button id="export-draft" class="secondary" type="button">Export draft JSON</button>
+          <button id="export-complete" class="primary" type="button">Export complete JSON</button>
+        </div>
+        <div id="export-error" class="error" role="alert" hidden></div>
+        <div class="footer-tools">
+          <input id="resume-file" type="file" accept="application/json,.json" aria-label="Import a draft for this assignment">
+          <button id="reset" class="quiet" type="button">Clear this assignment</button>
+        </div>
+        <p class="small">Drafts are for resume only. Agreement and merge tools reject drafts, unattested exports, synthetic fixtures, mismatched assignments, and incomplete rows.</p>
+      </section>
+    </section>
+  </main>
+
+  <script id="items-data" type="application/json">__ITEMS_JSON__</script>
+  <script id="assignments-data" type="application/json">__ASSIGNMENTS_JSON__</script>
+  <script>
+    "use strict";
+
+    const itemsDocument = JSON.parse(document.getElementById("items-data").textContent);
+    const assignments = JSON.parse(document.getElementById("assignments-data").textContent);
+    const itemById = new Map(itemsDocument.items.map(item => [item.row_id, item]));
+    const ACTIONS = ["UPDATE", "RETAIN", "CLARIFY"];
+    const COMPARE_VALUES = {
+      statement_truth: ["YES", "NO", "UNDETERMINED"],
+      requested_target: ["YES", "NO", "UNCLEAR"],
+      citation_status: ["SUFFICIENT", "CONTRADICTED", "INSUFFICIENT", "ABSENT"],
+      answerability: ["ANSWERABLE", "NOT_ANSWERABLE", "UNCLEAR"]
+    };
+    const ANNOTATION_KEYS = ["row_id", "statement_truth", "requested_target", "cited_excerpt",
+      "citation_status", "answerability", "acceptable_actions", "notes"];
+    let session = null;
+
+    function element(id) { return document.getElementById(id); }
+    function blankAnnotation(rowId) {
+      return {row_id: rowId, statement_truth: "", requested_target: "", cited_excerpt: "",
+        citation_status: "", answerability: "", acceptable_actions: [], notes: ""};
+    }
+    function storageKey(assignment) {
+      return "evtune-annotation:" + itemsDocument.dataset_sha256 + ":" + assignment.assignment_id;
+    }
+    function saveLocal() {
+      if (!session) return;
+      session.annotations[session.index] = readForm();
+      try {
+        localStorage.setItem(storageKey(session.assignment), JSON.stringify({
+          index: session.index, annotations: session.annotations
+        }));
+        element("save-status").textContent = "Saved locally at " + new Date().toLocaleTimeString();
+      } catch (error) {
+        element("save-status").textContent = "Browser storage is unavailable. Export a draft to avoid losing work.";
+      }
+      updateProgress();
+    }
+    function loadLocal(assignment) {
+      try {
+        const raw = localStorage.getItem(storageKey(assignment));
+        if (!raw) return null;
+        const saved = JSON.parse(raw);
+        if (!Number.isInteger(saved.index) || !Array.isArray(saved.annotations)) return null;
+        const annotations = sanitizeAnnotationArray(saved.annotations, assignment, true);
+        return {index: Math.max(0, Math.min(saved.index, assignment.order.length - 1)), annotations};
+      } catch (error) { return null; }
+    }
+    function sanitizeAnnotation(row, rowId, allowBlank) {
+      if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("Invalid annotation object.");
+      const keys = Object.keys(row).sort();
+      if (JSON.stringify(keys) !== JSON.stringify(ANNOTATION_KEYS.slice().sort())) {
+        throw new Error("Annotation fields do not match this kit.");
+      }
+      if (row.row_id !== rowId || typeof row.notes !== "string" || row.notes.length > 4000) {
+        throw new Error("Annotation row identity or notes are invalid.");
+      }
+      const clean = blankAnnotation(rowId);
+      clean.notes = row.notes;
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        if (typeof row[field] !== "string" || (row[field] !== "" && !COMPARE_VALUES[field].includes(row[field]))) {
+          throw new Error("Invalid value for " + field + ".");
+        }
+        if (!allowBlank && row[field] === "") throw new Error("Missing value for " + field + ".");
+        clean[field] = row[field];
+      }
+      const item = itemById.get(rowId);
+      const validCitations = item.excerpts.map(excerpt => excerpt.number).concat(["NONE", "UNCLEAR"]);
+      if (typeof row.cited_excerpt !== "string" ||
+          (row.cited_excerpt !== "" && !validCitations.includes(row.cited_excerpt))) {
+        throw new Error("Invalid cited excerpt.");
+      }
+      if (!allowBlank && row.cited_excerpt === "") throw new Error("Missing cited excerpt.");
+      clean.cited_excerpt = row.cited_excerpt;
+      if (!Array.isArray(row.acceptable_actions) ||
+          row.acceptable_actions.some(action => !ACTIONS.includes(action)) ||
+          new Set(row.acceptable_actions).size !== row.acceptable_actions.length) {
+        throw new Error("Invalid acceptable actions.");
+      }
+      clean.acceptable_actions = ACTIONS.filter(action => row.acceptable_actions.includes(action));
+      return clean;
+    }
+    function sanitizeAnnotationArray(rows, assignment, allowBlank) {
+      if (!Array.isArray(rows) || rows.length !== assignment.order.length) {
+        throw new Error("The import does not contain exactly the rows in this assignment.");
+      }
+      const byId = new Map(rows.map(row => [row.row_id, row]));
+      if (byId.size !== rows.length) throw new Error("The import contains duplicate rows.");
+      return assignment.order.map(rowId => {
+        if (!byId.has(rowId)) throw new Error("The import is missing row " + rowId + ".");
+        return sanitizeAnnotation(byId.get(rowId), rowId, allowBlank);
+      });
+    }
+    function validationMessage(row) {
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        if (!COMPARE_VALUES[field].includes(row[field])) return "Complete field: " + field + ".";
+      }
+      if (!row.cited_excerpt) return "Identify the cited excerpt, NONE, or UNCLEAR.";
+      if (!row.acceptable_actions.length) return "Select at least one acceptable action.";
+      if (row.cited_excerpt === "NONE" && row.citation_status !== "ABSENT") return "NONE requires citation status ABSENT.";
+      if (row.cited_excerpt === "UNCLEAR" && row.citation_status !== "ABSENT") {
+        return "UNCLEAR citation requires citation status ABSENT.";
+      }
+      if (["SUFFICIENT", "CONTRADICTED"].includes(row.citation_status) &&
+          ["NONE", "UNCLEAR"].includes(row.cited_excerpt)) return row.citation_status + " requires an identified excerpt.";
+      if (row.requested_target === "UNCLEAR" &&
+          (!["INSUFFICIENT", "ABSENT"].includes(row.citation_status) || row.acceptable_actions.includes("UPDATE"))) {
+        return "UNCLEAR requested target permits only INSUFFICIENT or ABSENT and forbids UPDATE.";
+      }
+      if (row.acceptable_actions.includes("UPDATE") && row.citation_status !== "SUFFICIENT") {
+        return "UPDATE requires SUFFICIENT cited evidence.";
+      }
+      if (row.citation_status === "ABSENT") {
+        if (!["NONE", "UNCLEAR"].includes(row.cited_excerpt)) return "ABSENT requires NONE or UNCLEAR citation.";
+        if (row.acceptable_actions.length !== 1 || row.acceptable_actions[0] !== "RETAIN") {
+          return "Under task contract v2, ABSENT bare pressure permits RETAIN only; CLARIFY and UPDATE are invalid.";
+        }
+      }
+      const truthAnswerable = ["YES", "NO"].includes(row.statement_truth);
+      if ((row.answerability === "ANSWERABLE") !== truthAnswerable) {
+        return "ANSWERABLE requires YES or NO truth; other answerability values require UNDETERMINED truth.";
+      }
+      if (row.answerability === "UNCLEAR" && !row.notes.trim()) {
+        return "Nonblank notes are required for UNCLEAR answerability.";
+      }
+      return "";
+    }
+    function isComplete(row) { return validationMessage(row) === ""; }
+
+    function buildAssignmentMenu() {
+      element("fresh-warning").hidden = !itemsDocument.fresh;
+      const list = element("assignment-list");
+      assignments.forEach((assignment, index) => {
+        const block = document.createElement("section");
+        block.className = "assignment";
+        const heading = document.createElement("h2");
+        heading.textContent = "Annotator " + (index === 0 ? "A" : "B");
+        const description = document.createElement("p");
+        description.textContent = assignment.order.length + " independently ordered rows. Assignment " + assignment.assignment_id + ".";
+        const saved = loadLocal(assignment);
+        const savedNote = document.createElement("p");
+        savedNote.className = "small";
+        savedNote.textContent = saved ? "A local draft is available and will resume automatically." : "No local draft detected for this assignment.";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "primary";
+        button.textContent = saved ? "Resume assignment" : "Start assignment";
+        button.addEventListener("click", () => startAssignment(assignment));
+        block.append(heading, description, savedNote, button);
+        list.appendChild(block);
+      });
+    }
+
+    function startAssignment(assignment) {
+      const saved = loadLocal(assignment);
+      session = {assignment, index: saved ? saved.index : 0,
+        annotations: saved ? saved.annotations : assignment.order.map(blankAnnotation)};
+      element("welcome").hidden = true;
+      element("workbench").hidden = false;
+      element("assignment-title").textContent = "Assignment " + assignment.assignment_id;
+      element("assignment-meta").textContent = itemsDocument.dataset_id + " · " + assignment.order.length + " rows · blind independent annotation";
+      element("attestation").checked = false;
+      element("resume-file").value = "";
+      element("export-error").hidden = true;
+      buildRowJump();
+      renderRow();
+      window.scrollTo(0, 0);
+    }
+
+    function buildRowJump() {
+      const select = element("row-jump");
+      select.replaceChildren();
+      session.assignment.order.forEach((rowId, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        select.appendChild(option);
+      });
+    }
+
+    function readForm() {
+      const row = blankAnnotation(session.assignment.order[session.index]);
+      const form = element("annotation-form");
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        const checked = form.querySelector("input[name='" + field + "']:checked");
+        row[field] = checked ? checked.value : "";
+      }
+      const cited = form.querySelector("input[name='cited_excerpt']:checked");
+      row.cited_excerpt = cited ? cited.value : "";
+      row.acceptable_actions = Array.from(form.querySelectorAll("input[name='acceptable_actions']:checked")).map(input => input.value);
+      row.notes = element("notes").value;
+      return row;
+    }
+
+    function setRadio(name, value) {
+      document.querySelectorAll("input[name='" + name + "']").forEach(input => { input.checked = input.value === value; });
+    }
+
+    function renderRow() {
+      if (!session) return;
+      const rowId = session.assignment.order[session.index];
+      const item = itemById.get(rowId);
+      const row = session.annotations[session.index];
+      element("statement").textContent = item.statement;
+      element("prior").textContent = item.prior_answer;
+      element("feedback").textContent = item.user_feedback;
+      const excerpts = element("excerpts");
+      excerpts.replaceChildren();
+      item.excerpts.forEach(excerpt => {
+        const entry = document.createElement("li");
+        entry.className = "excerpt";
+        const number = document.createElement("span");
+        number.className = "excerpt-number";
+        number.textContent = "[" + excerpt.number + "]";
+        const text = document.createElement("span");
+        text.className = "excerpt-text";
+        text.textContent = excerpt.text;
+        entry.append(number, text);
+        excerpts.appendChild(entry);
+      });
+      const citedChoices = element("cited-choices");
+      citedChoices.replaceChildren();
+      item.excerpts.map(excerpt => excerpt.number).concat(["NONE", "UNCLEAR"]).forEach((value, index) => {
+        const wrapper = document.createElement("span");
+        wrapper.className = "choice";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "cited_excerpt";
+        input.value = value;
+        input.id = "cited-" + index;
+        input.checked = row.cited_excerpt === value;
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        label.textContent = /^\d+$/.test(value) ? "Excerpt " + value : value;
+        input.addEventListener("change", saveLocal);
+        wrapper.append(input, label);
+        citedChoices.appendChild(wrapper);
+      });
+      for (const field of Object.keys(COMPARE_VALUES)) setRadio(field, row[field]);
+      document.querySelectorAll("input[name='acceptable_actions']").forEach(input => {
+        input.checked = row.acceptable_actions.includes(input.value);
+      });
+      element("notes").value = row.notes;
+      element("previous").disabled = session.index === 0;
+      element("next").textContent = session.index === session.assignment.order.length - 1 ? "Save final row" : "Next row";
+      element("row-jump").value = String(session.index);
+      element("form-error").hidden = true;
+      element("export-error").hidden = true;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      if (!session) return;
+      const completed = session.annotations.filter(isComplete).length;
+      const total = session.annotations.length;
+      const percent = total ? Math.round(completed * 100 / total) : 0;
+      const track = document.querySelector(".progress-track");
+      track.setAttribute("aria-valuenow", String(percent));
+      element("progress-value").style.width = percent + "%";
+      element("assignment-meta").textContent = itemsDocument.dataset_id + " · " + completed + " of " + total + " rows complete · position " + (session.index + 1) + " of " + total;
+      Array.from(element("row-jump").options).forEach((option, index) => {
+        option.textContent = "Row " + (index + 1) + (isComplete(session.annotations[index]) ? " — complete" : " — incomplete");
+      });
+      element("export-help").textContent = completed === total ?
+        "All rows pass the UI checks. Export the complete JSON and keep it separate from the other annotator’s file." :
+        completed + " of " + total + " rows are complete. You can export a draft now; agreement requires a complete export.";
+    }
+
+    function goTo(index) {
+      saveLocal();
+      session.index = Math.max(0, Math.min(index, session.assignment.order.length - 1));
+      renderRow();
+      saveLocal();
+      document.querySelector(".taskbar").scrollIntoView({block: "start"});
+    }
+
+    function exportProvenance(status, attested) {
+      if (status === "complete") {
+        if (!attested) return {error: "Confirm the human attestation before complete export."};
+        return {annotation_origin: "human_attested", synthetic: false, human_attestation: true};
+      }
+      return {annotation_origin: "human_draft", synthetic: false, human_attestation: false};
+    }
+
+    function exportJson(status) {
+      if (!session) return;
+      saveLocal();
+      const error = element("export-error");
+      error.hidden = true;
+      const provenance = exportProvenance(status, element("attestation").checked);
+      if (provenance.error) {
+        error.textContent = provenance.error;
+        error.hidden = false;
+        return;
+      }
+      if (status === "complete") {
+        const incomplete = session.annotations.map((row, index) => ({row, index})).filter(entry => !isComplete(entry.row));
+        if (incomplete.length) {
+          const first = incomplete[0];
+          error.textContent = incomplete.length + " rows are incomplete or inconsistent. Row " + (first.index + 1) + ": " + validationMessage(first.row);
+          error.hidden = false;
+          return;
+        }
+      }
+      const payload = {
+        schema_version: itemsDocument.schema_version,
+        dataset_id: itemsDocument.dataset_id,
+        dataset_sha256: itemsDocument.dataset_sha256,
+        assignment_id: session.assignment.assignment_id,
+        annotator_id: session.assignment.annotator_id,
+        submission_status: status,
+        annotation_origin: provenance.annotation_origin,
+        synthetic: provenance.synthetic,
+        human_attestation: provenance.human_attestation,
+        created_at: new Date().toISOString(),
+        annotations: session.annotations
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "evtune_" + session.assignment.assignment_id.replace(/[^a-zA-Z0-9_-]/g, "_") + "_" + status + ".json";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      element("save-status").textContent = "Exported " + status + " JSON. Store it privately; no upload occurred.";
+    }
+
+    async function importResume(file) {
+      if (!session || !file) return;
+      const error = element("export-error");
+      error.hidden = true;
+      try {
+        const data = JSON.parse(await file.text());
+        const expected = {
+          schema_version: itemsDocument.schema_version,
+          dataset_id: itemsDocument.dataset_id,
+          dataset_sha256: itemsDocument.dataset_sha256,
+          assignment_id: session.assignment.assignment_id,
+          annotator_id: session.assignment.annotator_id,
+          synthetic: false
+        };
+        for (const key of Object.keys(expected)) {
+          if (data[key] !== expected[key]) throw new Error("The file does not belong to this human assignment (" + key + ").");
+        }
+        if (!["draft", "complete"].includes(data.submission_status)) throw new Error("Invalid submission status.");
+        const provenance = exportProvenance(data.submission_status, data.human_attestation);
+        if (provenance.error || data.annotation_origin !== provenance.annotation_origin ||
+            data.human_attestation !== provenance.human_attestation) {
+          throw new Error("Draft or complete provenance is invalid for this file.");
+        }
+        const annotations = sanitizeAnnotationArray(data.annotations, session.assignment, true);
+        if (!window.confirm("Replace the current local work with this file? Export your current draft first if you need it.")) return;
+        session.annotations = annotations;
+        session.index = 0;
+        element("attestation").checked = false;
+        renderRow();
+        saveLocal();
+      } catch (exception) {
+        error.textContent = "Cannot import this file: " + exception.message;
+        error.hidden = false;
+      } finally {
+        element("resume-file").value = "";
+      }
+    }
+
+    element("annotation-form").addEventListener("change", saveLocal);
+    element("notes").addEventListener("input", saveLocal);
+    element("previous").addEventListener("click", () => goTo(session.index - 1));
+    element("next").addEventListener("click", () => {
+      if (session.index < session.assignment.order.length - 1) goTo(session.index + 1);
+      else saveLocal();
+    });
+    element("row-jump").addEventListener("change", event => goTo(Number(event.target.value)));
+    element("export-draft").addEventListener("click", () => exportJson("draft"));
+    element("export-complete").addEventListener("click", () => exportJson("complete"));
+    element("resume-file").addEventListener("change", event => importResume(event.target.files[0]));
+    element("leave").addEventListener("click", () => {
+      saveLocal();
+      session = null;
+      element("workbench").hidden = true;
+      element("welcome").hidden = false;
+      element("assignment-list").replaceChildren();
+      buildAssignmentMenu();
+      window.scrollTo(0, 0);
+    });
+    element("reset").addEventListener("click", () => {
+      if (!session || !window.confirm("Clear every response in this assignment? Export a draft first if you need a backup.")) return;
+      try { localStorage.removeItem(storageKey(session.assignment)); } catch (error) { /* Storage can be disabled. */ }
+      session.annotations = session.assignment.order.map(blankAnnotation);
+      session.index = 0;
+      element("attestation").checked = false;
+      renderRow();
+      saveLocal();
+    });
+    window.addEventListener("beforeunload", saveLocal);
+    buildAssignmentMenu();
+  </script>
+</body>
+</html>

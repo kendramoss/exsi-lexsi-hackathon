@@ -1,0 +1,14 @@
+.venv*/
+__pycache__/
+data_*/
+results/hf-*/
+jobpack*/
+ckpt/
+logs/
+.release/
+.public_staging/
+.verification/
+natural_data
+**/raw_predictions.json
+**/resolution_raw.json
+**/raw_prompts_responses.jsonl
