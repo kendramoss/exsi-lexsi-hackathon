@@ -4,12 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>EvidenceTune</title>
-  <meta name="description" content="Does a model change its answer only when the evidence says so? A matched-pair demo on Tiny Aya Global.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <meta name="description" content="Recorded EvidenceTune v7 and merged alpha=0.75 outputs on synthetic correction tasks.">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=78">
+  <link rel="stylesheet" href="style.css?v=79">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -45,7 +42,7 @@
       <div class="blocks" aria-hidden="true"></div>
       <div class="stage">
         <h1 id="hero-title">Does the model change its answer <em>for the right reason?</em></h1>
-        <p>AI models give in when you argue. We taught ours to stand firm.</p>
+        <p id="hero-lead">AI models give in when you argue. We taught ours to stand firm.</p>
         <a class="cue" href="#glance">Scroll for more <svg class="chev" width="12" height="8" viewBox="0 0 12 8" aria-hidden="true"><path d="M1 1.5 6 6.5 11 1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
       </div>
     </section>
@@ -58,7 +55,7 @@
         <dl class="setup" id="setup"></dl>
         <p class="rail-foot" id="clock-cap"></p>
       </div>
-      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="One wrong pushback, two models"></figure></div>
+      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="Evidence answer and requested correction, two models"></figure></div>
     </section>
 
     <!-- 3 · B: rail, the conversation steps on the right -->
@@ -67,6 +64,7 @@
         <span class="rail-count">03 / 07</span><span class="rail-bar"><i style="width: 43%"></i></span>
         <h2 id="s1-title">One example</h2>
         <p class="rail-lead" id="walk-lead"></p>
+        <details class="saved-input" id="saved-input" hidden><summary>Full saved input</summary><pre id="saved-input-text"></pre></details>
         <ol class="timeline" id="convo-tl" aria-label="What happens in the chat"></ol>
         <span class="mock" id="mock-badge" hidden>Mock data</span>
         <span class="rail-foot convo-hint" id="convo-step" aria-live="polite"></span>
@@ -97,14 +95,15 @@
       <div class="rail">
         <span class="rail-count">05 / 07</span><span class="rail-bar"><i style="width: 71%"></i></span>
         <h2 id="s2-title">Is it a fluke?</h2>
-        <p class="rail-lead">Every test case, against three shortcuts someone might try instead.</p>
+        <p class="rail-lead" id="cases-lead">Every test case, against three shortcuts someone might try instead.</p>
         <div class="rail-nums" id="big"></div>
         <button class="linkish" id="open-all" type="button">All the numbers</button>
       </div>
       <div class="panel"><figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure></div>
       <dialog class="all" id="all-dialog" aria-labelledby="all-title">
         <div class="all-head"><h3 id="all-title">All the numbers</h3><button class="replay" id="close-all" type="button">Close</button></div>
-        <p class="intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
+        <p class="intro" id="all-intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
+        <div class="suite-switch" id="suite-switch" aria-label="Frozen evaluation suite"></div>
         <div class="cards" id="cards"></div>
         <div class="table-win">
           <div class="tbl-head" id="table-path"></div>
@@ -122,14 +121,14 @@
         <span class="kicker">Chapter 03</span>
         <h2 id="s3-title">Is the test fair?</h2>
       </header>
-      <div class="pipe" role="img" aria-label="CuratorKIT prepares the cases and seals the test set. SafeTune trains on the training data only. The sealed test set goes straight to AuditKIT for scoring.">
+      <div class="pipe" id="pipeline" role="img" aria-label="CuratorKIT prepares the cases and seals the test set. SafeTune trains on the training data only. The sealed test set goes straight to AuditKIT for scoring.">
         <div class="pipe-row">
-          <span class="box first">CuratorKIT</span><span class="wire"><small>train</small></span><span class="box solid">SafeTune</span><span class="wire"></span><span class="box last">AuditKIT</span>
+          <span class="box first">CuratorKIT</span><span class="wire"><small>train</small></span><span class="box solid">SafeTune</span><span class="wire"></span><span class="box last" id="scorer-box">AuditKIT</span>
         </div>
         <div class="sealed"></div>
         <div class="lock">
           <svg width="64" height="70" viewBox="0 0 40 44" aria-hidden="true"><path d="M10 20 V13 a10 10 0 0 1 20 0 V20" fill="none" stroke="currentColor" stroke-width="4"/><rect x="4" y="20" width="32" height="24" fill="currentColor"/></svg>
-          <span>Test set sealed first. It never touches training.</span>
+          <span id="protocol-note">Test set sealed first. It never touches training.</span>
         </div>
       </div>
     </section>
@@ -142,10 +141,12 @@
         <a class="tile data" href="https://huggingface.co/datasets/Mizore66/evidencetune-bench" target="_blank" rel="noopener"><i aria-hidden="true"></i><small>Test cases</small><b>EvidenceTune benchmark <span aria-hidden="true">↗</span></b></a>
         <a class="tile code" href="https://github.com/Mizore66/evidencetune" target="_blank" rel="noopener"><i aria-hidden="true"></i><small>Code</small><b>Training and scoring <span aria-hidden="true">↗</span></b></a>
       </div>
+      <div class="evidence-notes" id="evidence-notes"></div>
       <p class="credit">Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by Damir Sokolovsky</p>
     </section>
   </main>
 
-  <script src="app.js?v=71"></script>
+  <script src="merged-data.js?v=1"></script>
+  <script src="app.js?v=72"></script>
 </body>
 </html>

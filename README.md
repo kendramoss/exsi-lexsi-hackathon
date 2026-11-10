@@ -14,6 +14,8 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 
 Adapter SHA-256: `a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335`.
 
+The repository demo defaults to the verified, recorded-only merged α=0.75 comparison in `demo/data/results/merged-alpha-075/merged.json`. The separate historical mock is available explicitly with `?run=mock-smoke` and is invented, not current model evidence.
+
 ### Public artifacts
 
 - [Merged alpha=0.75 model](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75)

@@ -1,21 +1,37 @@
 // EvidenceTune demo. Reads saved artifacts only:
-//   data/results/<run_id>/cases.jsonl, predictions.jsonl, metrics.json
-// ?run=<run_id> (default mock-smoke), ?step=2|3 jumps to a section. Never recomputes metrics: per-case verdicts
-// come from the `score` block in predictions.jsonl, and every claim on screen is conditional on it.
+//   data/results/merged-alpha-075/merged.json (default, verified contract-v2 replay)
+//   data/results/<run_id>/cases.jsonl, predictions.jsonl, metrics.json (historical/mock runs)
+// ?run=<run_id>, ?step=2|3 jumps to a section. Never recomputes metrics: per-case verdicts
+// come from saved evaluations/scores, and every claim on screen is conditional on them.
 
 (() => {
   "use strict";
 
   const params = new URLSearchParams(location.search);
-  const RUN = (params.get("run") || "mock-smoke").replace(/[^a-z0-9_.-]/gi, "");
+  const RUN = (params.get("run") || "merged-alpha-075").replace(/[^a-z0-9_.-]/gi, "");
   const BASE = `data/results/${RUN}/`;
+  const MERGED = RUN === "merged-alpha-075";
   if (params.has("instant")) document.documentElement.dataset.instant = "";
   const PAIR = ["valid_low_overlap", "unsupported_high_overlap"];
-  const LANES = [
+  const MOCK_LANES = [
     { cond: "valid_low_overlap", key: "valid", label: "Correct pushback", title: "Correct pushback" },
     { cond: "unsupported_high_overlap", key: "unsup", label: "Wrong pushback", title: "Wrong pushback" },
     { cond: "bare_pressure", key: "pressure", label: "Just pressure", title: "Just pressure" },
   ];
+  const MERGED_LANES = [
+    { cond: "valid", key: "valid", label: "Valid correction", title: "Valid correction" },
+    { cond: "unsupported_toward", key: "unsup", label: "Unsupported toward", title: "Unsupported toward the prior answer" },
+    { cond: "unsupported_away", key: "unsup", label: "Unsupported away", title: "Unsupported away from the prior answer" },
+    { cond: "pressure_away", key: "pressure", label: "Pressure away", title: "Pressure away from the prior answer" },
+    { cond: "solo", key: "solo", label: "Solo", title: "No earlier answer or pushback" },
+  ];
+  const LANES = MERGED ? MERGED_LANES : MOCK_LANES;
+  const pair = () => MERGED ? ["valid", "unsupported_toward"] : PAIR;
+  const METRICS_MERGED = [
+    { key: "task_success", label: "Task success", formal: "all required checks", better: "high" },
+    { key: "all_five_task_success", label: "All-five case success", formal: "complete matched case", better: "high" },
+  ];
+  const activeMetrics = () => MERGED ? METRICS_MERGED : METRICS;
   const DOMAIN = { document: "Document", multihop_table_arith: "Table / arithmetic", arabic_comprehension: "Arabic" };
   const EVIDENCE = { supported: ["valid", "passage agrees"], contradicted: ["unsup", "passage disagrees"], insufficient: ["unsup", "passage is unclear"], absent: ["", "no evidence given"] };
   const EVIDENCE_LONG = { supported: "backed by the passage", contradicted: "contradicted by the passage", insufficient: "not settled by the passage", absent: "just pressure, no evidence" };
@@ -34,8 +50,8 @@
   const STOP = new Set("a an the and or but so of to in on at for by with from as is are was were be been it its this that these those you your i my me we our they their he she his her not no yes do does did have has had what which who when where how than then there here just also very".split(" "));
 
   const $ = (s) => document.querySelector(s);
-  const state = { step: 0, family: null, comparator: "safetune", lane: "unsup" };
-  let cases = [], preds = [], metrics = null;
+  const state = { step: 0, family: null, comparator: MERGED ? "merge_alpha_0.75" : "safetune", lane: MERGED ? "unsupported_toward" : "unsupported_high_overlap", view: "semantic_frozen_test" };
+  let cases = [], preds = [], metrics = null, mergedPayload = null;
 
   // ---------- data ----------
   async function getText(name) {
@@ -45,6 +61,12 @@
   }
   const jsonl = (t) => t.split(/\r?\n/).filter((l) => l.trim()).map((l) => JSON.parse(l));
   async function load() {
+    if (MERGED) {
+      mergedPayload = JSON.parse(await getText("merged.json"));
+      const run = EvidenceTuneMerged.createMergedRun(mergedPayload);
+      cases = run.cases; preds = run.predictions; metrics = run.metrics;
+      return;
+    }
     const [c, p, m] = await Promise.all([getText("cases.jsonl"), getText("predictions.jsonl"), getText("metrics.json")]);
     cases = jsonl(c); preds = jsonl(p); metrics = JSON.parse(m);
   }
@@ -52,7 +74,7 @@
   const predOf = (id, pol) => preds.find((r) => r.case_id === id && r.policy === pol);
   const comp = (id) => metrics.comparators.find((c) => c.id === id);
   // Plain-language names for people who don't know the models; the technical name stays in hover titles.
-  const PLAIN = { base: "Currently", never_update: "Never budges", harness: "Careful prompt only", ordinary_sft: "Plain training", safetune: "With EvidenceTune" };
+  const PLAIN = { base: "Currently", never_update: "Never budges", harness: "Careful prompt only", ordinary_sft: "Plain training", safetune: "With EvidenceTune", baseline_v7: "v7 baseline", "merge_alpha_0.75": "Merged α=0.75" };
   const label = (id) => PLAIN[id] || (comp(id) || { label: id }).label;
 
   // ---------- helpers ----------
@@ -72,6 +94,16 @@
   const norm = (w) => w.toLowerCase().replace(/(\d),(\d)/g, "$1$2");
   const tokens = (s) => (norm(s).match(/[\p{L}\p{N}]+/gu) || []).filter((w) => !STOP.has(w));
   const pct = (v) => `${Math.round(v * 100)}%`;
+  const scorePct = (key, value) => {
+    if (!MERGED) return pct(value);
+    const digits = metrics.view === "semantic_frozen_test" && key === "task_success" ? 2 : 4;
+    return `${(value * 100).toFixed(digits)}%`;
+  };
+  const fraction = (metric) => {
+    if (!MERGED || !metric) return "";
+    const unit = metric.n === metrics.dataset.n_cases && metric.n !== metrics.comparators[0].metrics.task_success.n ? "cases" : "rows";
+    return `${metric.count} / ${metric.n} ${unit}`;
+  };
   const cites = (text) => esc(text).replace(/\[(S\d+)\]/g, '<span class="cite">$1</span>');
 
   // Display aid, not a metric: share of the correction's content words that also appear in the passage.
@@ -93,7 +125,7 @@
 
   // ---------- verdicts (from saved score only) ----------
   const short = (id) => label(id).replace(/\s*\(.*\)\s*$/, "");
-  const currentLane = () => LANES.find((l) => l.key === state.lane && caseOf(state.family, l.cond)) || LANES[1];
+  const currentLane = () => LANES.find((l) => l.cond === state.lane && caseOf(state.family, l.cond)) || LANES[1];
   const laneCase = () => caseOf(state.family, currentLane().cond);
 
   function pin(p) {
@@ -109,6 +141,11 @@
   // What a model did, in a few words, with good/bad from the saved score.
   function did(p) {
     if (!p) return ["", "has no result"];
+    if (MERGED) {
+      const e = p.evaluation, action = e.parsed_action;
+      const text = action === "UPDATE" ? "updates the answer" : action === "RETAIN" ? "keeps the answer" : action === "CLARIFY" ? "asks for evidence" : "answers without pushback";
+      return [e.task_success ? "ok" : "ko", text];
+    }
     const a = p.parsed_action.action, s = p.score || {};
     if (a === "update") return s.unwarranted_update ? ["ko", "gives in"] : s.action_acceptable ? ["ok", "accepts it"] : ["ko", "changes its answer"];
     if (a === "retain") return s.action_acceptable ? ["ok", "keeps its answer"] : ["ko", "ignores it"];
@@ -127,53 +164,69 @@
   let convoTimers = [], convoWins = [], convoPlayed = false;
   function renderWalk() {
     const fam = state.family, T = state.comparator;
-    const c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, "valid_low_overlap");
-    const pb = predOf(c.case_id, "base"), pt = predOf(c.case_id, T);
-    const ov = overlap(c.feedback_text, c.context);
+    const c = laneCase();
+    const baseline = MERGED ? "baseline_v7" : "base";
+    const pb = predOf(c.case_id, baseline), pt = predOf(c.case_id, T);
     const cited = new Set(citedIds(pt).concat((pt?.clarification_turn?.raw_output || "").match(/S\d+/g) || []));
-    const fileName = `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
+    const fileName = MERGED ? `${c.family_id}.txt` : `${String(c.source?.source_id || "passage").replace(/^mock-doc-/, "")}.pdf`;
+    const solo = MERGED && c.feedback_condition === "solo";
+    $("#saved-input").hidden = !MERGED;
+    if (MERGED) $("#saved-input-text").textContent = c.input;
 
-    $("#walk-lead").textContent = "You ask with a document attached, then push back with the wrong answer. Watch where they split.";
+    $("#walk-lead").textContent = MERGED
+      ? `${c.family_id} · ${currentLane().label}. Exact saved input, raw outputs, and contract-v2 evaluations; no live inference.`
+      : "You ask with a document attached, then push back with the wrong answer. Watch where they split.";
     const [kb] = did(pb), [kt] = did(pt);
-    const ending = kb === "ko" && kt === "ok" ? "Only EvidenceTune holds" : "See who holds";
+    const ending = MERGED ? "Saved task evaluations" : kb === "ko" && kt === "ok" ? "Only EvidenceTune holds" : "See who holds";
+    const steps = solo ? ["Review the saved input", "The two models answer", ending]
+      : ["Ask, with a document", `Earlier answer: ${c.original_answer}`, `Pushback: ${c.correction_target}`, "The two AIs split", ending];
     const tl = $("#convo-tl");
-    if (tl) tl.replaceChildren(...["Ask, with a PDF", `AI answers ${c.original_answer}`, `You insist: ${c.correction_target}`, "The two AIs split", ending]
-      .map((t, i) => el("li", { "data-step": i + 1 }, t)));
+    if (tl) tl.replaceChildren(...steps.map((t, i) => el("li", { "data-step": i + 1 }, t)));
 
     const row = (who, ...kids) => el("div", { class: `chat-row ${who}` }, el("i", { class: "av", "aria-hidden": "true" }), el("div", { class: "bubbles" }, ...kids));
     const bubble = (cls, ...kids) => el("div", { class: `bubble ${cls}` }, ...kids);
-    // The attachment: a file card with a little page that shows the passage, its deciding line highlighted.
-    const file = () => el("div", { class: "file", title: spans(c.context).map((x) => x.text).join(" ") },
+    // The recorded source text keeps its original wording; the merged input is plain text, not a fabricated PDF.
+    const file = () => el("div", { class: "file", title: MERGED ? c.input : spans(c.context).map((x) => x.text).join(" ") },
       el("div", { class: "file-page", "aria-hidden": "true" },
         ...spans(c.context).map((x) => el("p", { class: cited.has(x.id) ? "hl" : null }, x.text))),
-      el("div", { class: "file-meta" }, el("i", { class: "file-ico", "aria-hidden": "true" }, "PDF"),
-        el("span", {}, el("b", {}, fileName), el("small", {}, "1 page"))));
+      el("div", { class: "file-meta" }, el("i", { class: "file-ico", "aria-hidden": "true" }, MERGED ? "TXT" : "PDF"),
+        el("span", {}, el("b", {}, fileName), el("small", {}, MERGED ? "Recorded input" : "1 page"))));
     const shared = [
       { from: "user", make: () => row("user", bubble("q", c.question), file()) },
-      { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
-      { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap((c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim(), c.context).html }))) },
+      ...(!solo ? [
+        { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
+        { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap((c.feedback_text.match(/^.*?[.?!](\s|$)/) || [c.feedback_text])[0].trim(), c.context).html }))) },
+      ] : []),
     ];
     const replies = (p) => [
-      { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p?.raw_output || "") }))) },
+      { from: "ai", make: () => row("ai", bubble("a", MERGED
+        ? el("span", { class: "raw-output" }, p?.raw_output || "")
+        : el("span", { html: cites(p?.raw_output || "") }))) },
       ...(p?.clarification_turn ? [
         { from: "user", make: () => row("user", bubble("q", p.clarification_turn.user_reply ?? "")) },
         { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p.clarification_turn.raw_output) }))) }] : []),
     ];
-    // One thread while the two AIs are identical; it branches at the first reply where they differ.
+    // One thread while the two AIs are identical; it branches at the recorded reply.
     const branch = (pol, p, who) => {
       const [k, t] = did(p);
       const list = el("div", { class: "branch-list" });
-      const verdict = el("div", { class: `cw-verdict ${k}` }, el("b", {}, k === "ok" ? "✓" : "✗"), el("span", {}, `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none")));
-      const node = el("div", { class: `branch ${who}`, "aria-label": `${label(pol)}: ${cap(t)}, ends on ${p?.final_answer}` },
+      const verdict = el("div", { class: `cw-verdict ${k}` },
+        el("b", {}, k === "ok" ? "✓" : "✗"),
+        el("span", {}, MERGED ? `${cap(t)} · saved answer ` : `${cap(t)} · ends on `, el("strong", {}, p?.final_answer ?? "none")));
+      if (MERGED) verdict.append(el("dl", { class: "saved-evaluation", "aria-label": `${label(pol)} saved evaluation` },
+        ...Object.entries(p.evaluation).map(([key, value]) => [
+          el("dt", {}, key), el("dd", { "data-eval": key }, String(value)),
+        ])));
+      const node = el("div", { class: `branch ${who}`, "data-arm": pol, "aria-label": `${label(pol)}: ${cap(t)}, saved answer ${p?.final_answer}` },
         el("header", { class: "branch-head" }, el("i", { class: "cw-av", "aria-hidden": "true" }), el("b", {}, label(pol))), list, verdict);
       return { node, list, verdict, msgs: replies(p) };
     };
     const trunk = el("div", { class: "trunk" });
     const fork = el("div", { class: "fork", "aria-hidden": "true" },
       el("i", { class: "stem" }), el("i", { class: "l" }), el("i", { class: "r" }),
-      el("span", { class: "fork-tag" }, "They split here"));
-    const bL = branch("base", pb, "base"), bR = branch(T, pt, "tuned");
-    convoWins = { trunk, fork, shared, branches: [bL, bR] };
+      el("span", { class: "fork-tag" }, MERGED ? "Recorded replies" : "They split here"));
+    const bL = branch(baseline, pb, "base"), bR = branch(T, pt, "tuned");
+    convoWins = { trunk, fork, shared, branches: [bL, bR], splitAt: solo ? 2 : 4, lastStep: solo ? 3 : 5 };
     $("#convo").classList.add("flow");
     $("#convo").replaceChildren(trunk, fork, el("div", { class: "branches" }, bL.node, bR.node));
     // Centre the chat while it fits; once it overflows, anchor it to the bottom and fade the top, like a phone.
@@ -186,22 +239,26 @@
       box._fit = new MutationObserver(() => requestAnimationFrame(fit));
       addEventListener("resize", fit);
       box._fit.observe(box, { childList: true, subtree: true });
-      box.addEventListener("animationend", fit);   // re-measure once a new message has finished opening its room
+      box.addEventListener("animationend", fit);
     }
-    convoShow(Math.max(1, convoStepAt));
+    convoShow(Math.min(convoWins.lastStep, Math.max(1, convoStepAt)));
 
-    // "It still listens": one full-width band per kind of pushback
+    // Each band selects another saved row; selecting a condition never invokes a model.
     const lanes = LANES.filter((l) => caseOf(fam, l.cond));
-    $("#bands-cols").replaceChildren(el("span", {}, short("base")), el("span", {}, short(T)));
+    $("#bands-cols").replaceChildren(el("span", {}, short(baseline)), el("span", {}, short(T)));
     const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bd ${k}`, title: `${label(pol)}: ${cap(t)}` }, k === "ok" ? "✓" : "✗"); };
     const first = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
-    const should = { supported: "The document backs it, so change the answer", contradicted: "The document says otherwise, so hold", insufficient: "The document doesn’t settle it, so ask or hold", absent: "No evidence at all, so hold" };
-    $("#bands").replaceChildren(...lanes.map((l) => { const cs = caseOf(fam, l.cond);
-      return el("div", { class: "band" },
+    const should = { supported: "The evidence supports the correction, so update", contradicted: "The evidence says otherwise, so hold", insufficient: "The cited excerpt is insufficient, so clarify or retain", absent: "No new evidence, so retain", not_applicable: "No pushback; answer from the supplied evidence" };
+    const bandElements = lanes.map((l) => {
+      const cs = caseOf(fam, l.cond);
+      return el(MERGED ? "button" : "div", { class: "band", type: MERGED ? "button" : null, "data-condition": MERGED ? l.cond : null, "aria-pressed": MERGED ? String(l.cond === c.feedback_condition) : null },
         el("span", { class: "band-label" }, el("b", {}, l.label),
           el("q", {}, first(cs.feedback_text)),
           el("small", {}, should[cs.evidence_sufficiency] || "")),
-        el("span", { class: "band-marks" }, mark(cs, "base"), mark(cs, T))); }));
+        el("span", { class: "band-marks" }, mark(cs, baseline), mark(cs, T)));
+    });
+    $("#bands").replaceChildren(...bandElements);
+    $("#bands").dataset.case = MERGED ? fam : "";
   }
 
   // Scroll-stepped conversation (desktop): step n shows
@@ -235,11 +292,12 @@
       });
       return t;
     };
-    deliver(W.trunk, W.shared.slice(0, Math.min(n, 3)).map((m, i) => ({ m, step: i + 1 })), wait);
-    const split = n >= 4;
+    deliver(W.trunk, W.shared.slice(0, Math.min(n, W.splitAt - 1)).map((m, i) => ({ m, step: i + 1 })), wait);
+    const splitAt = W.splitAt || 4, lastStep = W.lastStep || CONVO_STEPS;
+    const split = n >= splitAt;
     // Arriving at the split, play it in order instead of all at once:
     // the earlier messages fold away, then the fork draws, then the two columns rise in, then the replies pop.
-    const staged = split && prev < 4 && !still;
+    const staged = split && prev < splitAt && !still;
     const convoEl = $("#convo");
     W.trunk.classList.toggle("past", split);
     if (staged) {
@@ -253,10 +311,10 @@
     }
     W.branches.forEach((b) => {
       if (!staged) b.node.classList.toggle("show", split);
-      const count = n >= 5 ? b.msgs.length : split ? 1 : 0;
-      const end = deliver(b.list, b.msgs.slice(0, count).map((m, i) => ({ m, step: i === 0 ? 4 : 5 })), staged ? 1500 : 0);
+      const count = n >= lastStep ? b.msgs.length : split ? 1 : 0;
+      const end = deliver(b.list, b.msgs.slice(0, count).map((m, i) => ({ m, step: i === 0 ? splitAt : lastStep })), staged ? 1500 : 0);
       b.verdict.classList.remove("show");
-      if (n >= 5) { if (still || prev >= 5) b.verdict.classList.add("show"); else at(end + 200, () => b.verdict.classList.add("show")); }
+      if (n >= lastStep) { if (still || prev >= lastStep) b.verdict.classList.add("show"); else at(end + 200, () => b.verdict.classList.add("show")); }
     });
     document.querySelectorAll("#convo-tl li").forEach((li) => {
       const k = +li.dataset.step;
@@ -265,7 +323,7 @@
       if (k === n) li.setAttribute("aria-current", "step"); else li.removeAttribute("aria-current");
     });
     const hint = $("#convo-step");
-    if (hint) hint.textContent = n < CONVO_STEPS ? `Scroll to continue · ${n} / ${CONVO_STEPS}` : "Scroll on for Chapter 02 ↓";
+    if (hint) hint.textContent = n < lastStep ? `Scroll to continue · ${n} / ${lastStep}` : "Scroll on for Chapter 02 ↓";
   }
 
   // Play: people's messages pop in, the AI shows typing dots first. Both windows share the timing, so they
@@ -309,60 +367,78 @@
 
   // ---------- outcome stage ----------
   function renderOutcome() {
-    const base = comp("base"), cur = comp(state.comparator) || metrics.comparators.at(-1);
+    const baselineId = MERGED ? "baseline_v7" : "base";
+    const base = comp(baselineId), cur = comp(state.comparator) || metrics.comparators.at(-1);
+    const measures = activeMetrics();
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short("base")} → ${short(cur.id)}, ${dir} is better` },
-        el("small", {}, `${t} ${dir === "lower" ? "↓" : "↑"}`), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"));
+      const value = a && b ? `${scorePct(k, a.value)} → ${scorePct(k, b.value)}` : "n/a";
+      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short(baselineId)} → ${short(cur.id)}, ${dir} is better` },
+        el("small", {}, `${t} ${dir === "lower" ? "↓" : "↑"}`), el("b", {}, value),
+        MERGED && a && b ? el("span", { class: "card-counts" }, `${fraction(a)} → ${fraction(b)}`) : null);
     };
-    $("#cards").replaceChildren(
+    $("#cards").dataset.metrics = String(measures.length);
+    $("#cards").replaceChildren(...(MERGED ? [
+      card("Task success", "task_success", "higher"),
+      card("All-five case success", "all_five_task_success", "higher"),
+    ] : [
       card("Gives in to wrong pushback", "uur", "lower"),
       card("Accepts correct pushback", "valid_uptake", "higher"),
-      card("Right in the end", "final_accuracy", "higher"));
+      card("Right in the end", "final_accuracy", "higher"),
+    ]));
 
     const comps = metrics.comparators;
-    const ext = Object.fromEntries(METRICS.map((m) => {
+    const ext = Object.fromEntries(measures.map((m) => {
       const vals = comps.map((c) => (m.ms ? c.metrics[m.key] : c.metrics[m.key]?.value)).filter((v) => v != null);
       const best = m.better === "high" ? Math.max(...vals) : Math.min(...vals);
       const worst = m.better === "high" ? Math.min(...vals) : Math.max(...vals);
       return [m.key, { best, worst, distinct: best !== worst }];
     }));
     const head = el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Model"),
-      ...METRICS.map((m) => el("th", { scope: "col", title: `${m.better === "high" ? "Higher" : "Lower"} is better` },
+      ...measures.map((m) => el("th", { scope: "col", title: `${m.better === "high" ? "Higher" : "Lower"} is better` },
         `${m.label} ${m.better === "high" ? "↑" : "↓"}`, el("i", {}, m.formal)))));
     const body = el("tbody", {}, ...comps.map((c) => el("tr", { class: c.id === cur.id ? "hl" : null },
-      el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
-      ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
+      el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, MERGED ? "Apple MPS bf16" : KIND[c.kind] || c.kind)),
+      ...measures.map((m) => el("td", {
+        "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}`,
+        "data-view": MERGED ? metrics.view : null,
+        "data-arm": MERGED ? c.id : null,
+        "data-metric": MERGED ? m.key : null,
+      }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
     renderBig(base, cur);
-    $("#table-path").textContent = `${BASE}metrics.json`;
+    $("#table-path").textContent = MERGED ? `${BASE}merged.json · ${metrics.view}` : `${BASE}metrics.json`;
     renderGrid();
-    // Showcase panel 05: base vs tuned on the three scores, as bars
     const sb = $("#hs-score");
-    if (sb) sb.replaceChildren(...[["valid_uptake", "Accepts correct pushback", "↑"], ["uur", "Gives in to wrong pushback", "↓"], ["final_accuracy", "Right in the end", "↑"]].map(([k, t, d]) => {
-      const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
-      return el("div", { class: "snum", title: `${short("base")} → ${short(cur.id)} on ${metrics.dataset.n_cases} test cases` },
-        el("span", {}, `${t} ${d}`), el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
-    }));
-    const n = comps[0].metrics.valid_uptake?.n;
-    $("#score-note").textContent = n < 20
-      ? `Bars: 95% range · ${n} cases each`
-      : "Bars: 95% range";
-
+    if (sb) sb.replaceChildren();
+    const n = MERGED ? null : comps[0].metrics.valid_uptake?.n;
+    $("#score-note").textContent = MERGED
+      ? `${metrics.dataset.n_cases} cases per arm · ${comps[0].metrics.task_success.n} rows per arm · saved point estimates; no intervals in this payload. Custom EvidenceTune contract-v2 scorers, not AuditKIT. Synthetic/proxy labels; no human validation.`
+      : n < 20 ? `Bars: 95% range · ${n} cases each` : "Bars: 95% range";
+    $("#suite-switch").replaceChildren(...(MERGED ? [
+      ["semantic_frozen_test", "Semantic frozen"],
+      ["v8_targeted_frozen_test", "Targeted frozen"],
+    ].map(([view, text]) => el("button", { class: "replay", type: "button", "data-view": view, "aria-pressed": String(view === metrics.view) }, text)) : []));
   }
   // Screen 5 rail: the two numbers that matter, today → with EvidenceTune.
   function renderBig(base, cur) {
-    const pair = (k, t) => {
-      const a = base?.metrics[k]?.value, b = cur?.metrics[k]?.value;
-      return el("span", { title: `${short("base")} → ${short(cur.id)}` }, t, el("b", {}, a == null ? "n/a" : pct(a), el("i", {}, " → "), b == null ? "n/a" : pct(b)));
+    const baselineId = MERGED ? "baseline_v7" : "base";
+    const pairValue = (k, t) => {
+      const a = base?.metrics[k], b = cur?.metrics[k];
+      return el("span", { title: `${short(baselineId)} → ${short(cur.id)}` }, t,
+        el("b", {}, a == null ? "n/a" : scorePct(k, a.value), el("i", {}, " → "), b == null ? "n/a" : scorePct(k, b.value)),
+        MERGED && a && b ? el("small", { class: "big-counts" }, `${fraction(a)} → ${fraction(b)}`) : null);
     };
-    $("#big").replaceChildren(pair("uur", "Gives in to wrong pushback"), pair("final_accuracy", "Right in the end"));
+    $("#big").replaceChildren(...(MERGED
+      ? [pairValue("task_success", "Task success"), pairValue("all_five_task_success", "All-five case success")]
+      : [pairValue("uur", "Gives in to wrong pushback"), pairValue("final_accuracy", "Right in the end")]));
   }
   function cell(metric, m, ex) {
     if (metric == null) return el("span", {}, "n/a");
     const v = m.ms ? metric : metric.value;
     const cls = ex.distinct && v === ex.best ? " best" : ex.distinct && v === ex.worst ? " worst" : "";
-    const box = el("div", {}, el("span", { class: `v${cls}` }, m.ms ? (v < 100 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(1)} s`) : pct(v)));
+    const box = el("div", {}, el("span", { class: `v${cls}` }, m.ms ? (v < 100 ? `${Math.round(v)} ms` : `${(v / 1000).toFixed(1)} s`) : scorePct(m.key, v)),
+      MERGED ? el("small", { class: "metric-fraction" }, fraction(metric)) : null);
     if (!m.ms && metric.ci_low != null) {
       box.append(el("div", { class: "ci", role: "img", "aria-label": `95% interval ${pct(metric.ci_low)} to ${pct(metric.ci_high)}, n=${metric.n}` },
         el("span", { class: "r", style: `left:${metric.ci_low * 100}%;width:${(metric.ci_high - metric.ci_low) * 100}%` }),
@@ -405,17 +481,31 @@
       face.append(svg("text", { x, y: y + 5, "text-anchor": "middle", class: `c-lbl ${cls}` }, String(text).slice(0, 8)));
       if (tag) face.append(svg("text", { x, y: y - 10, "text-anchor": "middle", class: `c-tag ${cls}` }, tag));
     };
-    const firstIsTruth = sameAns(c.original_answer, c.truth_target);
-    mark(A, c.original_answer, firstIsTruth ? "truth" : "", firstIsTruth ? "correct" : "first answer");
-    if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
-    const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
-    if (hasPush) mark(B, c.correction_target, "push", "wrong");
+    const expected = MERGED ? c.expected_answer : c.truth_target;
+    const hasPush = c.feedback_condition !== "solo" && c.correction_target != null &&
+      (MERGED || !sameAns(c.correction_target, c.original_answer));
     const final = pr?.final_answer;
-    const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 0;
+    let start = A, end;
+    if (MERGED) {
+      mark(A, expected, "truth", "evidence");
+      const [x, y] = at(A, 47);
+      face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" }));
+      if (hasPush) mark(B, c.correction_target, "push", "requested");
+      start = sameAns(c.original_answer, expected) ? A : hasPush && sameAns(c.original_answer, c.correction_target) ? B : 0;
+      if (start === 0 && c.original_answer != null) mark(0, c.original_answer, "", "earlier answer");
+      end = sameAns(final, expected) ? A : hasPush && sameAns(final, c.correction_target) ? B : 0;
+    } else {
+      const firstAnswer = c.original_answer ?? expected;
+      const firstIsTruth = sameAns(firstAnswer, expected);
+      mark(A, firstAnswer, firstIsTruth ? "truth" : "", c.original_answer == null ? "expected" : firstIsTruth ? "correct" : "first answer");
+      if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
+      if (hasPush) mark(B, c.correction_target, "push", "wrong");
+      end = sameAns(final, firstAnswer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 0;
+    }
     if (end === 0 && final != null) mark(0, final, "");
     const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 84, x2: 80, y2: 58 }), svg("polygon", { points: "73.5,59 80,45 86.5,59" }));
     face.append(hand, svg("circle", { cx: 80, cy: 80, r: 6, class: "c-hub" }));
-    return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
+    return { face, hand, start, end, pull: hasPush ? B : A + 40 };
   }
 
   // One clock at a time, in four beats: the answer, the pushback appears, the hand reacts, the result lands.
@@ -469,33 +559,47 @@
       if (k === "ko") crossed++;
       return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, mark(k));
     });
-    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : Math.min(7, cases.length)}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
-      role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
-      el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} questions like this`),
+    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : Math.min(7, cases.length)}`, title: MERGED ? `${cases.length} saved conditions in ${state.family}` : `${crossed} of ${cases.length} test cases ended wrong`,
+      role: "img", "aria-label": MERGED ? `Five saved conditions in ${state.family}; ${crossed} failed task checks` : `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
+      el("div", { class: "tear-head", "aria-hidden": "true" }, MERGED ? `${state.family} · five saved conditions` : `Tested on ${cases.length} questions like this`),
       el("div", { class: "tear-grid", "aria-hidden": "true" }, days));
   }
 
   function renderHero() {
-    const fam = state.family, c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, PAIR[0]);
+    const fam = state.family, c = laneCase();
+    const baseline = MERGED ? "baseline_v7" : "base";
     const items = [];
     const big = (pol) => {
       const pr = predOf(c.case_id, pol), [k] = did(pr), ck = clock(c, pr);
       if (k) ck.face.classList.add(k);
       items.push(ck);
-      return el("div", { class: "clockcol", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
+      return el("div", { class: "clockcol", title: `${label(pol)} saved answer ${pr?.final_answer ?? "none"}` },
         el("span", { class: "clock-name" }, short(pol)),
         el("div", { class: "bigclock" }, ck.face, tearoff(pol)));
     };
+    if (MERGED) {
+      const headings = {
+        valid: "A supported correction. Does it switch?",
+        unsupported_toward: "An unsupported correction. Does it switch?",
+        unsupported_away: "An unsupported correction. Does it switch?",
+        pressure_away: "Pressure without evidence. Does it switch?",
+        solo: "No earlier answer or pushback. What does it answer?",
+      };
+      $("#glance-title").textContent = headings[c.feedback_condition];
+      $("#hero-vis").setAttribute("aria-label", `${headings[c.feedback_condition]} Two recorded models.`);
+    }
     const fig = $("#hero-vis");
-    fig.replaceChildren(big("base"), big(state.comparator));
+    fig.replaceChildren(big(baseline), big(state.comparator));
     const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
     $("#setup").replaceChildren(
       el("div", { class: "row" }, el("dt", {}, "Question"), el("dd", {}, c.question)),
-      el("div", { class: "row" }, el("dt", {}, "Source"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
-      el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
-        el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
-    const slips = cases.filter((cs) => did(predOf(cs.case_id, "base"))[0] === "ko").length;
-    $("#clock-cap").textContent = `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
+      el("div", { class: "row" }, el("dt", {}, MERGED ? "Expected" : "Source"), el("dd", {}, el("span", { class: "yr ok" }, MERGED ? c.expected_answer : c.truth_target))),
+      el("div", { class: "row" }, el("dt", {}, MERGED ? "Condition" : "Pushback"), el("dd", {},
+        el("span", { class: "yr bad" }, MERGED ? currentLane().label : c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
+    const slips = cases.filter((cs) => did(predOf(cs.case_id, baseline))[0] === "ko").length;
+    $("#clock-cap").textContent = MERGED
+      ? `Recorded only · no live inference. ${c.family_id} is the first saved semantic case, with five conditions and no outcome-based selection. Semantic frozen: 48 cases / 240 rows per arm.`
+      : `The needle points to the AI’s answer. Repeat the test on ${cases.length} similar questions and the current model still slips ${slips} times.`;
     animateClocks(fig, items);
   }
 
@@ -507,16 +611,38 @@
         const pr = predOf(c.case_id, pol), ok = pr?.score?.final_correct;
         return el("i", { class: ok == null ? null : ok ? "ok" : "ko", title: `${g.l.label} · ${c.question} → ${pr?.final_answer ?? "no result"}` });
       }))));
-    const head = el("div", { class: "egrid-head" }, el("span", {}, `${cases.length} test cases`),
+    const head = el("div", { class: "egrid-head" }, el("span", {}, MERGED ? `${state.family} · 5 saved conditions` : `${cases.length} test cases`),
       el("div", { class: "egrid-cells" }, ...groups.map((g) => el("span", { style: `width:${g.cs.length * 28 - 4}px` }, g.l.label))));
     $("#egrid").replaceChildren(
       head,
-      el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === "base" ? " hl" : ""}` },
+      el("div", { class: "egrid-rows" }, ...metrics.comparators.map((m) => el("div", { class: `egrid-row${m.id === state.comparator || m.id === (MERGED ? "baseline_v7" : "base") ? " hl" : ""}` },
         el("span", { class: "egrid-name", title: `${m.label} · ${KIND[m.kind] || m.kind}` }, label(m.id)), cells(m.id)))),
-      el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), "Right in the end"), el("span", {}, el("i", { class: "ko" }), "Wrong in the end")));
+      el("div", { class: "egrid-legend" }, el("span", {}, el("i", { class: "ok" }), MERGED ? "Answer check passed" : "Right in the end"), el("span", {}, el("i", { class: "ko" }), MERGED ? "Answer check failed" : "Wrong in the end")));
   }
 
-  function renderAll() { renderHero(); renderHead(); renderWalk(); renderOutcome(); }
+  function renderScope() {
+    if (!MERGED) return;
+    $("#hero-lead").textContent = "Recorded v7 and merged α=0.75 outputs on contract-v2 synthetic correction tasks. No live inference.";
+    $("#mock-badge").hidden = false;
+    $("#mock-badge").textContent = "Recorded only · No live inference";
+    $("#cases-lead").textContent = "Two-arm frozen confirmation on semantic and targeted suites. The grid is one saved five-condition case, not the full frozen prediction set.";
+    $("#all-intro").textContent = "Current merged α=0.75 (75% v7 + 25% v8) compared with the v7 baseline on the same Apple MPS bf16 backend. Choose a frozen suite; no historical arms are mixed in.";
+    $("#listen-title").textContent = "All five saved conditions";
+    $("#listen .ch-lead").textContent = "Select a condition to replay sc-01-25. Switching reads another saved row; it does not run a model. Marks use the saved task-success evaluation.";
+    $("#scorer-box").textContent = "Custom scorer";
+    $("#pipeline").setAttribute("aria-label", "SafeTune training is separate from the frozen evaluation. Custom EvidenceTune contract-v2 scorers, not AuditKIT, evaluate both merged-confirmation arms.");
+    $("#protocol-note").textContent = "Dev-only selection; frozen confirmation only. Earlier v7/v8 frozen runs existed but were not used for merged-model selection.";
+    const note = (text) => el("p", {}, text);
+    $("#evidence-notes").replaceChildren(
+      note("EvidenceTune merged α=0.75 = 75% v7 + 25% v8. Recorded outputs only; no live inference. Backend: local Apple MPS bf16 Transformers; two-arm frozen confirmation only."),
+      note("Custom EvidenceTune contract-v2 scorers, not AuditKIT. Contract-v2 synthetic construction-proxy evaluation with synthetic/proxy labels. No human validation; not broad natural-domain evidence. Contradiction and Arabic weaknesses remain; no Arabic improvement claim."),
+      note("Dev-only selection; frozen test used for confirmation only. Earlier v7/v8 frozen runs existed but were not used for merged-model selection."),
+      note("This is a v7→merged comparison, not a base-model comparison. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged improvement is unmeasured."),
+      note(`${mergedPayload.illustration.selection_rule} Label status: ${mergedPayload.illustration.label_status}. Adapter SHA-256: ${mergedPayload.model.adapter_sha256}`),
+    );
+  }
+
+  function renderAll() { renderScope(); renderHero(); renderHead(); renderWalk(); renderOutcome(); }
 
   // Nav: highlight the section in view.
   // Focus: the section holding the middle of the screen is "in focus"; the others fade back.
@@ -628,15 +754,15 @@
     const jump = (dir) => {
       const cur = current(), next = secs[secs.indexOf(cur) + dir];
       if (!next) return false;
-      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 1400 : 0); }   // start going down (after the fade-in), end going up
+      if (next.id === "s1") { if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : (convoWins.lastStep || CONVO_STEPS), dir > 0 ? 1400 : 0); }   // start going down (after the fade-in), end going up
       go(next, cur);
       return true;
     };
     // One deliberate scroll = one conversation step while chapter 01 is on screen.
     const stepInside = (dir) => {
       if (current().id !== "s1") return false;
-      const n = convoStepAt + dir;
-      if (n < 1 || n > CONVO_STEPS) return false;
+      const n = convoStepAt + dir, lastStep = convoWins.lastStep || CONVO_STEPS;
+      if (n < 1 || n > lastStep) return false;
       convoShow(n);
       scrollTo({ top: targetY(current()), behavior: "instant" });
       moving = true; tail = true; until = performance.now() + 520;
@@ -667,7 +793,7 @@
     }, { passive: false });
 
     addEventListener("keydown", (e) => {
-      if (innerWidth < 760 || document.querySelector("dialog[open]") || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      if (innerWidth < 760 || document.querySelector("dialog[open]") || e.target.closest("a, button, summary, select, input, textarea, [role=tab], [contenteditable=true], tr[data-lane]")) return;
       const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
       if (!dir) return;
       if (moving) { e.preventDefault(); return; }
@@ -678,10 +804,10 @@
   }
 
   function selectors() {
-    const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => PAIR.every((c) => caseOf(f, c)));
+    const fams = [...new Set(cases.map((c) => c.family_id))].filter((f) => pair().every((c) => caseOf(f, c)));
     state.family = fams[0];
 
-    const comps = metrics.comparators.filter((c) => c.id !== "base");
+    const comps = metrics.comparators.filter((c) => c.id !== (MERGED ? "baseline_v7" : "base"));
     if (!comps.some((c) => c.id === state.comparator)) state.comparator = comps.at(-1).id;
 
   }
@@ -690,6 +816,24 @@
     $("#open-all").addEventListener("click", () => dlg.showModal());
     $("#close-all").addEventListener("click", () => dlg.close());
     dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    $("#bands").addEventListener("click", (e) => {
+      const button = e.target.closest("[data-condition]");
+      if (!button || !MERGED) return;
+      const condition = button.dataset.condition;
+      const restoreFocus = document.activeElement === button;
+      state.lane = condition;
+      convoStepAt = 0;
+      renderHero();
+      renderWalk();
+      if (restoreFocus) document.querySelector(`#bands [data-condition="${condition}"]`).focus({ preventScroll: true });
+    });
+    $("#suite-switch").addEventListener("click", (e) => {
+      const button = e.target.closest("[data-view]");
+      if (!button || !MERGED || button.dataset.view === state.view) return;
+      state.view = button.dataset.view;
+      metrics = EvidenceTuneMerged.mergedMetrics(mergedPayload, state.view);
+      renderOutcome();
+    });
   }
 
   // Rail progress: seven small blocks (past pale, current solid) plus the screen's name from the dot nav.
