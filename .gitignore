@@ -8,6 +8,10 @@ logs/
 .release/
 .public_staging/
 .verification/
+.base_eval/*
+!.base_eval/base_eval.py
+!.base_eval/generation_base_eval.py
+!.base_eval/tests/
 natural_data
 **/raw_predictions.json
 **/resolution_raw.json
