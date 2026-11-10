@@ -1785,3 +1785,14 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 
 /* 6 · one line along the bottom: the credit on the left, the note and the numbers button on the right */
 #s4 .end-actions .credit { margin: 0 auto 0 0; padding: 0; }
+
+/* Dot nav, more obvious: where the right edge is cream (screens 1, 4 and 5) it turns into a solid cobalt pill with
+   cream dots, the opposite of the page around it; where the edge is blue it stays a cream pill with cobalt dots. The current screen's
+   dot stretches into a short bar so it stands out at a glance. */
+.dots { padding: 14px 9px; gap: 14px; transition: background-color 400ms var(--ease), border-color 400ms var(--ease); }
+.dots a { width: 14px; height: 14px; transition: background-color 200ms var(--ease), border-color 200ms var(--ease), height 250ms var(--ease); }
+.dots a[aria-current] { height: 28px; border-radius: 7px; }
+:root[data-edge="light"] .dots { background: #0b55b8; border-color: #0b55b8; box-shadow: 0 4px 18px rgba(4, 30, 70, .22); }
+:root[data-edge="light"] .dots a { border-color: #f5f9ff; }
+:root[data-edge="light"] .dots a:hover { background: rgba(245, 249, 255, .3); }
+:root[data-edge="light"] .dots a[aria-current] { background: #f5f9ff; border-color: #f5f9ff; }

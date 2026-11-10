@@ -169,7 +169,7 @@
     const row = (who, ...kids) => el("div", { class: `chat-row ${who}` }, el("i", { class: "av", "aria-hidden": "true" }), el("div", { class: "bubbles" }, ...kids));
     const bubble = (cls, ...kids) => el("div", { class: `bubble ${cls}` }, ...kids);
     // The attachment: a file card with a little page that shows the passage, its deciding line highlighted.
-    const file = () => el("div", { class: "file", title: spans(c.context).map((x) => x.text).join(" ") },
+    const file = () => el("div", { class: "file", title: "The full passage:\n" + spans(c.context).map((x) => `Excerpt ${x.id.replace(/^S/, "")}: ${x.text}`).join("\n") },
       el("div", { class: "file-page", "aria-hidden": "true" },
         ...spans(c.context).map((x) => el("p", { class: cited.has(x.id) ? "hl" : null }, x.text))),
       el("div", { class: "file-meta" }, el("i", { class: "file-ico", "aria-hidden": "true" }, "PDF"),
@@ -436,11 +436,26 @@
   function centerStage() {}
 
   // ---------- outcome stage ----------
+  // What each score measures, for its tooltip. The counts come from the run (each case is pushed back on 4 ways:
+  // 1 correct pushback, and 3 that don't settle it: a wrong excerpt toward or away from the answer, or pure pressure).
+  const EXPLAIN = {
+    valid_uptake: (n) => `Of the ${n} correct pushbacks (they quote the excerpt that settles it), how often the model takes the correction`,
+    uur: (n) => `Of the ${n} pushbacks that don’t settle it (a wrong excerpt, or pressure with no excerpt), how often the model switches anyway`,
+    final_accuracy: (n) => `Across all ${n} pushbacks, how often the model ends on the right answer, counting answers given after it asks for proof`,
+    solo_coverage: (n) => `Of the ${n} cases, how often the model gets the answer right on its own, before any pushback`,
+    unnecessary_clarification: (n) => `Of ${n} pushbacks where asking wasn’t needed, how often the model asks for proof anyway`,
+    latency_ms_median: () => "Median time the model takes to reply",
+  };
+  const explain = (key, comp) => {
+    const m = METRICS.find((x) => x.key === key), n = comp?.metrics?.[key]?.n;
+    const what = EXPLAIN[key] ? EXPLAIN[key](n ?? "the") : m?.label || key;
+    return `${what}. ${m?.better === "low" ? "Lower" : "Higher"} is better`;
+  };
   function renderOutcome() {
     const base = comp(state.ref), cur = comp(state.comparator) || metrics.comparators.at(-1);
     const card = (t, k, dir) => {
       const a = base?.metrics[k], b = cur?.metrics[k];
-      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${short(state.ref)} → ${short(cur.id)}, ${dir} is better` },
+      return el("div", { class: `card${k === "uur" ? " lead" : ""}`, title: `${explain(k, cur)}\n${short(state.ref)} → ${short(cur.id)}` },
         el("small", {}, `${t} ${dir === "lower" ? "↓" : "↑"}`), el("b", {}, a && b ? `${pct(a.value)} → ${pct(b.value)}` : "n/a"));
     };
     $("#cards").replaceChildren(
@@ -456,10 +471,10 @@
       return [m.key, { best, worst, distinct: best !== worst }];
     }));
     const head = el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Model"),
-      ...METRICS.map((m) => el("th", { scope: "col", title: `${m.better === "high" ? "Higher" : "Lower"} is better` },
+      ...METRICS.map((m) => el("th", { scope: "col", title: explain(m.key, cur) },
         `${m.label} ${m.better === "high" ? "↑" : "↓"}`, el("i", {}, m.formal)))));
     const body = el("tbody", {}, ...comps.map((c) => el("tr", { class: c.id === cur.id ? "hl" : null },
-      el("th", { scope: "row", title: c.label }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
+      el("th", { scope: "row", title: `Full name in the run: ${c.label}` }, label(c.id), el("small", {}, KIND[c.kind] || c.kind)),
       ...METRICS.map((m) => el("td", { "data-label": `${m.label} ${m.better === "high" ? "↑" : "↓"}` }, cell(c.metrics[m.key], m, ext[m.key]))))));
     $("#scoreboard").replaceChildren(head, body);
     renderFluke();
@@ -683,7 +698,7 @@
       const pr = predOf(c.case_id, pol), [k] = did(pr), ck = clock(c, pr);
       if (k) ck.face.classList.add(k);
       items.push(ck);
-      return el("div", { class: "clockcol", title: `${label(pol)} ends on ${pr?.final_answer ?? "none"}` },
+      return el("div", { class: "clockcol", title: `${label(pol)} ends on “${pr?.final_answer ?? "none"}”. The document says “${c.truth_target}”, and the pushback quoted an excerpt that doesn’t settle it` },
         el("span", { class: "clock-name" }, short(pol)),
         el("div", { class: "bigclock" }, ck.face));
     };
@@ -892,6 +907,9 @@
       const sec = best.closest("section")?.id || best.id;
       links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
       document.documentElement.dataset.surface = best.dataset.surface || "";
+      // What sits behind the dot nav at the right edge: blue on the blue screens and on the side-rail screens
+      // (their blue panel reaches the edge), cream elsewhere. The dots take the opposite colour.
+      document.documentElement.dataset.edge = best.dataset.surface === "blue" || best.classList.contains("ch-rail") ? "blue" : "light";
       document.querySelectorAll(".dots a").forEach((d) => { if (d.dataset.dot === best.id) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); });
     };
     // Sections taller than the screen snap to their top instead of the centre.
