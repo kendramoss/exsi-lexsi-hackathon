@@ -944,8 +944,9 @@
     };
 
     let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0, queued = null, fading = false;
+    let tailDir = 0, peak = 0, fell = false, lastMag = 0, wantDir = 0;   // touchpad gesture tracking (see the wheel handler)
     // A link clicked during the rail crossfade waits for it to finish and then goes (instead of being dropped).
-    const settle = () => { moving = false; fading = false; const q = queued; queued = null; if (q) goTo(q); };
+    const settle = () => { moving = false; fading = false; const q = queued, w = wantDir; queued = null; wantDir = 0; if (q) goTo(q); else if (w) jump(w); };
     addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
     // Between two side-rail screens the frame stays put: the blue panel and progress blocks hold still,
     // only the words and the visual fade out, the page swaps underneath, and the next screen fades in.
@@ -1000,11 +1001,23 @@
       lastEvt = now;
       const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
       if (!dy) return;
-      const dir = Math.sign(dy);
-      // 1. While a jump is animating, swallow everything.
-      if (moving) { e.preventDefault(); return; }
-      // 2. Momentum that keeps arriving right after a jump is the same gesture: swallow it until it pauses.
-      if (tail && gap < 180) { e.preventDefault(); return; }
+      const dir = Math.sign(dy), mag = Math.abs(dy);
+      // A touchpad keeps sending ever-smaller "coasting" events for a second or two after the fingers lift, and a
+      // new swipe often starts before that stops. Inside the stream a new swipe shows up as a change of direction,
+      // or as the speed climbing again after it had clearly fallen off (the first swipe's own build-up doesn't count).
+      if (gap > 180) { peak = 0; fell = false; lastMag = 0; }
+      let fresh = false;
+      if (tail) {
+        if (dir !== tailDir) fresh = true;
+        else if (fell && mag >= 8 && mag > lastMag * 1.8) fresh = true;
+        if (fresh) { peak = mag; fell = false; } else { peak = Math.max(peak, mag); if (mag < peak * 0.6) fell = true; }
+      }
+      lastMag = mag;
+      // 1. While a jump is animating, swallow everything; a new swipe is remembered and runs when it lands.
+      if (moving) { e.preventDefault(); if (fresh) wantDir = dir; return; }
+      // 2. Coasting that keeps arriving after a jump is the same gesture: swallow it, unless a new swipe starts.
+      if (tail && gap < 180 && !fresh) { e.preventDefault(); return; }
+      if (fresh) acc = 0;
       tail = false;
       // 3. Inside a section taller than the screen, scroll normally until its edge.
       const cur = current();
@@ -1013,7 +1026,7 @@
       e.preventDefault();
       if (dir !== accDir || gap > 300) { acc = 0; accDir = dir; }
       acc += dy;
-      if (Math.abs(acc) >= 40) { acc = 0; jump(dir); }
+      if (Math.abs(acc) >= 40) { acc = 0; tailDir = dir; peak = mag; fell = false; jump(dir); }
     }, { passive: false });
 
     addEventListener("keydown", (e) => {
