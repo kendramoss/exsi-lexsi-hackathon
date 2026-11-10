@@ -1668,3 +1668,11 @@ body.xf .focusable { transition: none; }
 /* 4 · the mistake half of the explainer in red; the under-bar lines are plain sentences */
 #listen .ls-bad { color: #c32a22; font-weight: 500; }
 .ls-delta .to b { font: inherit; font-weight: 500; margin: 0; color: #0b55b8; }
+
+/* 4 · two bars take turns: the big one shows its numbers, the other shrinks to a thin strip */
+.ls-x .ls-name { color: #0b55b8; font-weight: 500; }
+.ls-x .ls-bar { height: 18px; transition: height 600ms cubic-bezier(.45, 0, .2, 1); }
+.ls-x .ls-mdl.ls-on .ls-bar { height: clamp(88px, 15vh, 140px); }
+.ls-x .ls-sg { border-radius: 4px; }
+.ls-x .ls-sg b { opacity: 0; transition: opacity 300ms var(--ease); }
+.ls-x .ls-mdl.ls-on .ls-sg b { opacity: 1; transition-delay: 350ms; }

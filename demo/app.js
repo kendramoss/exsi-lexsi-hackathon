@@ -775,27 +775,25 @@
     const kR = count(R), kT = count(T), totR = MOVES.reduce((s, [a]) => s + kR[a], 0) || 1, totT = MOVES.reduce((s, [a]) => s + kT[a], 0) || 1;
     const pct = (k, tot, a) => Math.round((100 * k[a]) / tot);
     const name2 = (id) => label(id).replace(/^With /, "");
-    const segs = MOVES.map(([a, cls]) => el("span", { class: `ls-sg ${cls}`, style: `flex-grow:${kR[a] / totR}` },
-      el("b", { class: "from" }, kR[a] ? `${pct(kR, totR, a)}%` : ""), el("b", { class: "to" }, kT[a] ? `${pct(kT, totT, a)}%` : "")));
-    const name = el("span", { class: "ls-name ls-swap" }, el("em", { class: "from" }, label(R)), el("em", { class: "to" }, label(T)));
-    // One line under the bar, swapping with it: what plain training does, then what changed with EvidenceTune.
-    const delta = el("div", { class: "ls-delta" },
+    // Both bars stay on screen; they take turns being the big one (4s each). The line under them follows the big one.
+    const delta = el("div", { class: "ls-delta is-to" },
       el("p", { class: "from" }, `${label(R)} asks for proof on ${pct(kR, totR, "clarify")}% of these quotes`),
       el("p", { class: "to" }, `${name2(T)} asks for proof on `, el("b", {}, `${pc(T)}%`), `, up from ${pc(R)}%`));
-    const wrapM = el("div", { class: "ls-mdl ls-morph" }, name, el("div", { class: "ls-bar" }, ...segs));
-    box.replaceChildren(wrapM, delta, key);
-    let on = false, timer = 0;
+    const bR = bar(R, false), bT = bar(T, true);
+    bT.classList.add("ls-on");
+    box.classList.add("ls-x");
+    box.replaceChildren(bR, bT, delta, key);
+    let et = true, timer = 0;
     const flip = () => {
-      on = !on;
-      wrapM.classList.toggle("is-to", on); delta.classList.toggle("is-to", on);
-      segs.forEach((s, i) => { const a = MOVES[i][0]; s.style.flexGrow = on ? kT[a] / totT : kR[a] / totR; });
-      timer = setTimeout(flip, on ? 4200 : 2400);
+      et = !et;
+      bT.classList.toggle("ls-on", et); bR.classList.toggle("ls-on", !et); delta.classList.toggle("is-to", et);
+      timer = setTimeout(flip, 4000);
     };
     const sec = $("#listen");
     if (sec._mio) sec._mio.disconnect();
     sec._mio = new IntersectionObserver((es) => {
       clearTimeout(timer);
-      if (es.some((e) => e.isIntersecting)) timer = setTimeout(flip, 1400);
+      if (es.some((e) => e.isIntersecting)) timer = setTimeout(flip, 4000);
     }, { threshold: 0.5 });
     sec._mio.observe(sec);
   }
