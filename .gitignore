@@ -8,6 +8,7 @@ logs/
 .release/
 .public_staging/
 .verification/
+.uncertainty/
 natural_data
 **/raw_predictions.json
 **/resolution_raw.json
