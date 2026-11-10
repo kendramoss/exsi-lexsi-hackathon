@@ -1,0 +1,6 @@
+# Saved runs and evidence are hash-pinned (tests and release checks compare SHA-256 of the exact bytes),
+# so git must never convert their line endings on checkout, even on Windows with core.autocrlf.
+demo/data/** -text
+results/** -text
+release/evidence-lock.json -text
+*.jsonl -text
