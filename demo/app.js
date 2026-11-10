@@ -907,9 +907,6 @@
       const sec = best.closest("section")?.id || best.id;
       links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
       document.documentElement.dataset.surface = best.dataset.surface || "";
-      // What sits behind the dot nav at the right edge: blue on the blue screens and on the side-rail screens
-      // (their blue panel reaches the edge), cream elsewhere. The dots take the opposite colour.
-      document.documentElement.dataset.edge = best.dataset.surface === "blue" || best.classList.contains("ch-rail") ? "blue" : "light";
       document.querySelectorAll(".dots a").forEach((d) => { if (d.dataset.dot === best.id) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); });
     };
     // Sections taller than the screen snap to their top instead of the centre.

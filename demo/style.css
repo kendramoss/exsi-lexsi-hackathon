@@ -1775,27 +1775,12 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 #s4 .all-btn:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
 #s4 .end-actions span { font: 400 15px var(--display); color: rgba(245, 249, 255, .75); }
 
-/* Dot nav: readable on the light screens too. A hairline outline gives the pill an edge on cream, the rings are
-   darker and a little bigger, and the quote cards' right lane stops short of the dots so nothing passes behind. */
-.dots { background: #f5f9ff; border: 1px solid rgba(11, 85, 184, .22); box-shadow: 0 2px 14px rgba(4, 30, 70, .14); padding: 12px 8px; gap: 12px; }
-.dots a { width: 12px; height: 12px; border: 2px solid #3c76c6; }
-.dots a:hover { border-color: #0b55b8; }
-.dots a[aria-current] { background: #0b55b8; border-color: #0b55b8; }
+/* the quote cards' right lane stops short of the dot nav, so no card passes behind the dots */
 .ls-lane.r { right: 64px; width: calc((100% - 1100px) / 2 - 64px); }
 
 /* 6 · one line along the bottom: the credit on the left, the note and the numbers button on the right */
 #s4 .end-actions .credit { margin: 0 auto 0 0; padding: 0; }
 
-/* Dot nav, more obvious: where the right edge is cream (screens 1, 4 and 5) it turns into a solid cobalt pill with
-   cream dots, the opposite of the page around it; where the edge is blue it stays a cream pill with cobalt dots. The current screen's
-   dot stretches into a short bar so it stands out at a glance. */
-.dots { padding: 14px 9px; gap: 14px; transition: background-color 400ms var(--ease), border-color 400ms var(--ease); }
-.dots a { width: 14px; height: 14px; transition: background-color 200ms var(--ease), border-color 200ms var(--ease), height 250ms var(--ease); }
-.dots a[aria-current] { height: 28px; border-radius: 7px; }
-:root[data-edge="light"] .dots { background: #0b55b8; border-color: #0b55b8; box-shadow: 0 4px 18px rgba(4, 30, 70, .22); }
-:root[data-edge="light"] .dots a { border-color: #f5f9ff; }
-:root[data-edge="light"] .dots a:hover { background: rgba(245, 249, 255, .3); }
-:root[data-edge="light"] .dots a[aria-current] { background: #f5f9ff; border-color: #f5f9ff; }
 
 /* 5 · the highlighted row's arrows become a line of moving dots (the plain line under them is hidden, its
    arrowhead stays); the other rows keep their plain solid arrows */
