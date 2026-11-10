@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=134">
+  <link rel="stylesheet" href="style.css?v=145">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -18,9 +18,12 @@
     <div class="nav">
       <a class="logo" href="#top" aria-label="EvidenceTune, back to top"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M30 30 V4 A26 26 0 0 0 4 30 Z" fill="currentColor"/><circle cx="47" cy="17" r="9" fill="var(--ink-3)"/><rect x="4" y="34" width="26" height="26" fill="currentColor"/><path d="M34 34 H60 A26 26 0 0 1 34 60 Z" fill="currentColor"/></svg><span class="wm">EvidenceTune</span></a>
       <nav class="tabs" aria-label="Sections" id="steps">
-        <a href="#s1" data-sec="s1"><em>01</em>Example</a>
-        <a href="#s3" data-sec="s3"><em>02</em>Tested</a>
-        <a href="#s4" data-sec="s4"><em>03</em>More info</a>
+        <a href="#top" data-sec="top"><em>01</em>Why</a>
+        <a href="#glance" data-sec="glance"><em>02</em>The result</a>
+        <a href="#s1" data-sec="s1"><em>03</em>Watch it</a>
+        <a href="#listen" data-sec="listen"><em>04</em>Under pressure</a>
+        <a href="#s3" data-sec="s3"><em>05</em>The test</a>
+        <a href="#s4" data-sec="s4"><em>06</em>See the work</a>
       </nav>
       <div class="actions">
         <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
@@ -53,9 +56,8 @@
       <div class="rail">
         <h2 id="glance-title">Tell it the wrong info. Does it switch?</h2>
         <dl class="setup" id="setup"></dl>
-        <p class="rail-foot" id="clock-cap"></p>
       </div>
-      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="One wrong pushback, two models"></figure><div class="g-proof" id="g-proof" role="img"></div></div>
+      <div class="panel panel-blue"><figure class="clocks" id="hero-vis" aria-label="One wrong pushback, two models"></figure><p class="clock-cap" id="clock-cap"></p><div class="g-proof" id="g-proof" role="img"></div></div>
     </section>
 
     <!-- 3 · B: rail, the conversation steps on the right -->
@@ -96,7 +98,7 @@
     <section class="ch ch-light focusable" id="s3" aria-labelledby="s3-title">
       <header class="ch-head">
         <h2 id="s3-title">Is the test fair?</h2>
-        <p class="fair-lead">A right and a wrong pushback use the same words. Only the excerpt they quote is different, so the model has to check it</p>
+        <p class="fair-lead">Every case is pushed back on 4 ways. The ones that quote an excerpt use the same words and only the excerpt changes, so the model has to check it</p>
       </header>
       <figure class="fair" id="fair" role="img"></figure>
       <ul class="fair-facts">
@@ -113,9 +115,10 @@
       <div class="tiles">
         <a class="tile model" href="https://huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</em></span><img src="assets/previews/model.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Model</small><b>EvidenceTune adapter <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</span></span></a>
         <a class="tile data" href="https://huggingface.co/datasets/Mizore66/evidencetune-bench" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/datasets/Mizore66/evidencetune-bench</em></span><img src="assets/previews/data.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Test cases</small><b>EvidenceTune benchmark <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/datasets/Mizore66/evidencetune-bench</span></span></a>
-        <a class="tile code" href="https://github.com/Mizore66/evidencetune" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>github.com/Mizore66/evidencetune</em></span><img src="assets/previews/code.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Code</small><b>Training and scoring <span aria-hidden="true">↗</span></b><span class="url">github.com/Mizore66/evidencetune</span></span></a>
+        <a class="tile code" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>github.com/kendramoss/exsi-lexsi-hackathon</em></span><img src="assets/previews/code.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Code</small><b>Training and scoring <span aria-hidden="true">↗</span></b><span class="url">github.com/kendramoss/exsi-lexsi-hackathon</span></span></a>
       </div>
-      <p class="credit"><button class="linkish" id="open-all" type="button">All the numbers</button> · Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by Damir Sokolovsky</p>
+      <div class="end-actions"><button class="all-btn" id="open-all" type="button">See all the numbers</button><span>Every model on every test case, with the full scoreboard</span></div>
+      <p class="credit">Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by Damir Sokolovsky</p>
     </section>
     <!-- all the numbers, opened from screen 6 -->
     <dialog class="all" id="all-dialog" aria-labelledby="all-title">
@@ -132,6 +135,6 @@
     </dialog>
   </main>
 
-  <script src="app.js?v=112"></script>
+  <script src="app.js?v=121"></script>
 </body>
 </html>

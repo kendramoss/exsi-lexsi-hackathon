@@ -1612,7 +1612,8 @@ body.xf .focusable { transition: none; }
 .fb-tag { font: 400 12px var(--mono); fill: #7d9fd4; }
 .fr .fx { fill: #e4eefd; transition: fill 300ms var(--ease); }
 .fx-t { font: 500 19px var(--display); fill: #0b55b8; transition: fill 300ms var(--ease); }
-.fr { opacity: .3; transition: opacity 400ms var(--ease); }
+/* every row stays readable; the highlighted one is marked by its heavier border and filled answer */
+.fr { opacity: 1; transition: opacity 400ms var(--ease); }
 .fr.on, .fair.still .fr { opacity: 1; }
 .fr.on .fb { stroke: #0b55b8; stroke-width: 3; }
 .fr.on .fx { fill: #0b55b8; }
@@ -1625,8 +1626,8 @@ body.xf .focusable { transition: none; }
 @media (max-width: 900px) { #s3 .fair-facts { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
 /* 5 · room under the top bar: content centres only while it fits, and the diagram gives way first */
 @media (min-width: 901px) and (min-height: 601px) {
-  #s3 { justify-content: safe center; padding-top: clamp(48px, 9vh, 96px); padding-bottom: clamp(32px, 6vh, 64px); gap: clamp(16px, 3vh, 32px); }
-  .fair-svg { max-height: 44vh; }
+  #s3 { justify-content: safe center; padding-top: clamp(48px, 9vh, 96px); padding-bottom: clamp(48px, 9vh, 96px); gap: clamp(16px, 3vh, 32px); }
+  .fair-svg { max-height: 40vh; }
 }
 
 /* 4 · one bar morphs from plain training into EvidenceTune; names and numbers crossfade */
@@ -1706,11 +1707,72 @@ body.xf .focusable { transition: none; }
 .ls-field { display: none; }
 #listen > .blocks { position: absolute; inset: 0; transform: scaleY(-1); pointer-events: none; z-index: 0; }
 
-/* 4 → 5 · pieces fade in at the top of screen 4, fall through it and stack at the bottom of screen 5 */
 #listen > .blocks { display: none; }
 .ch#s3 { position: relative; overflow: hidden; }
 .ch#s3 { isolation: isolate; }
-#s3 > .fall-layer { z-index: -1; }
-.fall-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
-.fall-piece { position: absolute; left: 0; top: 0; width: 100%; height: 0; opacity: 0; }
-.fall-piece i { position: absolute; width: 36px; height: 36px; border-radius: 3px; background: #d3e2f7; }
+
+/* 4 · quote conveyor in the side margins: up the left and off the top, down the right and off the bottom.
+   As quiet as the pale blocks elsewhere; hidden when the margins are too narrow for a card. */
+.ls-lane { position: absolute; top: 0; height: var(--lane-h, 100%); width: calc((100% - 1100px) / 2); z-index: 0; pointer-events: none; overflow: hidden; display: none;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 200px), transparent); mask-image: linear-gradient(#000 calc(100% - 200px), transparent); }
+/* screen 5's copy of the track starts one screen-4 height above its top edge, behind screen 5's content; it fades out at the middle */
+.ls-lane.on5 { top: calc(-1 * var(--lane-up, 100vh)); z-index: -1; }
+.ls-lane.l { left: 0; } .ls-lane.r { right: 0; }
+@media (min-width: 1560px) { .ls-lane { display: block; } }
+.ls-card { position: absolute; top: 0; left: 50%; width: min(240px, calc(100% - 64px)); margin-left: calc(min(240px, calc(100% - 64px)) / -2); box-sizing: border-box; padding: 14px 16px; display: grid; gap: 8px; background: #f5f9ff; border: 1px solid #e4eefd; border-radius: 8px; animation: ls-up 18s linear infinite; will-change: transform; }
+.ls-lane.r .ls-card { animation-name: ls-down; }
+.ls-card small { font: 400 11px var(--mono, "JetBrains Mono", monospace); color: #b9cbe8; }
+.ls-card u { display: block; height: 8px; border-radius: 4px; background: #ebf2fd; text-decoration: none; }
+.ls-card em { justify-self: start; font: 400 12px var(--display); font-style: normal; padding: 4px 8px; border-radius: 4px; }
+.ls-card em.ask { background: #d3e2f7; color: #7d9fd4; }
+.ls-card em.keep { background: #ebf2fd; color: #b9cbe8; }
+.ls-card em.chg { background: #f1d6d4; color: #c98a86; }
+@keyframes ls-up { from { transform: translateY(var(--lane-h, 100vh)); } to { transform: translateY(-100%); } }
+@keyframes ls-down { from { transform: translateY(-100%); } to { transform: translateY(var(--lane-h, 100vh)); } }
+
+/* Nav bar, option C: 76px bar (+1px rule), 18px tabs, 26px wordmark, 36px mark. Desktop only; phones keep the compact bar. */
+@media (min-width: 761px) {
+  :root { --nav: 77px; }
+  .nav { min-height: 76px; }
+  .logo { padding: 0 32px; font-size: 26px; gap: 14px; }
+  .logo-mark { width: 36px; height: 36px; }
+  .tabs a { padding: 0 32px; font-size: 18px; }
+  .tabs a em { font-size: 13px; }
+  .btn { padding: 0 32px; min-height: 76px; font-size: 18px; }
+}
+
+/* When the dot nav is showing, it already says where you are, so hide the page scrollbar (scrolling still works).
+   Same condition as the dots: they hide at max-width 900px or max-height 600px, and the scrollbar comes back there. */
+@media (min-width: 901px) and (min-height: 601px) {
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar { display: none; }
+}
+
+/* Six tabs, one per screen: on narrower desktops the tabs tighten so all six fit beside the logo and GitHub */
+@media (min-width: 761px) and (max-width: 1599px) {
+  .logo { padding: 0 24px; }
+  .tabs a { padding: 0 18px; font-size: 16px; gap: 6px; }
+  .btn { padding: 0 24px; font-size: 16px; }
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  .tabs a em { display: none; }
+  .tabs a { padding: 0 14px; font-size: 15px; }
+}
+
+/* 3 · the pushback highlights only the excerpt it quotes (the part the model has to check) */
+mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 16%, transparent); border-radius: 3px; padding: 1px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+/* 2 · both gauges at full strength and full size: the wrong answer is half the story, so it reads as clearly as
+   the right one. The spotlight that dimmed and shrank one gauge at a time is switched off. */
+#glance .clocks .clockcol.is-dim, #glance .clocks .clockcol.is-on { opacity: 1; transform: none; }
+/* the gauge labels in sentence case instead of tracked capitals */
+.c-tag { text-transform: capitalize; letter-spacing: 0; }
+/* the note on how to read the gauges sits right under them, not in the rail's bottom corner */
+#glance .clock-cap { margin: 0; text-align: center; font: 400 15px/1.45 var(--display); color: rgba(245, 249, 255, .82); }
+
+/* 6 · "See all the numbers" is a real button, so the full scoreboard is easy to find */
+#s4 .end-actions { position: relative; z-index: 1; padding: 0 64px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+#s4 .all-btn { min-height: 48px; padding: 0 24px; border: 0; border-radius: 8px; background: #f5f9ff; color: #0b55b8; font: 500 17px var(--display); cursor: pointer; transition: background-color 150ms var(--ease); }
+#s4 .all-btn:hover { background: #ffffff; }
+#s4 .all-btn:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
+#s4 .end-actions span { font: 400 15px var(--display); color: rgba(245, 249, 255, .75); }

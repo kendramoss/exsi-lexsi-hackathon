@@ -49,6 +49,8 @@
     cases = jsonl(c); preds = jsonl(p); metrics = JSON.parse(m);
   }
   const caseOf = (fam, cond) => cases.find((c) => c.family_id === fam && c.feedback_condition === cond);
+  // The nav bar's height comes from the --nav CSS variable, so JS and CSS never disagree.
+  const navH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav")) || 49;
   const predOf = (id, pol) => preds.find((r) => r.case_id === id && r.policy === pol);
   const comp = (id) => metrics.comparators.find((c) => c.id === id);
   // Plain-language names for people who don't know the models; the technical name stays in hover titles.
@@ -85,6 +87,10 @@
       return !STOP.has(t) && ctx.has(t) ? `<mark>${w}</mark>` : w;
     });
     return { share: fb.length ? fb.filter((w) => ctx.has(w)).length / fb.length : 0, html };
+  }
+  // The pushback's claim: only the excerpt it quotes is highlighted, since that is what the model has to check.
+  function quoted(text) {
+    return esc(text).replace(/(&quot;|"|“)(.+?)(&quot;|"|”)/, (m, o, q, c) => `${o}<mark class="claim">${q}</mark>${c}`);
   }
   function spans(text) {
     const parts = text.split(/\[(S\d+)\]\s*/).slice(1), out = [];
@@ -171,7 +177,7 @@
     const shared = [
       { from: "user", make: () => row("user", bubble("q", c.question), file()) },
       { from: "ai", make: () => row("ai", bubble("a", el("b", {}, c.original_answer), ", according to the document.")) },
-      { from: "user", make: () => row("user push", bubble("q", el("span", { html: overlap(c.feedback_text, c.context).html }))) },
+      { from: "user", make: () => row("user push", bubble("q", el("span", { html: quoted(c.feedback_text) }))) },
     ];
     const replies = (p) => [
       { from: "ai", make: () => row("ai", bubble("a", el("span", { html: cites(p?.raw_output || "") }))) },
@@ -235,7 +241,25 @@
 
   // One step forward or back, from the ‹ › controls or the ← → keys.
   let convoVisited = false;   // set once the reader has reached the chat; after that it resumes where it was
+  // Arriving at the chat plays it through on its own, a step at a time, so a reader who only scrolls still sees
+  // the two AIs split. It stops as soon as they take over with ‹ › or ← →, or leave the screen.
+  let autoTimer = 0;
+  const AUTO_HOLD = [0, 2400, 2000, 2400, 3600];   // how long each step stays up before the next (step 1 to 4)
+  const stopAuto = () => { clearTimeout(autoTimer); autoTimer = 0; };
+  function autoPlayConvo() {
+    stopAuto();
+    let n = 1;
+    const tick = () => {
+      if (!$("#s1")?.classList.contains("is-focus") && n > 1) { autoTimer = 0; return; }
+      convoShow(n, n === 1 ? 750 : 0);
+      if (n >= CONVO_STEPS) { autoTimer = 0; return; }
+      autoTimer = setTimeout(tick, AUTO_HOLD[n] + (n === 1 ? 750 : 0));
+      n++;
+    };
+    tick();
+  }
   function convoStep(dir) {
+    stopAuto();
     convoVisited = true;
     const n = convoStepAt + dir;
     if (n < 1 || n > CONVO_STEPS) return false;
@@ -731,7 +755,7 @@
         n("path", { class: "ff", d: `M380 ${cy} H415 V${my} H450` }), n("path", { class: "ff", d: `M870 ${my} H920` }),
         n("rect", { x: 450, y: ry, width: 420, height: RH, rx: 12, class: "fb" }),
         n("text", { x: 470, y: ry + 36, class: "fb-t" }, r.title),
-        n("text", { x: 470, y: ry + 66, class: "fb-s" }, sub, n("tspan", { class: "fb-tag", dx: 12 }, r.tag)),
+        n("text", { x: 470, y: ry + 66, class: "fb-s" }, sub),
         n("rect", { x: 920, y: ry + 12, width: 280, height: RH - 24, rx: 10, class: "fx" }),
         n("text", { x: 940, y: ry + RH / 2 + 7, class: "fx-t" }, doText(r.cs.acceptable_actions)));
       svg.append(g);
@@ -873,22 +897,25 @@
     // Sections taller than the screen snap to their top instead of the centre.
     // "Tall" means the content (not the padding around it) is taller than the screen.
     const contentH = (s) => { const cs = getComputedStyle(s); return s.scrollHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); };
-    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) > innerHeight - 49));
+    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) > innerHeight - navH()));
     addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
     addEventListener("resize", () => { sizes(); update(); });
     new ResizeObserver(sizes).observe(document.body);
     new ResizeObserver(() => walkMode()).observe(document.documentElement);
     sizes();
     update();
-    pager(secs);
+    const pg = pager(secs);
+    // In-page links (top tabs, dots, "Scroll for more") go through the pager, so a click lands exactly where
+    // scrolling to that screen would: same position under the nav, same lock against wheel momentum, and the
+    // chat screen is set up as on a scroll arrival. Phones (no pager) and non-screen targets keep plain scrolling.
     document.addEventListener("click", (e) => {
       const a = e.target.closest('a[href^="#"]');
       if (!a) return;
       const t = document.querySelector(a.getAttribute("href"));
       if (!t) return;
       e.preventDefault();
-      const tall = t.offsetHeight > innerHeight - 49;
-      t.scrollIntoView({ block: tall ? "start" : "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      if (innerWidth >= 760 && secs.includes(t)) pg.goTo(t);
+      else t.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
       history.replaceState(null, "", a.getAttribute("href"));
     });
   }
@@ -896,7 +923,9 @@
   // (tall sections land with their heading at the top). Inside a tall section, or the sideways
   // showcase, normal scrolling continues until its edge. Off on phones.
   function pager(secs) {
-    const NAV = 49;
+    // Read live: the nav height changes between the phone and desktop layouts.
+    let NAV = navH();
+    addEventListener("resize", () => { NAV = navH(); });
     const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     const targetY = (s) => {
@@ -914,14 +943,15 @@
       return dir > 0 ? r.bottom - parseFloat(cs.paddingBottom) > innerHeight + 2 : r.top + parseFloat(cs.paddingTop) < NAV - 2;
     };
 
-    let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0;
-    const settle = () => { moving = false; };
+    let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0, queued = null, fading = false;
+    // A link clicked during the rail crossfade waits for it to finish and then goes (instead of being dropped).
+    const settle = () => { moving = false; fading = false; const q = queued; queued = null; if (q) goTo(q); };
     addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
     // Between two side-rail screens the frame stays put: the blue panel and progress blocks hold still,
     // only the words and the visual fade out, the page swaps underneath, and the next screen fades in.
     const FADE = 450, FADE_IN = 900;
     const crossfade = (from, to) => {
-      moving = true; tail = true;
+      moving = true; tail = true; fading = true;
       until = performance.now() + FADE + FADE_IN + 400;
       from.classList.add("xf-hide");
       setTimeout(() => {
@@ -958,7 +988,7 @@
       if (!next) return false;
       // Coming back to the chat keeps the step it was left on; only a first visit picks a starting point
       // (the beginning coming down, after the fade-in; the end coming up).
-      if (next.id === "s1" && !convoVisited) { convoVisited = true; if (dir > 0) convoStepAt = 0; convoShow(dir > 0 ? 1 : CONVO_STEPS, dir > 0 ? 750 : 0); }
+      if (next.id === "s1" && !convoVisited) { convoVisited = true; if (dir > 0) { convoStepAt = 0; autoPlayConvo(); } else convoShow(CONVO_STEPS); }
       go(next, cur);
       return true;
     };
@@ -997,6 +1027,19 @@
       e.preventDefault();
       jump(dir);
     });
+
+    // A link click: go straight to that screen, however far away it is, the same way a scroll would arrive.
+    const goTo = (s) => {
+      // A plain scroll can be redirected at once; only the crossfade has to finish first.
+      if (fading) { queued = s; return; }
+      const cur = current();
+      if (s.id === "s1" && !convoVisited) { convoVisited = true; convoStepAt = 0; autoPlayConvo(); }
+      if (s === cur) { go(s); return; }
+      // The rail crossfade only reads right between neighbours; a longer trip scrolls.
+      const near = Math.abs(secs.indexOf(s) - secs.indexOf(cur)) === 1;
+      go(s, near ? cur : null);
+    };
+    return { goTo };
   }
 
   function selectors() {
@@ -1179,73 +1222,35 @@
     build();
   }
 
-  // Screens 4 → 5: a tetris piece fades in at the top of screen 4, falls through it and lands in a stack at the
-  // bottom of screen 5. Each screen draws its own copy of the piece on the same path, so it crosses the seam.
-  function fallThrough() {
+  // Screens 4 → 5 sides: a quiet conveyor of quote cards in the side margins. The track runs from the top of
+  // screen 4 down to the middle of screen 5: up the left and off the top of screen 4, down the right and fading out
+  // at screen 5's middle. Each card is a real wrong-quote test, stamped with what that
+  // model actually did with it: plain training on the left, EvidenceTune on the right.
+  // Each screen draws its own copy of the track on the same timeline, offset by screen 4's height, so the cards
+  // cross the seam. Only drawn when the margins have room for a card.
+  function sideQuotes() {
     const s4 = $("#listen"), s5 = $("#s3");
     if (!s4 || !s5 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const C = 40;
-    const SHAPES = [[[0,0],[1,0],[2,0],[3,0]], [[0,0],[1,0],[0,1],[1,1]], [[0,0],[1,0],[2,0],[1,1]], [[0,0],[1,0],[2,0],[0,1]], [[0,0],[1,0],[1,1],[2,1]]];
-    const L4 = el("div", { class: "fall-layer", "aria-hidden": "true" }), L5 = el("div", { class: "fall-layer", "aria-hidden": "true" });
-    s4.prepend(L4); s5.prepend(L5);
-    let h = [], cap = [], timer = 0, pieces = [];
-    function build() {
-      clearTimeout(timer);
-      L4.replaceChildren(); L5.replaceChildren(); pieces = [];
-      const cols = Math.ceil(L5.clientWidth / C);
-      // the stack runs the full width of screen 5
-      const b = L5.getBoundingClientRect(), inner = [...s5.children].filter((e) => e !== L5).map((e) => e.getBoundingClientRect());
-      const left = Math.min(...inner.map((r) => r.left)) - b.left - 24, right = Math.max(...inner.map((r) => r.right)) - b.left + 24;
-      const high = Math.max(2, Math.floor((b.height * 0.4) / C));
-      // like screen 1: under the content the stack stays low (only the room below it), higher at the sides
-      const low = Math.max(1, Math.floor((b.bottom - Math.max(...inner.map((r) => r.bottom)) - 8) / C));
-      cap = Array.from({ length: cols }, (_, c) => (c * C + C > left && c * C < right ? low : Math.max(high, low)));
-      h = cap.map(() => 0);
-      timer = setTimeout(drop, 900);
-    }
-    function fits(shape) {
-      const w = Math.max(...shape.map(([x]) => x)) + 1, spots = [];
-      for (let c = 0; c + w <= h.length; c++) {
-        const base = Math.max(...shape.filter(([, y]) => y === 0).map(([x]) => h[c + x]));
-        const flat = shape.filter(([, y]) => y === 0).every(([x]) => h[c + x] === base);
-        if (flat && shape.every(([x, y]) => base + y < cap[c + x])) spots.push([c, base]);
-      }
-      return spots;
-    }
-    function piece(shape, c) {
-      const g = el("div", { class: "fall-piece" });
-      for (const [x, y] of shape) { const i = document.createElement("i"); i.style.left = `${(c + x) * C + 2}px`; i.style.top = `${-y * C + 2}px`; g.append(i); }
-      return g;
-    }
-    function drop() {
-      if (document.hidden) { timer = setTimeout(drop, 1400); return; }
-      const order = SHAPES.map((s) => [Math.random(), s]).sort((p, q) => p[0] - q[0]).map(([, s]) => s);
-      for (const shape of order) {
-        const spots = fits(shape);
-        if (!spots.length) continue;
-        const [c, base] = spots[Math.floor(Math.random() * spots.length)];
-        const H4 = s4.clientHeight, H5 = s5.clientHeight, top = Math.max(...shape.map(([, y]) => y)) * C;
-        const y0 = 24 + top, y1 = H4 + H5 - (base + 1) * C;   // the bottom row's top edge, in screen-4 coordinates
-        const frames = (off) => [
-          { transform: `translateY(${y0 - off}px)`, opacity: 0 },
-          { transform: `translateY(${y0 - off}px)`, opacity: 1, offset: 0.3, easing: "cubic-bezier(.45,0,.85,.4)" },
-          { transform: `translateY(${y1 - off}px)`, opacity: 1 }];
-        const a = piece(shape, c), b2 = piece(shape, c);
-        L4.append(a); L5.append(b2);
-        const opts = { duration: 3200, fill: "forwards" };
-        a.animate(frames(0), opts).finished.then(() => a.remove());
-        b2.animate(frames(H4), opts);
-        pieces.push(b2);
-        for (const [x, y] of shape) h[c + x] = Math.max(h[c + x], base + y + 1);
-        timer = setTimeout(drop, 1800);
-        return;
-      }
-      // the stack is full: fade it out and start over
-      Promise.all(pieces.map((p) => p.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 900, fill: "forwards" }).finished)).then(build);
-    }
-    let rt = 0;
-    addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(build, 250); });
-    build();
+    const pool = cases.filter((c) => c.feedback_condition === "unsupported_high_overlap");
+    if (!pool.length) return;
+    const STAMP = { retain: ["keep", "kept its answer"], clarify: ["ask", "asked for proof"], update: ["chg", "changed its answer"] };
+    const N = 9, GAP = 3;   // cards per lane, seconds between them (the track is N × GAP seconds long)
+    const lane = (side, pol, cls) => el("div", { class: `ls-lane ${side} ${cls}`, "aria-hidden": "true" },
+      ...pool.filter((c) => STAMP[predOf(c.case_id, pol)?.parsed_action.action]).slice(0, N).map((c, n) => {
+        const [k, t] = STAMP[predOf(c.case_id, pol).parsed_action.action];
+        const lines = [62, 88, 47].map((w, j) => el("u", { style: `width:${(w + n * 7 + j * 11) % 55 + 40}%` }));
+        return el("div", { class: "ls-card", style: `animation-duration:${N * GAP}s;animation-delay:${-n * GAP}s` },
+          el("small", {}, "Quoted excerpt"), ...lines, el("em", { class: k }, t));
+      }));
+    s4.prepend(lane("l", state.ref, "on4"), lane("r", state.comparator, "on4"));
+    s5.prepend(lane("l", state.ref, "on5"), lane("r", state.comparator, "on5"));
+    // The track is screen 4's height plus half of screen 5's; screen 5's copy sits one screen-4 height higher.
+    const size = () => {
+      const h4 = s4.clientHeight, track = h4 + s5.clientHeight / 2;
+      for (const s of [s4, s5]) { s.style.setProperty("--lane-h", `${track}px`); s.style.setProperty("--lane-up", `${h4}px`); }
+    };
+    addEventListener("resize", size);
+    size();
   }
 
   // Horizontal showcase: vertical scroll drives the panel track sideways (native swipe row on phones / reduced motion).
@@ -1292,7 +1297,7 @@
     renderAll();
     hscroll();
     blocks();
-    fallThrough();
+    sideQuotes();
     railProgress();
     panelBlocks();
     convoWatch();
