@@ -4,7 +4,7 @@
 
 ## Start here
 
-Pick what you want to do. Each link jumps to step-by-step instructions.
+This page has two parts: **[Part 1 · Try the demo](#part-1--try-the-demo)**, step by step, and **[Part 2 · Project details](#part-2--project-details)**, the model, results and write-up. Pick what you want to do; each link jumps to the instructions.
 
 | I want to… | How long | Go to |
 |---|---|---|
@@ -14,6 +14,13 @@ Pick what you want to do. Each link jumps to step-by-step instructions.
 | **Look at the model, the test cases and the code** | a few minutes | [Find the model, data and code](#find-the-model-data-and-code) |
 | **Check the numbers or rebuild the results** | longer | [Check and reproduce the results](#check-and-reproduce-the-results) |
 | **Fix something that didn't work** | — | [If something goes wrong](#if-something-goes-wrong) |
+| **Read about the model and results** | a few minutes | [Project details](#part-2--project-details) |
+
+---
+
+# Part 1 · Try the demo
+
+Everything you need to see, run or host the demo, one step at a time.
 
 ---
 
@@ -26,6 +33,8 @@ That's it. It opens in your browser and works on any computer.
 - Scroll down, or use the tabs at the top, to move through the screens.
 - The demo replays answers the model already gave during testing. It does not run the model live, so it is fast and always shows the same results.
 - An earlier version that replays the merged α=0.75 model is on [Hugging Face](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html).
+
+<sub>[↑ Back to the top](#start-here)</sub>
 
 ---
 
@@ -101,6 +110,8 @@ The demo loads. Scroll, or use the tabs at the top, to move through it.
 
 Go back to the terminal window and press **Ctrl + C**. You can close the window afterwards.
 
+<sub>[↑ Back to the top](#start-here)</sub>
+
 ---
 
 ## Host your own copy
@@ -133,6 +144,8 @@ The `demo` folder is already set up for this (its `README.md` holds the Space se
 
 > Whatever host you use, the demo has to be opened through a web address (`http://…` or `https://…`). Double-clicking `index.html` to open it as a file shows a blank page, because browsers block the data files that way.
 
+<sub>[↑ Back to the top](#start-here)</sub>
+
 ---
 
 ## Find the model, data and code
@@ -145,6 +158,8 @@ The `demo` folder is already set up for this (its `README.md` holds the Space se
 | **The code** | [This repository](https://github.com/kendramoss/exsi-lexsi-hackathon) | Training, scoring, analysis and the demo |
 | **The write-up** | [Submission draft](SUBMISSION-DRAFT.md) · [Full write-up](WRITEUP.md) | How the model was chosen, the results, what didn't work, and what we don't claim |
 
+<sub>[↑ Back to the top](#start-here)</sub>
+
 ---
 
 ## Check and reproduce the results
@@ -154,6 +169,8 @@ These are for a deeper check and assume you are comfortable with Python and a te
 - **[Release tooling](release/README.md)**: how the release package is built and verified.
 - **[Reproduction guide](release/REPRODUCE.md)**: verify the adapter package, replay the selection and frozen metrics from saved records, and rebuild the demo data. The commands in it use the author's own folder paths; swap in the paths on your machine.
 - **[Frozen results table](#frozen-confirmation-results)**: the headline numbers, further down this page.
+
+<sub>[↑ Back to the top](#start-here)</sub>
 
 ---
 
@@ -168,9 +185,23 @@ These are for a deeper check and assume you are comfortable with Python and a te
 | The page looks old after an update | Hard refresh: **Ctrl + Shift + R** (Windows) or **Cmd + Shift + R** (Mac). |
 | Scrolling jumps a whole screen at a time | That's on purpose: each scroll moves to the next screen. Use the tabs at the top or the dots on the right to jump anywhere. |
 
+<sub>[↑ Back to the top](#start-here)</sub>
+
 ---
 
-# Project details
+# Part 2 · Project details
+
+The model, how it was chosen, its results and its limits, as written by the team.
+
+| Section | What's in it |
+|---|---|
+| [About the project](#about-the-project) | What EvidenceTune is and which hackathon track it enters |
+| [Current merged-model submission](#current-merged-model-submission) | The released model, its public links and its frozen results |
+| [Project documents](#project-documents) | The spec, the plan and the backlog |
+
+---
+
+## About the project
 
 A three-person project building a lexical-controlled safety benchmark and SafeTune-trained Aya adapter for evidence-sensitive correction.
 
@@ -179,6 +210,10 @@ EvidenceTune teaches and evaluates when a model should accept supported feedback
 **Official fit:** Track 2a #2 (safety benchmark), with Track 2b #5 (safety-hardened versus ordinary fine-tuning) as the secondary comparison.
 
 **Pipeline:** CuratorKIT → SafeTune → AuditKIT.
+
+<sub>[↑ Back to the top](#start-here)</sub>
+
+---
 
 ## Current merged-model submission
 
@@ -224,6 +259,10 @@ Original EvidenceTune code is [MIT licensed](LICENSE); the merged adapter is [CC
 - Raw base Tiny Aya was not evaluated on the current contract-v2 suites, so base→merged correction improvement is unmeasured. Five rows from one case are correlated, and current resolution rates have different conditional follow-up denominators.
 - Contradiction and Arabic weaknesses remain; the small Arabic proxy is not native-speaker validation. DPO and natural SciFact training were rejected. Historical v6 safety-retention results are not merged-model safety evidence.
 
+<sub>[↑ Back to the top](#start-here)</sub>
+
+---
+
 ## Project documents
 
 - [Research specification](SPEC.md)
@@ -235,3 +274,5 @@ Original EvidenceTune code is [MIT licensed](LICENSE); the merged adapter is [CC
 - **Data & Annotation** — sources, counterfactuals, independent labels, Arabic quality, and CuratorKIT.
 - **ML & Evaluation** — Aya runners, SafeTune, baselines, AuditKIT, and analysis.
 - **Frontend & Design** — demo experience, visual communication, and presentation.
+
+<sub>[↑ Back to the top](#start-here)</sub>
