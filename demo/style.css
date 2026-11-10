@@ -1795,3 +1795,8 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 .fr.on .ff { stroke-width: 3.5; stroke-linecap: round; stroke-dasharray: 0.1 9; animation: fair-dots .9s linear infinite; }
 @keyframes fair-dots { to { stroke-dashoffset: -27.3; } }
 @media (prefers-reduced-motion: reduce) { .fr.on .ff { animation: none; } }
+
+/* 6 · which model the demo shows, right under the heading, so it never reads as the released model's scoreboard */
+#s4 .end-head .which { margin: 12px 0 0; max-width: 72ch; font: 400 17px/1.5 var(--display); color: rgba(245, 249, 255, .82); }
+#s4 .end-head .which a { color: #f5f9ff; text-underline-offset: 3px; }
+#all-dialog .intro a { color: inherit; text-underline-offset: 3px; }

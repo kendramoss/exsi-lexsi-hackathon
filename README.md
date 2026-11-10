@@ -4,6 +4,8 @@
 
 **[▶ Open the demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** &nbsp;·&nbsp; [Run it locally](#2-run-the-demo-on-your-computer) &nbsp;·&nbsp; [Model, data and code](#4-model-data-and-code) &nbsp;·&nbsp; [Results](#about-the-project)
 
+**Which model?** The demo shows *why* evidence training works: EvidenceTune v6 against plain training, on 544 pushbacks. The released model, [merged α=0.75](#about-the-project), is a blend of the later v7 and v8 adapters and reaches 92.5% task success on the frozen semantic suite.
+
 Lexsi Hackathon, Track 2a #2 (safety benchmark) with Track 2b #5. Pipeline: CuratorKIT → SafeTune → AuditKIT.
 
 ## Contents
@@ -20,7 +22,7 @@ Lexsi Hackathon, Track 2a #2 (safety benchmark) with Track 2b #5. Pipeline: Cura
 
 **[Open the demo →](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** Nothing to install; it works in any browser.
 
-Scroll, or use the tabs at the top, to move through the six screens. The demo replays answers the model already gave during testing, so it doesn't run the model live and always shows the same results. An earlier version that replays the merged α=0.75 model is on [Hugging Face](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html).
+Scroll, or use the tabs at the top, to move through the six screens. The demo replays answers the model already gave during testing, so it doesn't run the model live and always shows the same results. It compares EvidenceTune v6 with plain training, to show what evidence training changes. The released merged α=0.75 model's own results are under [About the project](#about-the-project), and a version that replays the merged model is on [Hugging Face](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html).
 
 ## 2. Run the demo on your computer
 

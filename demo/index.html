@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=154">
+  <link rel="stylesheet" href="style.css?v=155">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -111,7 +111,7 @@
     <!-- 7 · the end -->
     <section class="ch ch-blue focusable" id="s4" data-surface="blue" aria-labelledby="s4-title">
       <div class="s4-shapes" aria-hidden="true"><i class="q1"></i><i class="c1"></i><i class="sq"></i><i class="q2"></i></div>
-      <header class="end-head"><h2 id="s4-title">See the work</h2></header>
+      <header class="end-head"><h2 id="s4-title">See the work</h2><p class="which">Shown here: EvidenceTune v6 against plain training, on 544 pushbacks. The released model is <a href="https://github.com/kendramoss/exsi-lexsi-hackathon#about-the-project" target="_blank" rel="noopener">merged α=0.75</a>, a blend of the later v7 and v8 adapters, with its own frozen results.</p></header>
       <div class="tiles">
         <a class="tile model" href="https://huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</em></span><img src="assets/previews/model.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Model</small><b>EvidenceTune adapter <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora</span></span></a>
         <a class="tile data" href="https://huggingface.co/datasets/Mizore66/evidencetune-bench" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/datasets/Mizore66/evidencetune-bench</em></span><img src="assets/previews/data.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Test cases</small><b>EvidenceTune benchmark <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/datasets/Mizore66/evidencetune-bench</span></span></a>
@@ -122,7 +122,7 @@
     <!-- all the numbers, opened from screen 6 -->
     <dialog class="all" id="all-dialog" aria-labelledby="all-title">
       <div class="all-head"><h3 id="all-title">All the numbers</h3><button class="replay" id="close-all" type="button">Close</button></div>
-      <p class="intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
+      <p class="intro">EvidenceTune v6 against plain training on the same data: 136 cases, each pushed back on 4 ways, 544 pushbacks in all. The released model is merged α=0.75, a blend of the later v7 and v8 adapters; its frozen results are <a href="https://github.com/kendramoss/exsi-lexsi-hackathon#about-the-project" target="_blank" rel="noopener">in the README</a>.</p>
       <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
       <div class="cards" id="cards"></div>
       <div class="table-win">
