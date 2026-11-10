@@ -602,7 +602,7 @@ class FrozenBuildTests(unittest.TestCase):
             original_source = source.read_bytes()
             os.link(source, output_dir / "items.json")
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "build_kit.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "build_kit.py"),
                 "--source", str(source), "--labels", str(labels_path), "--freeze", str(freeze_path),
                 "--cases", "4", "--output-dir", str(output_dir), "--overwrite",
             ], capture_output=True, text=True, check=False)
@@ -627,7 +627,7 @@ class FrozenBuildTests(unittest.TestCase):
                 "labels_sha256": __import__("hashlib").sha256(labels_path.read_bytes()).hexdigest(),
             }), encoding="utf-8")
             command = [
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "build_kit.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "build_kit.py"),
                 "--source", str(source), "--labels", str(labels_path), "--freeze", str(freeze_path),
                 "--cases", "4", "--output-dir", str(root / "out"),
             ]
@@ -695,7 +695,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
             output_alias = root / "agreement-alias.json"
             os.link(root / "a.json", output_alias)
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "agreement.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "agreement.py"),
                 *common, "--output", str(output_alias), "--overwrite",
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
@@ -711,7 +711,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
             os.link(root / "a.json", output_alias)
             template_path = root / "new-decisions.json"
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "prepare", *common, "--output", str(output_alias),
                 "--template-output", str(template_path), "--overwrite",
             ], capture_output=True, text=True, check=False)
@@ -725,7 +725,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
             template_alias = root / "decisions-alias.json"
             os.link(queue_path, template_alias)
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "prepare", *common, "--output", str(queue_path),
                 "--template-output", str(template_alias), "--overwrite",
             ], capture_output=True, text=True, check=False)
@@ -758,7 +758,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
                       "--allow-synthetic"]
             agreement_path = root / "agreement.json"
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "agreement.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "agreement.py"),
                 *common, "--output", str(agreement_path),
             ], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -767,7 +767,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
             queue_path = root / "queue.json"
             template_path = root / "decisions.json"
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "prepare", *common, "--output", str(queue_path),
                 "--template-output", str(template_path),
             ], capture_output=True, text=True, check=False)
@@ -778,7 +778,7 @@ class CommandLineWorkflowTests(unittest.TestCase):
             template_path.write_text(json.dumps(decisions), encoding="utf-8")
             merged_path = root / "merged.json"
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "merge", *common, "--decisions", str(template_path), "--output", str(merged_path),
             ], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -788,32 +788,32 @@ class CommandLineWorkflowTests(unittest.TestCase):
 
             original_a = (root / "a.json").read_bytes()
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "agreement.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "agreement.py"),
                 *common, "--output", str(root / "a.json"),
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual((root / "a.json").read_bytes(), original_a)
 
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "agreement.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "agreement.py"),
                 *common, "--output", str(agreement_path),
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "agreement.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "agreement.py"),
                 *common, "--output", str(agreement_path), "--overwrite",
             ], capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stderr)
 
             collision = root / "collision.json"
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "prepare", *common, "--output", str(collision), "--template-output", str(collision),
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse(collision.exists())
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "prepare", *common, "--output", str(root / "a.json"),
                 "--template-output", str(root / "new-template.json"),
             ], capture_output=True, text=True, check=False)
@@ -822,18 +822,18 @@ class CommandLineWorkflowTests(unittest.TestCase):
 
             original_decisions = template_path.read_bytes()
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "merge", *common, "--decisions", str(template_path), "--output", str(template_path),
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(template_path.read_bytes(), original_decisions)
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "merge", *common, "--decisions", str(template_path), "--output", str(merged_path),
             ], capture_output=True, text=True, check=False)
             self.assertNotEqual(result.returncode, 0)
             result = subprocess.run([
-                "/opt/anaconda3/bin/python", "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
+                sys.executable, "-I", str(ANNOTATION_ROOT / "adjudicate.py"),
                 "merge", *common, "--decisions", str(template_path), "--output", str(merged_path),
                 "--overwrite",
             ], capture_output=True, text=True, check=False)
