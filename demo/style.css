@@ -1800,3 +1800,8 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 #s4 .end-head .which { margin: 12px 0 0; max-width: 72ch; font: 400 17px/1.5 var(--display); color: rgba(245, 249, 255, .82); }
 #s4 .end-head .which a { color: #f5f9ff; text-underline-offset: 3px; }
 #all-dialog .intro a { color: inherit; text-underline-offset: 3px; }
+
+/* 6 · the heading, the cards and the bottom row sit as one block, centred in the screen, with a fixed gap between
+   the cards and the "See all the numbers" row (the cards' row used to stretch, so the gap ran from 9px to 549px) */
+.ch#s4 { grid-template-rows: auto auto auto; align-content: center; padding-block: calc(4 * var(--vh)); }
+#s4 .end-actions { margin-top: clamp(40px, calc(7 * var(--vh)), 72px); }
