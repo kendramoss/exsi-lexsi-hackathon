@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "task_contract": "evidencetune.task.v2",
+  "answer_semantics": "post_action_working_answer",
+  "dataset_id": "evtune-natural-dev-frozen-evaluation-v1",
+  "dataset_sha256": "7f452a962be74ee4da670babb7e12d6ab3bbed8b6c7ea8cdce8ddfe51ee57308",
+  "fresh": true,
+  "evaluation_only": true,
+  "case_count": 48,
+  "row_count": 48,
+  "rows_per_case": 1,
+  "split_case_counts": {
+    "dev": 20,
+    "new_independent_frozen_test": 28
+  },
+  "matched_siblings_included": false,
+  "serialization": "One condition-stratified correction-dialog row per case; items and assignments use separate deterministic shuffles.",
+  "selection_seed": "evtune-natural-dev-frozen-blind-evaluation-v1",
+  "blinding": "Blind rows contain only scientific claim, excerpts, earlier answer, user feedback, and opaque row ID. Model outputs, instructions, split/case/condition membership, source labels, and truth/citation/action/answer proxies are discarded.",
+  "use_restriction": "Evaluation only for both dev and frozen content and annotations: no training, prompting, model selection, or publication of case-level content.",
+  "source_artifact_version": "natural_scifact.semantic.v4",
+  "frozen_at": "2026-11-09",
+  "source_packs": {
+    "dev": {
+      "source_sha256": "b3867382a25a109f31399eff4f3f9ee2e3590775c1518de75038331450ec8e63",
+      "labels_sha256": "b875506ef6c49e8a0adb964a61e5dd7eec364c4afead74cc940ea7cb6fb24728",
+      "rows": 100,
+      "cases": 20
+    },
+    "new_independent_frozen_test": {
+      "source_sha256": "b68c920510f69dcebd163bd8e1fd7f9d7857d46abc25ac614ae749eeeac5d591",
+      "labels_sha256": "18d9dd89dd4f9178556ed391affaa9116956931951806fc375c328723a1cc09e",
+      "rows": 140,
+      "cases": 28
+    }
+  },
+  "kit_code_sha256": {
+    "build_kit.py": "3c8ead0d61371a6089365cb00f06d8ee99662db4f7498cc9e485908378473ea1",
+    "ui_template.html": "8daa5105c41997524ce140c18c009d147e45089ff979c98796c96f8dfb0df721",
+    "ANNOTATION-GUIDE.md": "e279351afd63382c474b9115396875fe82cb482ed5a75c5779396fc09e57e3c6"
+  },
+  "files": {
+    "items.json": {
+      "sha256": "f1f274858a5c05d3ca207e73b82f5efe9cb64ea7b148ecae14328d14154d81ec"
+    },
+    "assignment_a.json": {
+      "sha256": "abb219496281b06b5a1d4c24e0fa8b48bbe0c50f5e504cfe783f77b541581525"
+    },
+    "assignment_b.json": {
+      "sha256": "4b917f481df3b6ff9e50dd5499aede7087f79bc00b6313ef74b16c0861f9ce67"
+    },
+    "annotate.html": {
+      "sha256": "00e4121bedabb475d2dbe8e1b1b1062b39d04274a6310b1b0febf1c30ccfb373"
+    }
+  }
+}

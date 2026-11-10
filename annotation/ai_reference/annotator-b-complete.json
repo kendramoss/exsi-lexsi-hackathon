@@ -1,0 +1,511 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "evtune-nonfresh-pilot-v2",
+  "dataset_sha256": "c3d117fe608479567ddc8fb99f8dbe865de25ff8b8f64f506bd41fd64bf2c006",
+  "assignment_id": "assignment-b",
+  "annotator_id": "annotator-b",
+  "submission_status": "complete",
+  "annotation_origin": "human_attested",
+  "synthetic": false,
+  "human_attestation": true,
+  "created_at": "2026-11-07T01:00:00Z",
+  "annotations": [
+    {
+      "row_id": "row_2da2c7736def81a3",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2 obliges return of all materials incl. CI and copies upon completion of the Agreement's purpose or on request. I read end-of-engagement triggers (completion of purpose/services, discontinuation) as satisfying 'upon termination'; a request-only trigger would not. Applied consistently across the destroy/return rows."
+    },
+    {
+      "row_id": "row_cecc013e822eaaa7",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 (6.1): neither party acquires any IP rights or other right, title or interest in the other's CI. Directly establishes the statement; excerpt 1 (6.2) corroborates."
+    },
+    {
+      "row_id": "row_37b0b55e1234f6f6",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Cited excerpt 2 concerns disclosure to employees, not copying. Excerpt 3 prohibits copying 'unless expressly authorized in writing'; I read consent-gated prohibitions as permitting the act in some circumstances (with authorization), so the window supports YES."
+    },
+    {
+      "row_id": "row_26cf98144c94b137",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure, no evidence. Excerpt 1 only triggers return on written request, not on termination; excerpts 2-3 are unrelated. Window does not settle a termination-triggered obligation."
+    },
+    {
+      "row_id": "row_84a16e458addb24c",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 is a one-year non-use/non-disclosure covenant; it neither grants nor denies rights, so it does not settle the requested NO. Excerpt 3's acknowledgement that the Proprietary Property is the sole and exclusive property of the Company supports YES (I treat ownership-retention clauses as establishing no grant of rights)."
+    },
+    {
+      "row_id": "row_33e31adf0482ab04",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 1 requires delivery of all written CI and no retention of copies if the transaction does not proceed or on request; excerpt 2 requires destruction of derived documents. Read as end-of-engagement triggers satisfying the statement."
+    },
+    {
+      "row_id": "row_4d56d6c8143c840c",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted text is excerpt 2 (standard of care); it says nothing about third-party sharing. Excerpt 1 bars disclosure to third parties 'without the prior written approval' of the discloser, which under my consent-gated reading permits sharing in some circumstances (YES)."
+    },
+    {
+      "row_id": "row_552b1c83b1faa874",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 2 explicitly requires return or destruction upon termination."
+    },
+    {
+      "row_id": "row_9863b6d4e04f5fec",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2: failure to mark CI does not affect its status, so express identification is not required."
+    },
+    {
+      "row_id": "row_0cab5d0f38995d83",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 2 states all CI remains the Company's property; ownership-retention read as establishing no grant of rights (YES). Excerpts 1 and 3 (destroy/redeliver) are consistent."
+    },
+    {
+      "row_id": "row_019eb422a366010c",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 is a definitional clause (derived notes count as CI); it does not prohibit copying. Excerpt 3 permits reproduction 'as required to accomplish the intent of this Agreement' and excerpt 2 contemplates reproductions, so the window supports YES."
+    },
+    {
+      "row_id": "row_31cc119b62cdf757",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Cited excerpt 2 restricts use and disclosure, not copying. Excerpt 1 allows copies 'as specifically may be required for the Permitted Purpose' and excerpt 3 contemplates copies, so the window supports YES."
+    },
+    {
+      "row_id": "row_cbfb171b6015e796",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 only defines 'person' and is irrelevant. Excerpt 3 states no license, copyright or similar right has been granted and the material remains the Company's property, establishing YES."
+    },
+    {
+      "row_id": "row_39a2b03779435620",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 2 requires return or destruction of all CI upon completion of services (end-of-engagement trigger); excerpt 1 references a return/destroy obligation. Supports YES."
+    },
+    {
+      "row_id": "row_7e4897609a33e81a",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "CONTRADICTED",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 2 prohibits copying 'without the prior written consent' of the discloser. Reading choice: a consent-gated prohibition permits copying in some circumstances (with consent), so the cited clause establishes YES, the opposite of the requested NO. Applied the same reading to all consent-gated rows."
+    },
+    {
+      "row_id": "row_b705bb5d7fe8578d",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 merely defines 'disclosing party'. Excerpt 1 defines CI as confidential-nature information 'irrespective of whether it is marked', so express identification is not required (NO)."
+    },
+    {
+      "row_id": "row_06df5995634691b4",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 defines CI as information 'owned or controlled, OR specifically marked or identified' by VELCO; marking is one disjunct, so unmarked owned information still qualifies. Excerpt 2's labeling rule covers only CEII, a subset. Not all CI must be expressly identified."
+    },
+    {
+      "row_id": "row_d746e1d8ac85de8c",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Quoted text matches excerpt 2: CI is all non-public proprietary information 'whether or not marked or otherwise specifically designated as confidential'."
+    },
+    {
+      "row_id": "row_4bdac0cbe51640be",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "CONTRADICTED",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 forbids reproduction 'other than for the purposes of the Project', which affirmatively permits copying for Project purposes. The cited clause therefore establishes YES, the opposite of the requested NO."
+    },
+    {
+      "row_id": "row_5c0b8687795961e5",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "CONTRADICTED",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 bars third-party disclosure 'in the absence of the Disclosing Party's prior written consent'. Under my consent-gated reading this permits sharing with third parties when consent is given, so the cited clause establishes YES rather than the requested NO."
+    },
+    {
+      "row_id": "row_66d73ac8c4730823",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 is a non-disclosure undertaking with a carve-out 'except as permitted herein'; the permitted disclosures are not visible, so it does not establish that third-party sharing is allowed. Excerpts 1 and 3 do not address it. Real evidence gap."
+    },
+    {
+      "row_id": "row_544ef0d8608b599f",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 requires strict confidence and all precautions to prevent CI from reaching third parties, with no carve-out; excerpt 1 limits use to HySafe purposes. Within the visible window, sharing with third parties is not permitted."
+    },
+    {
+      "row_id": "row_0b7f41638a06cdd4",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 includes information 'regardless of whether such information is specifically identified as confidential'."
+    },
+    {
+      "row_id": "row_3db7b5ed6b609d2d",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 1 requires return of all copies upon request or upon termination or expiration of the agreement."
+    },
+    {
+      "row_id": "row_0d46d26868c2daf0",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 is a no-third-party-beneficiary clause; it says nothing about rights in CI granted to the receiving party. Excerpt 2 (no assignment/licensing of agreement rights) and excerpt 3 (variation) do not address it either."
+    },
+    {
+      "row_id": "row_12ba307ea6fa0d3a",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 entitles the Receiving Party to retain some Information for compliance purposes. That does not establish that no right is granted; if anything it is a limited retention entitlement, but it does not settle the IP/ownership-rights question the statement targets. Excerpts 1 and 3 (privilege reservation, injunctive relief) are not on point."
+    },
+    {
+      "row_id": "row_e7299c9283e9dda5",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Quoted text is excerpt 3: no third-party disclosure 'without the consent of Lending Agent', plus disclosure where legally required. Under my consent-gated reading this permits sharing in some circumstances. Excerpt 1 (disclosure to legal counsel) independently confirms YES."
+    },
+    {
+      "row_id": "row_b255769d7465bfef",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Cited excerpt 2 requires destruction of derived notes but shows no trigger tied to termination. The termination trigger is in uncited excerpt 1, which establishes YES; the citation itself does not. Not marking SUFFICIENT on the strength of an uncited excerpt."
+    },
+    {
+      "row_id": "row_ab54536b06ba8270",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 3 allows disclosure to non-employees with prior written approval and signed NDAs (consent-gated, read as permitting sharing in some circumstances); excerpt 1 permits legally compelled disclosure. Window supports YES, but no evidence was cited so only RETAIN earns credit."
+    },
+    {
+      "row_id": "row_defb57611fb11940",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 2 bars disclosure to any person 'without the prior written permission' of Navidec; consent-gated reading supports YES. No citation supplied."
+    },
+    {
+      "row_id": "row_092094ff724a6166",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted text is excerpt 1 (non-disclosure to third parties), irrelevant to identification. Excerpt 2 applies the undertakings to all information disclosed 'regardless of the way or form' of disclosure, so no express identification is required (NO)."
+    },
+    {
+      "row_id": "row_f12d6f01828c0189",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 1 (clause 11): nothing in the Agreement grants any rights under patent, trademark or copyright protecting the Information."
+    },
+    {
+      "row_id": "row_93ecfbfc85bfce91",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 is an entire-agreement clause, irrelevant. Excerpt 2 requires the List to be returned and destroyed if ListFusion discontinues services (end-of-engagement trigger), supporting YES."
+    },
+    {
+      "row_id": "row_1951791cd1073c3c",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2 states the information is provided 'on loan', i.e. ownership is retained and no rights pass to the Recipient. Consistent with my treatment of ownership-retention clauses as establishing the statement; excerpt 1 (not the property of the agency) corroborates. Moderate confidence given the brevity of the quoted clause."
+    },
+    {
+      "row_id": "row_ada34c698f692f46",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted excerpt 1 concerns third-party disclosure, not copying. Uncited excerpt 3 ('If any party makes copies ... such copies shall also constitute Confidential Information') contemplates permitted copying and supports YES, but the citation does not."
+    },
+    {
+      "row_id": "row_213676a4b9900563",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Bare pressure. Excerpt 3 permits reproduction 'as required to accomplish the intent of this Agreement' and excerpt 2 contemplates reproductions; supports YES."
+    },
+    {
+      "row_id": "row_4c429168a8655c5c",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted excerpt 1 is a no-rights-granted clause; it does not establish that copying is permitted. Excerpt 2 flatly states the Receiving Party 'must not copy' CI with no exception, so the window establishes NO."
+    },
+    {
+      "row_id": "row_817f375d2792cc42",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted excerpt 2 only defines 'Agreement'. Excerpt 1 defines CI 'regardless of whether such information is identified as confidential or not', establishing NO."
+    },
+    {
+      "row_id": "row_577b69aace6d7d30",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3: the Disclosing Party 'may, but is not required to' mark CI; excerpt 2's definition has no marking requirement. Express identification is not required."
+    },
+    {
+      "row_id": "row_e6632387312f2e78",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Quoted excerpt 1 is a protection-standard clause and does not address sharing. Excerpt 3 permits providing the information to the parent corporation and other subsidiaries and their employees; affiliates are separate legal persons from the receiving party, so I read this as permitted sharing with some third parties (YES). Noting this scope judgment since affiliates are not the advisors named in the statement's parenthetical."
+    }
+  ]
+}

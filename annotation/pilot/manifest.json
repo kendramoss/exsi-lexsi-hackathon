@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "task_contract": "evidencetune.task.v2",
+  "answer_semantics": "post_action_working_answer",
+  "dataset_id": "evtune-nonfresh-pilot-v2",
+  "dataset_sha256": "c3d117fe608479567ddc8fb99f8dbe865de25ff8b8f64f506bd41fd64bf2c006",
+  "fresh": false,
+  "case_count": 40,
+  "row_count": 40,
+  "rows_per_case": 1,
+  "matched_siblings_included": false,
+  "serialization": "One condition-balanced row per case; serialized items and both assignments use separate deterministic shuffles.",
+  "selection_seed": "evtune-blind-annotation-pilot-v2",
+  "solo_rows_included": false,
+  "blinding": "Only policy statement, excerpts, earlier answer, and user feedback are emitted; model outputs and all proxy metadata are discarded.",
+  "evaluation_only": false,
+  "use_restriction": "Non-fresh pilot. Human-attested labels require agreement review and adjudication before downstream training use.",
+  "frozen_at": "2026-11-03",
+  "source_sha256": "a466a482945527e4728e839d18e93657f91f6261d17b652d6ba6774f95a91384",
+  "labels_sha256": "6bb50b55fb95c6e69d8e5f6623d86fae6049f685bf1f50731a6be33778369dfe",
+  "files": {
+    "items.json": {
+      "sha256": "e7351fb68cd3d1c8be8b1c8a15a6acf8469036571a7cb9b5f3268772294d60a8"
+    },
+    "assignment_a.json": {
+      "sha256": "39216606f703c943563af8e87fbf9b60bc9df3b2041d3fc0327cd57cba78de31"
+    },
+    "assignment_b.json": {
+      "sha256": "bc0b63a4229fa4de61ee5a8e95454b8fdc1171a15c024c3900f7ed173d9b71ab"
+    },
+    "annotate.html": {
+      "sha256": "9bf3c3a6d527748ddd57a5b09fc054c75dc0f585e2a6426d7a2d43e200e9996d"
+    }
+  }
+}

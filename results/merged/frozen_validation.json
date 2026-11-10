@@ -1,0 +1,18 @@
+{
+  "all_metrics_recomputed": true,
+  "frozen_summary_sha256": "3598cf8cdfa3e0783944e0bbbcd81788ef5f15131ab8e1ee811fc63cc2184d7d",
+  "models": [
+    "baseline_v7",
+    "merge_alpha_0.75"
+  ],
+  "publishing_or_kaggle": false,
+  "raw_predictions_verified": 1020,
+  "schema_version": 1,
+  "selection_sha256": "e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b",
+  "selection_unchanged": true,
+  "status": "PASS",
+  "views": [
+    "semantic_frozen_test",
+    "v8_targeted_frozen_test"
+  ]
+}

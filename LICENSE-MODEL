@@ -1,0 +1,12 @@
+EvidenceTune merged alpha=0.75 adapter license
+
+Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+SPDX identifier: CC-BY-NC-4.0
+Canonical legal text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+Human-readable summary: https://creativecommons.org/licenses/by-nc/4.0/
+
+Adapter: EvidenceTune merged alpha=0.75, 75% v7 + 25% v8.
+Adapter SHA-256: a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335
+Base model: Tiny Aya Global, Cohere Labs, https://huggingface.co/CohereLabs/tiny-aya-global
+
+This file applies to the merged adapter weights only. Original EvidenceTune code is MIT licensed under the separate LICENSE file. Datasets, prompts, Lexsi code, and other third-party works retain their own terms; see NOTICE.md and LICENSE-DECISION.md.

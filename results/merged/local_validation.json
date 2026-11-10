@@ -1,0 +1,127 @@
+{
+  "all_raw_records_and_metrics_verified": true,
+  "all_selection_gates_recomputed": true,
+  "arms": {
+    "baseline_v7": {
+      "resolution_dev": {
+        "cases": 32,
+        "final_task_accuracy": 0.8125,
+        "followups": 50,
+        "initial_rows": 128,
+        "overall_rate": 0.76,
+        "raw_and_metrics_verified": true,
+        "resolved": 38
+      },
+      "semantic_dev": {
+        "cases": 48,
+        "raw_and_metrics_verified": true,
+        "rows": 240,
+        "task_success": 0.9458333333333333
+      },
+      "v8_targeted_dev": {
+        "cases": 36,
+        "raw_and_metrics_verified": true,
+        "rows": 180,
+        "task_success": 0.8722222222222222
+      }
+    },
+    "baseline_v8": {
+      "resolution_dev": {
+        "cases": 32,
+        "final_task_accuracy": 0.84375,
+        "followups": 36,
+        "initial_rows": 128,
+        "overall_rate": 0.7777777777777778,
+        "raw_and_metrics_verified": true,
+        "resolved": 28
+      },
+      "semantic_dev": {
+        "cases": 48,
+        "raw_and_metrics_verified": true,
+        "rows": 240,
+        "task_success": 0.875
+      },
+      "v8_targeted_dev": {
+        "cases": 36,
+        "raw_and_metrics_verified": true,
+        "rows": 180,
+        "task_success": 0.8666666666666667
+      }
+    },
+    "merge_alpha_0.25": {
+      "resolution_dev": {
+        "cases": 32,
+        "final_task_accuracy": 0.83984375,
+        "followups": 30,
+        "initial_rows": 128,
+        "overall_rate": 0.7,
+        "raw_and_metrics_verified": true,
+        "resolved": 21
+      },
+      "semantic_dev": {
+        "cases": 48,
+        "raw_and_metrics_verified": true,
+        "rows": 240,
+        "task_success": 0.9166666666666666
+      },
+      "v8_targeted_dev": {
+        "cases": 36,
+        "raw_and_metrics_verified": true,
+        "rows": 180,
+        "task_success": 0.85
+      }
+    },
+    "merge_alpha_0.50": {
+      "resolution_dev": {
+        "cases": 32,
+        "final_task_accuracy": 0.84375,
+        "followups": 40,
+        "initial_rows": 128,
+        "overall_rate": 0.75,
+        "raw_and_metrics_verified": true,
+        "resolved": 30
+      },
+      "semantic_dev": {
+        "cases": 48,
+        "raw_and_metrics_verified": true,
+        "rows": 240,
+        "task_success": 0.9458333333333333
+      },
+      "v8_targeted_dev": {
+        "cases": 36,
+        "raw_and_metrics_verified": true,
+        "rows": 180,
+        "task_success": 0.9222222222222223
+      }
+    },
+    "merge_alpha_0.75": {
+      "resolution_dev": {
+        "cases": 32,
+        "final_task_accuracy": 0.83203125,
+        "followups": 34,
+        "initial_rows": 128,
+        "overall_rate": 0.7941176470588235,
+        "raw_and_metrics_verified": true,
+        "resolved": 27
+      },
+      "semantic_dev": {
+        "cases": 48,
+        "raw_and_metrics_verified": true,
+        "rows": 240,
+        "task_success": 0.9625
+      },
+      "v8_targeted_dev": {
+        "cases": 36,
+        "raw_and_metrics_verified": true,
+        "rows": 180,
+        "task_success": 0.9
+      }
+    }
+  },
+  "frozen_data_or_outputs_used": false,
+  "run_plan_sha256": "beae3a0ead63d1ffef14f930e80ea3854e9011f73a3657837004fa35bc73b23c",
+  "schema_version": 1,
+  "selected_adapter_model_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+  "selected_model": "merge_alpha_0.75",
+  "status": "PASS"
+}

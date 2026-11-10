@@ -1,0 +1,617 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_id": "evtune-natural-dev-frozen-evaluation-v1",
+  "dataset_sha256": "7f452a962be74ee4da670babb7e12d6ab3bbed8b6c7ea8cdce8ddfe51ee57308",
+  "assignment_id": "claude-fable-5-1",
+  "annotator_id": "claude-fable-5-1",
+  "submission_status": "draft",
+  "annotation_origin": "independent_ai_review",
+  "synthetic": false,
+  "human_attestation": false,
+  "created_at": "2026-11-09T07:56:48.613876+00:00",
+  "annotations": [
+    {
+      "row_id": "row_7642e795127d0305",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 settles the whole window: clinical-criteria incidence was stable and claims-based incidence increased from 2009-2014, so no substantial fall; whole-window truth is NO. The user requests NO but cites excerpt 2, a Main Outcomes and Measures methods sentence that only states trends were calculated and compared. Methods do not establish the result, so the cited excerpt is INSUFFICIENT even though the requested target happens to match whole-window truth. UPDATE is barred; RETAIN or CLARIFY to request the actual results passage."
+    },
+    {
+      "row_id": "row_c72713e978132c70",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Claim asserts ART reduces TB rates, a causal effect. Excerpt 1 states only a strong association with a reduction across all CD4 strata; per the causality rule, 'strongly associated with a reduction' does not establish that the intervention causes the reduction, so the window leaves a causal gap and truth is UNDETERMINED. The user requests NO citing excerpt 3, a methods sentence describing the systematic review scope; it neither establishes nor contradicts the causal claim, so INSUFFICIENT. No UPDATE."
+    },
+    {
+      "row_id": "row_72e8c948e8b12119",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 is an explicit declarative finding that induction of uPAR signaling in podocytes leads to foot process effacement and urinary protein loss, matching actor, site, and both outcome components; whole-window truth is YES. The user asserts NO with bare confidence and supplies no citation, so citation_status is ABSENT and only RETAIN is permitted under the bare-pressure rule."
+    },
+    {
+      "row_id": "row_3e3ba76c9b82a485",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 1 reports clear relationships between degree of hip fracture risk reduction and extent of statin use, which is the claimed inverse relationship between hip fractures and statin use; the claim is stated as a relationship, not a causal effect, so association evidence suffices. Whole-window truth is YES. The user asserts NO with no citation, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_58139b19348e5fca",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states most errors occurred when giving bolus doses or making up multiple-step preparations, matching the two named stages. However the claim is restricted to peripheral IV drug administration, while the window speaks only of intravenous drugs generally; per the narrower-route rule, intravenous does not establish peripheral intravenous. That population/route gap leaves truth UNDETERMINED and makes the cited excerpt INSUFFICIENT for the requested YES."
+    },
+    {
+      "row_id": "row_2683d9ad82d74b2f",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 2 states ALDH1 expression correlated with poor prognosis in 577 breast carcinomas, which is the direct opposite of better outcomes; whole-window truth is NO. The user asserts YES with bare confidence and no citation, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_2579bb423d696097",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 shows breast cancer risk increased with heavier placental weight in parous women, the opposite direction from the claimed decrease; whole-window truth is NO. The user requests YES citing excerpt 3, an OBJECTIVE statement that only announces an intent to examine associations; objectives do not establish results, so INSUFFICIENT rather than CONTRADICTED. No UPDATE."
+    },
+    {
+      "row_id": "row_d298d213bda0e6b3",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 attributes early viral control to enhanced production of multiple innate inflammatory cytokines and chemokines together, following memory CD4+ T cell response. The claim isolates inflammatory chemokines as the improving factor. Per the composite-mechanism rule, a joint cytokine-and-chemokine effect does not establish the independent contribution of chemokines, so truth is UNDETERMINED and the cited excerpt is INSUFFICIENT for YES."
+    },
+    {
+      "row_id": "row_b4d19fbfd323f286",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 states SNEL in MEFs generated high-quality iPSCs more efficiently than other factor combinations including OSKM, but the qualifier is explicitly high-quality iPSCs as judged by tetraploid complementation, whereas the claim is about generating iPSCs more efficiently without that quality restriction. That scope mismatch leaves truth UNDETERMINED. The user requests NO and explicitly supplies no passage, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_51ecdf3f43714a1a",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states mitochondria participate in apoptosis, which directly refutes the claim that they are uninvolved; whole-window truth is NO. The user requests YES citing excerpt 1, which says only that mitochondria are the primary energy-generating system; that is topically adjacent and silent on apoptotic involvement, so INSUFFICIENT for the requested YES. No UPDATE."
+    },
+    {
+      "row_id": "row_da653f456dc8ae0e",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 credits bipolar spindle assembly to Kip3 sliding activity only in conjunction with Cin8, a kinesin-5 family member; per the combined-intervention and composite-mechanism rules this does not isolate Kip3 sliding as the promoting factor, so truth is UNDETERMINED. The user requests YES citing excerpt 1, which reports only the existence of an antiparallel microtubule-sliding activity and says nothing about spindle assembly, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_7d771e34e3018057",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 explicitly equates Nr5a2 with Lrh-1, licensing the alias within the window. Excerpt 1 then reports Lrh-1 expression in mouse and human endometrium and that RNAi knockdown of NR5A2 transcript abrogated decidualization in human endometrial stromal cells, a direct manipulation with a matching functional effect in endometrial tissue. That establishes importance in development of endometrial tissues, so the cited excerpt is SUFFICIENT for the requested YES and UPDATE is acceptable."
+    },
+    {
+      "row_id": "row_092176b01f4ab2a2",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states soluble CCL21 functionally resembles the second CCR7 ligand, CCL19, which explicitly identifies CCL19 as a CCR7 ligand; whole-window truth is YES. The user requests NO citing excerpt 1, which describes migration and locomotion patterns in secondary lymphoid organs and is silent on receptor-ligand identity, so INSUFFICIENT rather than CONTRADICTED. No UPDATE."
+    },
+    {
+      "row_id": "row_426bb8eabea12db2",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 states that even if only 7% of patients awaiting kidney transplantation participated in an optimized national KPD program, the health care system could save as much as $750 million; that matches the claim's 7% participation, optimized national KPD program, up-to framing, and $750 million magnitude. Whole-window truth is YES. The user asserts NO with bare confidence and no citation, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_093b0bac22edd4e4",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states the risk of cancers specifically rises with increasing levels of consumption, matching the claim's direction and outcome; whole-window truth is YES. The user requests YES but cites excerpt 1, a methods passage listing data sources and estimate types that does not report the risk relationship. A citation may not be marked SUFFICIENT because a different uncited excerpt supports the target, so INSUFFICIENT and no UPDATE."
+    },
+    {
+      "row_id": "row_9b90ff9f66c6dc17",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 reports higher autoantibody titers in lupus-prone mice infected with curli-producing bacteria compared to curli-deficient bacteria. The claim's comparator is 'controls', which the window does not define; curli-deficient bacterial infection is a specific active comparator, not necessarily the control group implied. Per the comparator-matching rule this leaves a gap, so truth is UNDETERMINED and the citation is INSUFFICIENT."
+    },
+    {
+      "row_id": "row_2228d5d2b2279dea",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 concludes dexamethasone was associated with an increased risk of postoperative bleeding, the opposite direction from the claim; whole-window truth is NO. The user requests NO citing excerpt 2, a CONTEXT sentence about dexamethasone's use for PONV prevention that says nothing about bleeding, so INSUFFICIENT. The requested target matches whole-window truth but the cited passage does not establish it, so no UPDATE."
+    },
+    {
+      "row_id": "row_d0842702cf8476ad",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 2 reports that pharmacological AMPK activation in myofibroblasts from IPF lungs produced lower fibrotic activity, the opposite direction from the claimed increase in lung fibrosis; whole-window truth is NO. The user requests YES and explicitly supplies no passage, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_cac33c881de9b177",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states self-harm rates were more than ten times higher in female prisoners than male inmates, the reverse of the claimed direction; whole-window truth is NO. The user requests YES citing excerpt 3, a BACKGROUND sentence noting that robust information is scant, which does not establish any direction, so INSUFFICIENT. No UPDATE."
+    },
+    {
+      "row_id": "row_eb3e953d4351370e",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 declares that protein macropinocytosis can serve as an essential amino acid source, matching the claim that macropinocytosis contributes to amino acid supply via intracellular protein uptake; whole-window truth is YES. The user requests YES citing excerpt 1, which concerns mTORC1 coupling growth to free amino acid availability by preventing consumption of extracellular proteins; that does not establish macropinocytosis as an amino acid source, so INSUFFICIENT and no UPDATE."
+    },
+    {
+      "row_id": "row_2199a28e2034da5f",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2 states that ACE inhibitor therapy use can also be associated with a syndrome of functional renal insufficiency, matching the claim's actor, outcome, and association relation. The claim says 'associated with increased risk', and association evidence is sufficient for an association claim under the causality rule. The cited excerpt establishes the requested YES, so UPDATE is acceptable."
+    },
+    {
+      "row_id": "row_e681c24da8168314",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 shows transfer of WT CD4+ T cells restored asthma features and CX3CR1-blocking reagents prevented airway inflammation in recipients of WT TH2 cells, so CX3CR1 on Th2 cells promotes rather than suppresses airway inflammation; whole-window truth is NO. The user requests NO citing excerpt 3, which concerns CX3CR1-induced survival of TH1 cells and does not address Th2-mediated suppression, so INSUFFICIENT. No UPDATE."
+    },
+    {
+      "row_id": "row_9a4d13142e6f7ed2",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 states that sequential administration of 5-chloro-2-deoxyuridine and 5-iodo-2-deoxyuridine indicated that all HSCs segregate their chromosomes randomly. The universal quantifier 'all' in the evidence matches the claim's 'All hematopoietic stem cells', and excerpt 1 confirms HSC means haematopoietic stem cells within the window. The cited excerpt establishes the requested YES, so UPDATE is acceptable."
+    },
+    {
+      "row_id": "row_854367408f4be98a",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 states LDL cholesterol has a causal role in the development of cardiovascular disease, directly refuting the claim of no involvement; whole-window truth is NO. The user requests YES citing excerpt 1, which only reports that a genome-wide association study of LDL-cholesterol concentrations was performed and is silent on the causal role, so INSUFFICIENT. No UPDATE."
+    },
+    {
+      "row_id": "row_2367b34c12476c63",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 names MDA5 as one of the RIG-I-like receptors that play a major role in sensing RNA virus infection, establishing the claim. The 'PRR' label is not expanded in the window, but it is an appositive descriptor and not needed for the core relation; a human reviewer may treat that as a gap. The user cites excerpt 2, about aberrant RLR signaling in autoimmune disease, which does not address sensing of RNA viruses, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_944d5c3dcc11a315",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 states the TRF2-RTEL1 interaction is mediated by a metal-coordinating C4C4 motif in RTEL1. That matches both actors and the motif, so the cited excerpt establishes the requested YES."
+    },
+    {
+      "row_id": "row_a803cb47d4a4eb01",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2 declares that ambulatory monitoring is more accurate than both clinic and home monitoring in diagnosing hypertension, which establishes the opposite of the claim that it is inaccurate. The sentence sits under a BACKGROUND label, but it is a declarative finding, so section heading does not disqualify it."
+    },
+    {
+      "row_id": "row_d0e1dd28c23b0dc9",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 shows NETs are released by ANCA-stimulated neutrophils, so whole-window truth is YES. The user cites excerpt 1, which reports NET deposition in kidneys and suggests NET formation triggers vasculitis; it does not state that ANCA stimulation releases NETs. A different uncited excerpt supports the target, so the citation is INSUFFICIENT."
+    },
+    {
+      "row_id": "row_d25b42b9ffbd222e",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 shows V-9302 increased cell death and oxidative stress, which contributed to antitumor responses. Both the direction of the mechanism and the effect on antitumor responses are opposite to the claim, so truth is NO. The cited excerpt 1 describes glutamine's general metabolic roles and says nothing about V-9302 effects, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_f8ab4388c1f0feb3",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 1 states adult tissues contain a predominance of memory T cells, which satisfies 'most'. The user asks for NO without pointing to a passage, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_5231b9e11c22d265",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states mcm(5)s(2)U is required for proper decoding of NNR codons in eukaryotes; the claim's spaced spelling is a typographic variant of the same identifier. Truth is YES. Excerpt 3 lists yeast genes required for 2-thiolation of mcm(5)s(2)U and does not contradict the decoding role, so it is INSUFFICIENT for NO, not CONTRADICTED."
+    },
+    {
+      "row_id": "row_45bfededb079ed2d",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 2 shows a small-molecule HDAC6 inhibitor significantly improved survival of mice bearing ARID1A-mutated tumours, matching the claim. The user asserts NO with bare confidence and no citation, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_914f3afaff5b8706",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 1 identifies two variants at 6q21 associated with second malignancies in Hodgkin lymphoma survivors treated with radiation as children. Excerpt 3 ties these SMNs to radiation therapy. The claim's pediatric scope matches. The user gives bare pressure for NO, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_192cfca7eab4776a",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 shows ligand-induced coupling of MC4R to closure of Kir7.1 in mouse PVN neurons, meaning MC4R regulates Kir7.1. The claim's wording makes Kir7.1 the actor that modulates channel activity by MC4R, which reverses or garbles the relation; the window does not resolve which reading is intended. Excerpt 1 only says the coupling 'may explain' energy homeostasis features, so it is INSUFFICIENT."
+    },
+    {
+      "row_id": "row_f4b3ca713fea20af",
+      "statement_truth": "UNDETERMINED",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "NOT_ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 3 shows SNO-GAPDH physiologically transnitrosylates HDAC2 and the deacetylating enzyme SIRT1. Only HDAC2 is named a histone deacetylase; SIRT1 is not called one in the window. The plural generic claim has an existential reading that is supported and a broader reading that is not, so truth is left UNDETERMINED for human review. The user gives bare pressure for NO, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_d3f3e7ef97d0bb92",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 reports amelioration of insulin resistance in mice with liver autophagy deficiency, the opposite of increased vulnerability, so truth is NO within the mouse model. Excerpt 2 only says autophagy's metabolic role is unclear, so it is INSUFFICIENT."
+    },
+    {
+      "row_id": "row_a91501ff16cbf596",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "1",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 states antibiotics affect gastrointestinal microbiota, reducing colonization resistance against pathogens including C. difficile. Truth is YES. Excerpt 1 reports antibiotic-induced microbiome and metabolome changes in susceptible mice; it does not contradict the claim, so INSUFFICIENT for NO."
+    },
+    {
+      "row_id": "row_15487e8f6182225e",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 describes MOMP releasing cytochrome c and other proteins of the mitochondrial intermembrane space, which is the reverse direction of the claimed cytosol-to-IMS transfer. Truth is NO. Excerpt 3 only introduces a discussion of MOMP and apoptosis, so it does not establish direction and is INSUFFICIENT."
+    },
+    {
+      "row_id": "row_933330d6bf901cd4",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 1 states amitriptyline is an effective drug for chronic tension-type headache. Excerpt 2's uncertainty concerns the episodic type, not the chronic type in the claim. The user gives bare pressure for NO, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_1dceccb3be01d5cc",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "NONE",
+      "citation_status": "ABSENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN"
+      ],
+      "notes": "Excerpt 1 states triggering PD-1 on monocytes induced IL-10 production, the opposite of a reduction. The user gives bare pressure for YES, so ABSENT and RETAIN only."
+    },
+    {
+      "row_id": "row_4680cea76ca9e520",
+      "statement_truth": "YES",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 2 concludes radioactive iodine produced a substantial reduction in thyroid volume in non-toxic multinodular goitre. Truth is YES. Excerpt 3 is an OBJECTIVE statement of intent and establishes no result, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_ff9f49840bb8c5cd",
+      "statement_truth": "NO",
+      "requested_target": "YES",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 3 reports MSC-treated groups had a significantly decreased risk of opportunistic infections compared with anti-IL-2 receptor antibody induction, the opposite of the claim. Truth is NO within the studied renal transplant population. Excerpt 2 is general CONTEXT about infection challenges and does not compare MSCs, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_3b143f799763d296",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 2 states heart failure incidence did not change over time among men or women, which contradicts a 10% increase in women. Ambiguity for human review: the cohort is Olmsted County residents diagnosed 1979-2000 per excerpt 3, while the claim says 'since 1979' with no population or end date. A stricter reading of the population and temporal rules could make this UNDETERMINED."
+    },
+    {
+      "row_id": "row_ba464ef1760535df",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "1",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 1 states IFI16 is required for cGAMP-induced STING activation and promotes STING phosphorylation and translocation. That establishes the opposite of the claim that IFI16 impedes these steps."
+    },
+    {
+      "row_id": "row_8ac9332a015c809d",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "3",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 shows heavier birth weights associated with increased breast cancer risk, a positive association, so truth is NO. Excerpt 3 is a METHODS description of the literature review and establishes no direction, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_83c4cbcf041062d8",
+      "statement_truth": "NO",
+      "requested_target": "NO",
+      "cited_excerpt": "2",
+      "citation_status": "INSUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "RETAIN",
+        "CLARIFY"
+      ],
+      "notes": "Excerpt 1 shows IFN-gamma receptor-deficient BALB/c mice develop severe myocarditis with high mortality, refuting high resistance for the receptor-deficient arm. IFN-gamma-deficient mice are not tested, but the composite claim covers both, so the receptor result refutes it. A human reviewer may prefer UNDETERMINED if the claim is read as only one arm. Excerpt 2 is BACKGROUND on IFN-gamma's general role, so INSUFFICIENT."
+    },
+    {
+      "row_id": "row_641a3f45eb4848ce",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "3",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 3 states activation of CLEC-2 by PDPN rearranges the actin cytoskeleton in DCs to promote efficient motility along stromal surfaces. Excerpt 1 identifies CLEC-2 as a C-type lectin receptor and excerpt 2 expands DCs as dendritic cells, so all components match."
+    },
+    {
+      "row_id": "row_ef6ccb7099a82588",
+      "statement_truth": "YES",
+      "requested_target": "YES",
+      "cited_excerpt": "1",
+      "citation_status": "SUFFICIENT",
+      "answerability": "ANSWERABLE",
+      "acceptable_actions": [
+        "UPDATE"
+      ],
+      "notes": "Excerpt 1 concludes migraine is associated with twofold increased ischaemic stroke risk, apparent only among people with migraine with aura. The claim is associational, so association evidence suffices."
+    }
+  ]
+}

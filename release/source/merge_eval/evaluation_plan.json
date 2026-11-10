@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "experiment": "evidencetune_v7_v8_lora_interpolation",
+  "status": "frozen_confirmation_complete",
+  "selected_model": "merge_alpha_0.75",
+  "selection_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/evaluation/selection.json",
+  "formula": "merged = alpha * v7 + (1 - alpha) * v8",
+  "models": {
+    "baseline_v7": {
+      "adapter_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/results/v7/evtune-next-output/v6_semantic/adapter",
+      "adapter_model_sha256": "736dcea313d0a4c54021b2b5a0af6d1dd5d1a0bf6d2c750a2a788e0a5d7dc1fd"
+    },
+    "merge_alpha_0.25": {
+      "adapter_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/adapters/alpha_0.25",
+      "adapter_model_sha256": "730bd86f3bc3304f7b70f77a3c97dbc84f543c9f3749c0700001c1896d333a83",
+      "alpha": 0.25
+    },
+    "merge_alpha_0.50": {
+      "adapter_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/adapters/alpha_0.50",
+      "adapter_model_sha256": "6312f5931b8888e6d37685c3b8a798510dadc9f0057eea49df178c88e105c8eb",
+      "alpha": 0.5
+    },
+    "merge_alpha_0.75": {
+      "adapter_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/adapters/alpha_0.75",
+      "adapter_model_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+      "alpha": 0.75
+    },
+    "baseline_v8": {
+      "adapter_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/results/v8/evtune-v8-output/v8_targeted_two_turn/adapter",
+      "adapter_model_sha256": "9985ca4829348a0eb7a32dfae37302921fe4af0485bc1fa114dd869dcc66e837"
+    }
+  },
+  "candidate_order": [
+    "baseline_v7",
+    "merge_alpha_0.75",
+    "merge_alpha_0.50",
+    "merge_alpha_0.25",
+    "baseline_v8"
+  ],
+  "datasets": {
+    "semantic_dev": {
+      "source_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/semantic_contrast/packs_v2/dev_source.jsonl",
+      "source_sha256": "fd0f8527c97075d7ba350f418dfadc08c38d1adfdda5b15434c0d3a61694a723",
+      "labels_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/semantic_contrast/packs_v2/dev_labels.json",
+      "labels_sha256": "ba2751bc29f1d2e20cb286e10759992bc7dd12ca8e0f90ec4b457bbe259a862f",
+      "cases": 48,
+      "rows": 240,
+      "metric": "metrics.task_success",
+      "task_contract": "evidencetune.task.v2",
+      "evaluation_protocol": "evidencetune.evaluation.v2"
+    },
+    "v8_targeted_dev": {
+      "source_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/v8_data/packs/dev_source.jsonl",
+      "source_sha256": "8e2219381af2f3862923fc71c6d7bca2e5cb267beacc7bc8176fbc0713ac3ec1",
+      "labels_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/v8_data/packs/dev_labels.json",
+      "labels_sha256": "65d6e087f77ebbddb225d51c919559695f5f30f2ab2efa54795758d345152f51",
+      "cases": 36,
+      "rows": 180,
+      "metric": "metrics.task_success",
+      "task_contract": "evidencetune.task.v2",
+      "evaluation_protocol": "evidencetune.evaluation.v2"
+    },
+    "resolution_dev": {
+      "source_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/resolution_expand/pack/dev_source.jsonl",
+      "source_sha256": "c29bb3671460b59c8fe5503ba883d7bdca1a5cb73049f68be8438743b9fedee3",
+      "labels_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/resolution_expand/pack/dev_labels.json",
+      "labels_sha256": "d0539bd0b742f2a35e98f6a390e869e17fbd35f399bf46dc9d90d9581983df5d",
+      "manifest_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/resolution_expand/pack/manifest.json",
+      "manifest_sha256": "b77ad842d232ba735466a3c94adc8287af1cffd5139a82f1d44052699bddc0b9",
+      "cases": 32,
+      "initial_rows": 128,
+      "maximum_conditional_followup_rows_per_arm": 128,
+      "metric": "metrics.resolution.overall.rate",
+      "resolution_contract": "evidencetune.resolution.v8",
+      "evaluation_protocol": "evidencetune.evaluation.resolution.v8",
+      "native_conditional_followups": true
+    }
+  },
+  "evaluation_policy": {
+    "baseline_policy": "regenerate v7 and v8 on every dev view in the same run and with identical settings; old summaries are sanity references only",
+    "generation_settings_source": "merge_eval/local_eval.py: greedy, max_new_tokens=80, batch_size=8",
+    "required_backend": "local Apple MPS bf16 Transformers",
+    "training": false,
+    "require_zero_errors_and_complete_raw_records": true,
+    "fail_on_missing_nonfinite_or_out_of_range_metrics": true,
+    "selection_split": "dev_only",
+    "frozen_test_used_for_selection": false
+  },
+  "retention_gates": {
+    "semantic_dev_task_success_delta_min": -0.02,
+    "v8_targeted_dev_task_success_delta_min": -0.02,
+    "resolution_dev_overall_rate_delta_min": 0.0,
+    "comparison_baseline": "same-run baseline_v7",
+    "comparison": "candidate minus baseline_v7",
+    "floating_point_epsilon": 1e-12,
+    "failure_policy": "exclude candidate; missing metrics fail closed"
+  },
+  "selection_rule": {
+    "eligible_models": "all five models passing every retention gate",
+    "rank_in_order": [
+      "maximize resolution_dev metrics.resolution.overall.rate",
+      "maximize arithmetic mean of semantic_dev and v8_targeted_dev metrics.task_success",
+      "maximize semantic_dev metrics.task_success",
+      "maximize v8_targeted_dev metrics.task_success",
+      "candidate_order: baseline_v7, then alpha 0.75, 0.50, 0.25, then baseline_v8"
+    ],
+    "exact_tie_winner": "baseline_v7",
+    "post_selection_changes_allowed": false
+  },
+  "frozen_policy": {
+    "new_frozen_generation_before_selection_json": false,
+    "selection_json_required": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/evaluation/selection.json",
+    "after_selection": "completed descriptive two-arm confirmation for baseline_v7 and merge_alpha_0.75 only; selection unchanged",
+    "frozen_confirmation_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/frozen_summary.json",
+    "existing_frozen_results_used_for_selection": false
+  }
+}

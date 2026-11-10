@@ -1,0 +1,116 @@
+{
+  "candidate_order": [
+    "baseline_v7",
+    "merge_alpha_0.75",
+    "merge_alpha_0.50",
+    "merge_alpha_0.25",
+    "baseline_v8"
+  ],
+  "eligible_models": [
+    "baseline_v7",
+    "merge_alpha_0.75"
+  ],
+  "frozen_test_used_for_selection": false,
+  "gates": {
+    "baseline_v7": {
+      "deltas_from_baseline_v7": {
+        "resolution_dev_overall_rate": 0.0,
+        "semantic_dev_task_success": 0.0,
+        "v8_targeted_dev_task_success": 0.0
+      },
+      "maximum_allowed_task_success_drop": 0.02,
+      "metrics": {
+        "resolution_overall": 0.76,
+        "semantic_task_success": 0.9458333333333333,
+        "targeted_task_success": 0.8722222222222222
+      },
+      "minimum_allowed_resolution_delta": 0.0,
+      "passed": true,
+      "violations": []
+    },
+    "baseline_v8": {
+      "deltas_from_baseline_v7": {
+        "resolution_dev_overall_rate": 0.01777777777777778,
+        "semantic_dev_task_success": -0.0708333333333333,
+        "v8_targeted_dev_task_success": -0.005555555555555536
+      },
+      "maximum_allowed_task_success_drop": 0.02,
+      "metrics": {
+        "resolution_overall": 0.7777777777777778,
+        "semantic_task_success": 0.875,
+        "targeted_task_success": 0.8666666666666667
+      },
+      "minimum_allowed_resolution_delta": 0.0,
+      "passed": false,
+      "violations": [
+        "semantic_dev_task_success_drop_exceeds_2pp"
+      ]
+    },
+    "merge_alpha_0.25": {
+      "deltas_from_baseline_v7": {
+        "resolution_dev_overall_rate": -0.06000000000000005,
+        "semantic_dev_task_success": -0.029166666666666674,
+        "v8_targeted_dev_task_success": -0.022222222222222254
+      },
+      "maximum_allowed_task_success_drop": 0.02,
+      "metrics": {
+        "resolution_overall": 0.7,
+        "semantic_task_success": 0.9166666666666666,
+        "targeted_task_success": 0.85
+      },
+      "minimum_allowed_resolution_delta": 0.0,
+      "passed": false,
+      "violations": [
+        "semantic_dev_task_success_drop_exceeds_2pp",
+        "v8_targeted_dev_task_success_drop_exceeds_2pp",
+        "resolution_dev_below_v7"
+      ]
+    },
+    "merge_alpha_0.50": {
+      "deltas_from_baseline_v7": {
+        "resolution_dev_overall_rate": -0.010000000000000009,
+        "semantic_dev_task_success": 0.0,
+        "v8_targeted_dev_task_success": 0.050000000000000044
+      },
+      "maximum_allowed_task_success_drop": 0.02,
+      "metrics": {
+        "resolution_overall": 0.75,
+        "semantic_task_success": 0.9458333333333333,
+        "targeted_task_success": 0.9222222222222223
+      },
+      "minimum_allowed_resolution_delta": 0.0,
+      "passed": false,
+      "violations": [
+        "resolution_dev_below_v7"
+      ]
+    },
+    "merge_alpha_0.75": {
+      "deltas_from_baseline_v7": {
+        "resolution_dev_overall_rate": 0.034117647058823475,
+        "semantic_dev_task_success": 0.01666666666666672,
+        "v8_targeted_dev_task_success": 0.02777777777777779
+      },
+      "maximum_allowed_task_success_drop": 0.02,
+      "metrics": {
+        "resolution_overall": 0.7941176470588235,
+        "semantic_task_success": 0.9625,
+        "targeted_task_success": 0.9
+      },
+      "minimum_allowed_resolution_delta": 0.0,
+      "passed": true,
+      "violations": []
+    }
+  },
+  "new_frozen_generation_started": false,
+  "ranking": [
+    "merge_alpha_0.75",
+    "baseline_v7"
+  ],
+  "resolution_dev_used_for_selection": true,
+  "run_plan_sha256": "beae3a0ead63d1ffef14f930e80ea3854e9011f73a3657837004fa35bc73b23c",
+  "schema_version": 1,
+  "selected_adapter_model_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+  "selected_model": "merge_alpha_0.75",
+  "selection_rule": "eligible: semantic and targeted task_success deltas >= -0.02 and resolution overall delta >= 0 versus same-run v7; rank resolution overall, mean task_success, semantic task_success, targeted task_success, then fixed candidate order",
+  "selection_split": "dev_only"
+}

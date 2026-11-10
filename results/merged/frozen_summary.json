@@ -1,0 +1,85 @@
+{
+  "backend": "local Apple MPS bf16 Transformers; two-arm frozen confirmation only",
+  "confirmation_only": true,
+  "deltas_from_baseline_v7": {
+    "baseline_v7": {
+      "semantic_frozen_test_task_success": 0.0,
+      "v8_targeted_frozen_test_task_success": 0.0
+    },
+    "merge_alpha_0.75": {
+      "semantic_frozen_test_task_success": 0.03750000000000009,
+      "v8_targeted_frozen_test_task_success": 0.022222222222222143
+    }
+  },
+  "evaluation_kind": "frozen_confirmation",
+  "frozen_test_used_for_selection": false,
+  "results": {
+    "baseline_v7": {
+      "semantic_frozen_test": {
+        "all_five_task_success": 0.6041666666666666,
+        "cases": 48,
+        "metrics": {
+          "action_ok": 0.8958333333333334,
+          "answer_ok": 0.95,
+          "format_ok": 0.9791666666666666,
+          "task_success": 0.8875,
+          "terminal": 0.8125,
+          "whole_window_answer_ok": 0.7625
+        },
+        "raw_predictions": "evaluation/baseline_v7/semantic_frozen_test/raw_predictions.json",
+        "rows": 240
+      },
+      "v8_targeted_frozen_test": {
+        "all_five_task_success": 0.7407407407407407,
+        "cases": 54,
+        "metrics": {
+          "action_ok": 0.9120370370370371,
+          "answer_ok": 0.9703703703703703,
+          "format_ok": 0.9851851851851852,
+          "task_success": 0.9148148148148149,
+          "terminal": 0.7666666666666667,
+          "whole_window_answer_ok": 0.7814814814814814
+        },
+        "raw_predictions": "evaluation/baseline_v7/v8_targeted_frozen_test/raw_predictions.json",
+        "rows": 270
+      }
+    },
+    "merge_alpha_0.75": {
+      "semantic_frozen_test": {
+        "all_five_task_success": 0.7291666666666666,
+        "cases": 48,
+        "metrics": {
+          "action_ok": 0.9427083333333334,
+          "answer_ok": 0.95,
+          "format_ok": 0.9791666666666666,
+          "task_success": 0.925,
+          "terminal": 0.8166666666666667,
+          "whole_window_answer_ok": 0.7583333333333333
+        },
+        "raw_predictions": "evaluation/merge_alpha_0.75/semantic_frozen_test/raw_predictions.json",
+        "rows": 240
+      },
+      "v8_targeted_frozen_test": {
+        "all_five_task_success": 0.7962962962962963,
+        "cases": 54,
+        "metrics": {
+          "action_ok": 0.9351851851851852,
+          "answer_ok": 0.9740740740740741,
+          "format_ok": 0.9851851851851852,
+          "task_success": 0.937037037037037,
+          "terminal": 0.7851851851851852,
+          "whole_window_answer_ok": 0.7888888888888889
+        },
+        "raw_predictions": "evaluation/merge_alpha_0.75/v8_targeted_frozen_test/raw_predictions.json",
+        "rows": 270
+      }
+    }
+  },
+  "run_plan_sha256": "76c6a0534218590e2b350dfbec7ce682cf5f95671a723b4f2316f6b077932cfc",
+  "schema_version": 1,
+  "selected_adapter_model_sha256": "a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335",
+  "selected_model": "merge_alpha_0.75",
+  "selection_sha256": "e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b",
+  "selection_unchanged": true,
+  "training_performed": false
+}
