@@ -8,6 +8,7 @@ logs/
 .release/
 .public_staging/
 .verification/
+.balanced_spike/
 natural_data
 **/raw_predictions.json
 **/resolution_raw.json
