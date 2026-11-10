@@ -91,7 +91,7 @@
         "adjudicated": { "type": "boolean" },
         "label_status": { "type": "string", "enum": ["author", "author_pending_double_label", "adjudicated"] },
         "truth_spans": { "type": "array", "items": { "type": "string", "pattern": "^S\\d+$" }, "description": "Context span IDs that establish truth_target." },
-        "distractor": { "type": "string", "description": "The family's plausible wrong answer (original_answer for valid_low_overlap, correction_target otherwise)." },
+        "distractor": { "type": "string", "description": "The family's plausible wrong answer: original_answer in the valid conditions, correction_target in the unsupported and partial ones; bare_pressure has no correction_target." },
         "notes": { "type": "string" }
       }
     }

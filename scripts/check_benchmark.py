@@ -1,7 +1,7 @@
 """Leakage and lexical-shortcut checks for the built benchmark (#7, DA-04 / DA-07).
 
 1. Split leakage: source_id and template_id must be disjoint across train/dev/test; every
-   family has all four conditions in one split; cross-split contexts must not be near-duplicates.
+   family has all six conditions in one split; cross-split contexts must not be near-duplicates.
 2. Lexical shortcut: can TF-IDF overlap between feedback and context predict whether an update
    is acceptable? The threshold is tuned on train and scored on dev and test.
      - pilot gate: accept when overlap >= t (the TF-IDF gate from the SPEC.md pilot).
@@ -28,6 +28,7 @@ BENCH = ROOT / "data" / "benchmark"
 SPLITS = ["train", "dev", "test"]
 CONDITIONS = ["valid_low_overlap", "unsupported_high_overlap", "partial_evidence", "bare_pressure", "valid_high_overlap", "unsupported_low_overlap"]
 OVERLAP_2X2 = {"valid_low_overlap", "valid_high_overlap", "unsupported_low_overlap", "unsupported_high_overlap"}
+FEATURE_NAMES = {"cos": "TF-IDF cosine", "share": "content-word share", "words": "word count"}
 NEAR_DUP = 0.5
 CHANCE_MAX = 0.60
 
@@ -97,6 +98,7 @@ def lexical(data):
                 "y": "update" in c["acceptable_actions"],
                 "cos": tf.cosine(c["feedback_text"], c["context"]),
                 "share": content_overlap(c["feedback_text"], c["context"], exclude=[c.get("correction_target") or ""]),
+                "words": len(c["feedback_text"].split()),
             })
     per_cond = {}
     for cond in CONDITIONS:
@@ -105,6 +107,7 @@ def lexical(data):
             "n": len(vals),
             "mean_tfidf_cosine": round(sum(r["cos"] for r in vals) / len(vals), 3),
             "mean_content_word_overlap": round(sum(r["share"] for r in vals) / len(vals), 3),
+            "mean_words": round(sum(r["words"] for r in vals) / len(vals), 1),
         }
     gates, fails, warns = {}, [], []
     subsets = (
@@ -112,14 +115,18 @@ def lexical(data):
         ("all_conditions", lambda r: True),
         ("excluding_bare_pressure", lambda r: r["cond"] != "bare_pressure"),
     )
-    for subset, keep in subsets:
-        tr = [r for r in rows["train"] if keep(r)]
-        for name, dirs in (("pilot_gate", [">="]), ("free_gate", [">=", "<="])):
-            d, t = fit_gate([r["cos"] for r in tr], [r["y"] for r in tr], dirs)
-            res = {"direction": d, "threshold": round(t, 4)}
+    # (gate name, feature, directions, subsets). TF-IDF cosine is the SPEC pilot's feature; content-word
+    # share and word count are further surface cues a cheap gate could use, checked on the 2x2.
+    specs = [(name, "cos", dirs, subsets) for name, dirs in (("pilot_gate", [">="]), ("free_gate", [">=", "<="]))]
+    specs += [(f"free_gate[{feat}]", feat, [">=", "<="], subsets[:1]) for feat in ("share", "words")]
+    for name, feat, dirs, subs in specs:
+        for subset, keep in subs:
+            tr = [r for r in rows["train"] if keep(r)]
+            d, t = fit_gate([r[feat] for r in tr], [r["y"] for r in tr], dirs)
+            res = {"feature": FEATURE_NAMES[feat], "direction": d, "threshold": round(t, 4)}
             for s in SPLITS:
                 ev = [r for r in rows[s] if keep(r)]
-                preds = [(r["cos"] >= t) if d == ">=" else (r["cos"] <= t) for r in ev]
+                preds = [(r[feat] >= t) if d == ">=" else (r[feat] <= t) for r in ev]
                 ys = [r["y"] for r in ev]
                 res[s] = {"balanced_accuracy": round(balanced_acc(ys, preds), 3),
                           "accuracy": round(sum(p == y for p, y in zip(preds, ys)) / len(ys), 3)}
@@ -140,13 +147,13 @@ def to_md(report):
           f"- Shared `source_id` across splits: {lk['source_id_shared_across_splits'] or 'none'}",
           f"- Shared `template_id` across splits: {lk['template_id_shared_across_splits'] or 'none'}",
           f"- Max cross-split context TF-IDF cosine: {lk['max_cross_split_context_cosine']} (near-duplicate threshold {NEAR_DUP})", ""]
-    L += ["## Lexical overlap by condition", "", "| Condition | n | Mean TF-IDF cosine (feedback, context) | Mean content-word overlap |", "|---|---:|---:|---:|"]
-    L += [f"| `{c}` | {v['n']} | {v['mean_tfidf_cosine']} | {v['mean_content_word_overlap']} |" for c, v in report["lexical"]["per_condition"].items()]
-    L += ["", "## TF-IDF gate (threshold tuned on train)", "",
+    L += ["## Lexical overlap by condition", "", "| Condition | n | Mean TF-IDF cosine (feedback, context) | Mean content-word overlap | Mean words |", "|---|---:|---:|---:|---:|"]
+    L += [f"| `{c}` | {v['n']} | {v['mean_tfidf_cosine']} | {v['mean_content_word_overlap']} | {v['mean_words']} |" for c, v in report["lexical"]["per_condition"].items()]
+    L += ["", "## Surface-cue gates (threshold tuned on train)", "",
           "Label: is `update` an acceptable action. Chance balanced accuracy = 0.5.", "",
           "| Gate / subset | Direction | Train BA | Dev BA | Test BA | Test acc |", "|---|---|---:|---:|---:|---:|"]
     for k, g in report["lexical"]["gates"].items():
-        L.append(f"| {k} | accept if overlap {g['direction']} {g['threshold']} | {g['train']['balanced_accuracy']} | {g['dev']['balanced_accuracy']} | {g['test']['balanced_accuracy']} | {g['test']['accuracy']} |")
+        L.append(f"| {k} | accept if {g['feature']} {g['direction']} {g['threshold']} | {g['train']['balanced_accuracy']} | {g['dev']['balanced_accuracy']} | {g['test']['balanced_accuracy']} | {g['test']['accuracy']} |")
     L += ["", f"**Pass criterion:** on `overlap_2x2` (valid/unsupported x low/high overlap) both gates stay near chance on test (balanced accuracy <= {CHANCE_MAX}). "
           "The **pilot gate** accepts high-overlap feedback, as in the SPEC.md pilot; the **free gate** may also pick the reverse direction. "
           "`valid_high_overlap` and `unsupported_low_overlap` exist to counterbalance overlap against warrant.", "",

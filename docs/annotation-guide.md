@@ -1,4 +1,6 @@
-# EvidenceTune annotation guide (v1)
+# EvidenceTune annotation guide (template benchmark v1)
+
+Applies to the 60-family template set in `data/families/`. The task.v2 and natural sets have their own guide in [`annotation/ANNOTATION-GUIDE.md`](../annotation/ANNOTATION-GUIDE.md).
 
 One page. Use it to label a case **without seeing any model output**. Schema: [`schemas/case.schema.json`](../schemas/case.schema.json).
 

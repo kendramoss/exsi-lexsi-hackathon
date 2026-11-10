@@ -40,6 +40,9 @@ def read_jsonl(path):
     return [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
 
 
+ROLES = ["system", "user", "assistant", "user"]
+
+
 def to_messages(case):
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
@@ -88,11 +91,25 @@ def verify(pack, inputs):
             errors.append(f"missing {f}")
     if errors:
         return errors
+    listed = {}
     for line in (pack / "checksums.txt").read_text().splitlines():
-        digest, fname = line.split(maxsplit=1)
-        if sha256(pack / fname.strip()) != digest:
+        if line.strip():
+            digest, fname = line.split(maxsplit=1)
+            listed[fname.strip()] = digest
+    for fname in ("messages.jsonl", "manifest.json"):
+        if fname not in listed:
+            errors.append(f"checksums.txt does not list {fname}")
+    for fname, digest in listed.items():
+        if not (pack / fname).exists():
+            errors.append(f"checksums.txt lists missing file {fname}")
+        elif sha256(pack / fname) != digest:
             errors.append(f"checksum mismatch: {fname}")
     manifest = json.loads((pack / "manifest.json").read_text())
+    for fname, digest in manifest.get("files", {}).items():
+        if not (pack / fname).exists() or sha256(pack / fname) != digest:
+            errors.append(f"manifest.files hash mismatch: {fname}")
+    if "messages.jsonl" not in manifest.get("files", {}):
+        errors.append("manifest.files does not list messages.jsonl")
     for rel_path, digest in manifest.get("inputs", {}).items():
         p = ROOT / rel_path
         if p.exists() and sha256(p) != digest:
@@ -113,7 +130,12 @@ def verify(pack, inputs):
                 errors.append(f"{cid}: field lost: {k}")
             elif meta[k] != v:
                 errors.append(f"{cid}: field changed: {k}")
-        text = "\n".join(m["content"] for m in rec.get("messages", []))
+        msgs = rec.get("messages", [])
+        if [m.get("role") for m in msgs] != ROLES:
+            errors.append(f"{cid}: message roles {[m.get('role') for m in msgs]} != {ROLES}")
+        elif msgs != to_messages(src):
+            errors.append(f"{cid}: messages differ from the ones built from the source case")
+        text = "\n".join(m.get("content", "") for m in msgs)
         for k in ("question", "context", "feedback_text", "original_answer"):
             if src[k] not in text:
                 errors.append(f"{cid}: {k} not present in messages")

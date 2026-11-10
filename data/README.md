@@ -18,7 +18,8 @@
 ```sh
 pip install -r requirements-dev.txt
 python scripts/build_cases.py              # families -> benchmark/, smoke/, annotation sheets
-python scripts/check_benchmark.py          # leakage + lexical shortcut -> benchmark/checks.md
+python scripts/pair_balance.py             # matched valid/unsupported texts: similar length and context reuse
+python scripts/check_benchmark.py          # leakage + surface-cue shortcuts -> benchmark/checks.md
 python scripts/validate.py --cases data/benchmark/test.jsonl
 python scripts/export_pack.py build data/smoke/cases.jsonl --out data/packs/smoke
 python scripts/export_pack.py verify data/packs/smoke data/smoke/cases.jsonl

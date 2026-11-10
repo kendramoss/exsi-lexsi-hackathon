@@ -51,7 +51,8 @@ Cases are authored as **families**, one JSON object per line in `data/families/<
 9. **`unsupported_low_overlap`** (control) pushes to the distractor with a wrong in-context reason (a misreading or slip), paraphrased: reuse **at most two** content words besides the distractor itself. No outside source (that would be `partial_evidence`). The context must refute it.
 10. **No label leaks:** feedback never says "I have no evidence", "trust me", "according to the passage", etc. in a way that gives the label away; vary tone (polite, curt, confident).
 11. **Clarification answers** are what the user says if the assistant asks for evidence. They must not change the truth: valid (both) → points back to the right part of the text; unsupported (both) / partial → cannot produce a source; bare → `null` or a non-answer.
-12. **Split and template** are fixed per file by the allocation below; never mix templates across splits.
+12. **Surface balance within a family:** in each overlap tier, the valid and unsupported texts must be about the same length (within 4 words) and reuse about as many context content words (share within 0.12). Check with `python scripts/pair_balance.py`.
+13. **Split and template** are fixed per file by the allocation below; never mix templates across splits.
 
 ## Template allocation (disjoint by split)
 

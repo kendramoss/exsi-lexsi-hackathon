@@ -66,7 +66,7 @@ def item_map():
 
 def load(path):
     path = Path(path)
-    rows = {}
+    rows, problems_pre = {}, []
     if path.suffix == ".jsonl":
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.strip():
@@ -74,11 +74,23 @@ def load(path):
                 rows[c["case_id"]] = {"truth_target": c["truth_target"], "evidence_sufficiency": c["evidence_sufficiency"],
                                       "answerable": c["answerable"], "acceptable_actions": c["acceptable_actions"], "exclude": ""}
     else:
-        with path.open(newline="", encoding="utf-8") as fh:
+        # utf-8-sig: spreadsheet apps often save a byte-order mark before the header.
+        with path.open(newline="", encoding="utf-8-sig") as fh:
             raw = list(csv.DictReader(fh))
-        ids = item_map() if raw and "item_id" in raw[0] else {}
-        rows = {(ids.get(r["item_id"], r["item_id"]) if ids else r["case_id"]): r for r in raw}
-    out, problems = {}, []
+        key = "item_id" if raw and "item_id" in raw[0] else "case_id"
+        if raw and key not in raw[0]:
+            sys.exit(f"{path}: needs an item_id or case_id column, found {list(raw[0])}")
+        ids = item_map() if key == "item_id" else None
+        for r in raw:
+            rid = (r.get(key) or "").strip()
+            cid = ids.get(rid) if ids is not None else rid
+            if not cid:
+                problems_pre.append(f"{path.name}: unknown {key} {rid!r} (row skipped)")
+                continue
+            if cid in rows:
+                problems_pre.append(f"{path.name}: duplicate row for {rid!r} (later row kept)")
+            rows[cid] = r
+    out, problems = {}, list(problems_pre)
     for cid, r in rows.items():
         lab = {
             "truth_target": norm_answer(r.get("truth_target")),
@@ -87,9 +99,9 @@ def load(path):
             "acceptable_actions": norm_actions(r.get("acceptable_actions")),
             "exclude": (r.get("exclude") or "").strip(),
         }
-        if not any(lab[f] for f in FIELDS):
-            continue  # not labelled yet
-        if lab["evidence_sufficiency"] not in SUFF:
+        if not any(lab[f] for f in FIELDS) and not lab["exclude"]:
+            continue  # not labelled yet (a row with only an exclusion reason still counts)
+        if lab["evidence_sufficiency"] and lab["evidence_sufficiency"] not in SUFF:
             problems.append(f"{path.name}:{cid}: evidence_sufficiency {lab['evidence_sufficiency']!r}")
         if lab["acceptable_actions"] and not set(lab["acceptable_actions"].split(";")) <= ACTIONS:
             problems.append(f"{path.name}:{cid}: acceptable_actions {lab['acceptable_actions']!r}")
@@ -104,7 +116,8 @@ def kappa(a, b):
     po = sum(x == y for x, y in zip(a, b)) / n
     ca, cb = Counter(a), Counter(b)
     pe = sum(ca[k] * cb[k] for k in set(ca) | set(cb)) / (n * n)
-    return 1.0 if pe == 1 else round((po - pe) / (1 - pe), 3)
+    # Undefined when both sides used one and the same label throughout (chance agreement is 1).
+    return None if pe == 1 else round((po - pe) / (1 - pe), 3)
 
 
 def main():
@@ -128,10 +141,12 @@ def main():
             report["fields"][f] = {"percent_agreement": round(sum(x == y for x, y in zip(xa, xb)) / len(both), 3),
                                    "cohens_kappa": None if f == "truth_target" else kappa(xa, xb)}
         report["all_fields_agree"] = round(sum(all(A[c][f] == B[c][f] for f in FIELDS) for c in both) / len(both), 3)
+        report["kappa_note"] = "null kappa: undefined because both sides used a single label for that field"
         report["exclusion_flags"] = {"a": sum(bool(A[c]["exclude"]) for c in both), "b": sum(bool(B[c]["exclude"]) for c in both)}
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.with_suffix(".json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    out_json, out_md = Path(f"{out}.json"), Path(f"{out}.md")
+    out_json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     with open(f"{out}_disagreements.csv", "w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["case_id", "field", "a", "b", "adjudicated", "adjudication_note"])
@@ -143,11 +158,11 @@ def main():
           f"- Compared: {len(both)} cases. Status: {report['status']}.", ""]
     if both:
         md += ["| Field | % agreement | Cohen's κ |", "|---|---:|---:|"]
-        md += [f"| {f} | {v['percent_agreement']:.1%} | {'—' if v['cohens_kappa'] is None else v['cohens_kappa']} |" for f, v in report["fields"].items()]
+        md += [f"| {f} | {v['percent_agreement']:.1%} | {('—' if f == 'truth_target' else 'undefined (one label throughout)') if v['cohens_kappa'] is None else v['cohens_kappa']} |" for f, v in report["fields"].items()]
         md += ["", f"All four fields agree on {report['all_fields_agree']:.1%} of cases. "
                f"Exclusion flags: A {report['exclusion_flags']['a']}, B {report['exclusion_flags']['b']}.",
                f"Disagreements for adjudication: `{out}_disagreements.csv`."]
-    out.with_suffix(".md").write_text("\n".join(md) + "\n", encoding="utf-8")
+    out_md.write_text("\n".join(md) + "\n", encoding="utf-8")
     print("\n".join(md))
     return 0
 

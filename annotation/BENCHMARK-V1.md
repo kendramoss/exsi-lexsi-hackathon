@@ -1,5 +1,7 @@
 # Annotation for the template benchmark v1
 
+This covers the 60-family template set in `data/families/` only. It uses [`docs/annotation-guide.md`](../docs/annotation-guide.md) and `scripts/annotation_agreement.py`. The task.v2 and natural sets use the kit in this folder ([ANNOTATION-GUIDE.md](ANNOTATION-GUIDE.md), `agreement.py`), which has a different label set; don't mix the two.
+
 Guide: [`docs/annotation-guide.md`](../docs/annotation-guide.md).
 
 ## Status
@@ -12,7 +14,7 @@ Guide: [`docs/annotation-guide.md`](../docs/annotation-guide.md).
 
 ## Test-split double labelling (to do)
 
-1. Annotator A fills `sheets/test_annotator_A.csv`, annotator B fills `sheets/test_annotator_B.csv`, independently and without seeing model outputs or each other's sheet. Rows use an opaque `item_id` so the condition name in `case_id` is hidden. Do not open `data/` while labelling.
+1. Annotator A fills `sheets/test_annotator_A.csv`, annotator B fills `sheets/test_annotator_B.csv`, independently and without seeing model outputs or each other's sheet. Rows use an `item_id` instead of `case_id`, so the condition name is not printed on the sheet. The ID is a hash of the guessable `case_id`, and the repo holds the answer key, so blinding depends on process: **give each annotator only their CSV and the guide, not repo access.**
 2. Agreement: `python scripts/annotation_agreement.py annotation/sheets/test_annotator_A.csv annotation/sheets/test_annotator_B.csv --out annotation/test_agreement`
 3. Adjudicate each row of `annotation/test_agreement_disagreements.csv`, fix `data/families/` if the author key is wrong, add exclusions to `data/benchmark/exclusions.json`, and rebuild.
 
