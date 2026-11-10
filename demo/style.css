@@ -643,7 +643,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 @media (max-width: 760px) { .end .links { grid-template-columns: minmax(0, 1fr); } }
 .g-bubble { border-radius: 24px; }
 .g-bubble mark { background: color-mix(in srgb, #a9c8f5 60%, transparent); color: inherit; }
-.g-bubble mark { background: none; color: inherit; text-decoration: underline 3px #a9c8f5; text-underline-offset: 5px; text-decoration-skip-ink: none; }
+.g-bubble mark { background: none; color: inherit; text-decoration: underline 1.5px #a9c8f5; text-underline-offset: 4px; text-decoration-skip-ink: none; }
 
 /* ---------- 01 as a conversation ---------- */
 .chat { display: grid; gap: 10px; }
@@ -662,7 +662,7 @@ mark { background: none; color: inherit; text-decoration: underline dotted color
 .bubble.q { background: var(--cream-2); border-radius: 18px 18px 4px 18px; }
 .bubble.a { background: var(--cream); border-radius: 16px 4px 16px 4px; }
 .chat-row.push .bubble.q { box-shadow: 4px 4px 0 #a9c8f5; }
-.bubble mark { background: none; color: inherit; text-decoration: underline 3px #a9c8f5; text-underline-offset: 4px; text-decoration-skip-ink: none; }
+.bubble mark { background: none; color: inherit; text-decoration: underline 1.5px #a9c8f5; text-underline-offset: 3px; text-decoration-skip-ink: none; }
 .bubble .cite { color: var(--cobalt); }
 .attach { max-width: 46ch; padding: 10px 14px; display: grid; gap: 4px; background: var(--cream); color: var(--cobalt); border-radius: 12px 0 12px 0; font: var(--t-small); }
 .attach small { font: var(--t-meta); color: var(--cobalt-3); }
@@ -1247,10 +1247,10 @@ body.xf .focusable { transition: none; }
 .flow .bubble, .flow .file, .flow .fresh .bubble, .flow .fresh .file { animation: none; }
 :root { interpolate-size: allow-keywords; }
 /* A · make room, then pop: the new row opens from zero height (pushing earlier messages up), then the bubble pops into the gap */
-.flow .chat-row.sent { animation: makeroom 350ms cubic-bezier(.2, .7, .2, 1) both; }
+.flow .chat-row.sent { min-height: 0; overflow-clip-margin: 10px; animation: makeroom 480ms cubic-bezier(.25, .8, .25, 1) both; }
 @keyframes makeroom { 0% { height: 0; margin-top: -10px; overflow: clip; } 99% { overflow: clip; } 100% { height: auto; margin-top: 0; overflow: visible; } }
-.flow .chat-row.sent .bubble, .flow .chat-row.sent .file { animation: popin 420ms 330ms cubic-bezier(.2, .8, .3, 1) both; }
-.flow .chat-row.sent .file { animation-delay: 410ms; }
+.flow .chat-row.sent .bubble, .flow .chat-row.sent .file { animation: popin 460ms 400ms cubic-bezier(.2, .8, .3, 1) both; }
+.flow .chat-row.sent .file { animation-delay: 480ms; }
 @keyframes send { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
 .flow .typing-row .bubble.typing { animation: typein 350ms ease-out both; }
 @keyframes typein { from { opacity: 0; } to { opacity: 1; } }
@@ -1268,7 +1268,11 @@ body.xf .focusable { transition: none; }
 .timeline li.done::before { background: #a9c8f5; border-color: #a9c8f5; }
 .timeline li.now { color: #0b55b8; font-weight: 500; }
 .timeline li.now::before { background: #0b55b8; border-color: #0b55b8; }
-#s1 .panel .ch-chat .convo.flow.fits { justify-content: center; -webkit-mask-image: none; mask-image: none; }
+/* Centred while it fits, bottom-anchored once it overflows, with no JS: two flexible spacers share the free
+   space; when there is none, flex-end pushes the overflow out of the top (under the fade). As a row opens,
+   the spacers shrink at the same rate, so earlier messages only ever move up, never back down. */
+#s1 .panel .ch-chat .convo.flow { justify-content: flex-end; box-sizing: border-box; padding-bottom: 0; }
+#s1 .convo.flow::before, #s1 .convo.flow::after { content: ""; flex: 1 1 0; min-height: 0; }
 .convo.flow:not(.split) .fork, .convo.flow:not(.split) .branches { display: none; }
 .fork.show { @starting-style { clip-path: inset(0 50% 100% 50%); } }
 .ch-rail.xf-instant .rail > *, .ch-rail.xf-instant .panel > * { transition: none !important; }
@@ -1281,40 +1285,514 @@ body.xf .focusable { transition: none; }
 .clock.gauge .c-base { stroke: var(--cobalt); stroke-width: 1.2; opacity: .35; }
 .clock.gauge .c-rim { fill: none; }
 #glance .bigclock .clock.gauge { width: 100%; max-width: 280px; }
+/* the chat column is always the full chat width, so messages never re-wrap as new ones arrive */
+#s1 .convo.flow > .trunk, #s1 .convo.flow > .fork, #s1 .convo.flow > .branches { align-self: stretch; width: 100%; box-sizing: border-box; }
+/* the split: fork touches the centred pushback, and fork + columns grow open instead of popping in */
+#s1 .flow .fork { margin: 0 0 8px; }
+#s1 .convo.flow.split .fork { animation: forkin 500ms cubic-bezier(.2, .7, .2, 1); }
+#s1 .convo.flow.split .branches { animation: growin 700ms cubic-bezier(.2, .7, .2, 1); }
+/* no end keyframe: each element grows to its own height (the fork's is a fixed 44px, not auto, which would snap at the end) */
+/* the fork has a fixed 44px height, so it grows to its own value; the columns grow to auto, which needs an explicit end */
+@keyframes forkin { 0% { height: 0; overflow: clip; } 99.9% { overflow: clip; } }
+@keyframes growin { from { height: 0; overflow: clip; } 99.9% { height: auto; overflow: clip; } to { height: auto; } }
+@media (prefers-reduced-motion: reduce) { #s1 .convo.flow.split .fork, #s1 .convo.flow.split .branches { animation: none; } }
+#s1 .flow .chat-row.push { padding: 0; gap: 0; }
+#s1 .convo.flow { gap: 0; row-gap: 0; }
+@media (prefers-reduced-motion: reduce) { #s1 .panel .ch-chat .convo.flow { transition: none; } }
+.flow .file-meta b { color: #0b55b8; }
+.cw-verdict .nw { white-space: nowrap; }
 
-/* Recorded merged evidence: reuse the established chat, bands, cards, and end notes. */
-.raw-output { white-space: pre-wrap; overflow-wrap: anywhere; }
-.flow .cw-verdict { flex-wrap: wrap; }
-.saved-evaluation { flex-basis: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; margin: 4px 0 0; padding-top: 6px; border-top: 1px solid rgba(245, 249, 255, .25); color: #f5f9ff; font: 400 10px/1.25 var(--mono); }
-.saved-evaluation dt, .saved-evaluation dd { margin: 0; }
-.saved-evaluation dd { text-align: right; overflow-wrap: anywhere; }
-.ch#listen:has(.band[data-condition]) { grid-template-rows: auto repeat(5, minmax(0, 1fr)); }
-.band[data-condition] { width: 100%; border-right: 0; border-bottom: 0; border-left: 0; background: transparent; color: inherit; cursor: pointer; text-align: left; }
-.band[data-condition]:hover, .band[data-condition][aria-pressed="true"] { background: rgba(11, 85, 184, .06); }
-.band[data-condition]:focus-visible { outline: 2px solid #0b55b8; outline-offset: -2px; }
-.suite-switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; }
-.suite-switch .replay[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-.cards[data-metrics="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.card-counts, .big-counts, .metric-fraction { display: block; margin-top: 6px; font: var(--t-meta); color: var(--ink-3); }
-.metric-fraction { white-space: nowrap; }
-.evidence-notes { padding: 16px 64px; font: var(--t-meta); line-height: 1.5; }
-.evidence-notes p { max-width: 1100px; margin: 4px 0; }
-.ch#s4:has(.evidence-notes:not(:empty)) { grid-template-rows: auto auto auto auto; align-content: start; }
-.saved-input { font: var(--t-small); color: #0b55b8; }
-.saved-input summary { width: fit-content; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
-.saved-input pre { margin: 10px 0 0; max-height: none; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; font: 400 11px/1.45 var(--mono); color: #3c76c6; }
-#s1:has(.saved-input[open]) { height: auto; overflow: visible; }
+/* ---------- Screens 4–7 balanced: one centred block each, clear space top and bottom ---------- */
+@media (min-width: 900px) and (min-height: 600px) {
+  /* 4 · it still listens */
+  #listen { display: flex; flex-direction: column; justify-content: center; padding: 6vh max(64px, calc((100% - 1100px) / 2)); }
+  #listen .bands-head { padding: 0 0 24px; }
+  #listen .bands-head h2 { text-wrap: balance; }
+  #listen .band { padding: 14px 0; flex: none; }
+  #listen .band:last-child { border-bottom: 1px solid rgba(11, 85, 184, .25); }
+  #listen .bd { width: 128px; height: 64px; }
+  #listen .bands-cols span { width: 128px; }
+
+  /* 5 · is it a fluke: heading, line and numbers together, centred against the grid */
+  #s2 .rail { justify-content: center; padding-block: 6vh; }
+  #s2 .rail-nums { margin-top: 12px; }
+  #s2 .panel { padding-block: 6vh; box-sizing: border-box; }
+
+  /* 6 · is the test fair: heading and diagram as one block that fits the screen */
+  #s3 { display: flex; flex-direction: column; justify-content: center; gap: 7vh; padding: 6vh max(64px, calc((100% - 1100px) / 2)) 14vh; }
+  #s3 .ch-head { position: static; max-width: none; }
+  #s3 .ch-head h2 { text-wrap: balance; }
+  #s3 .pipe { position: relative; left: auto; right: auto; top: auto; }
+  #s3 .ch-num { opacity: .04; }
+
+  /* 7 · see the work: shorter tiles, the whole block centred, room under the credit */
+  #s4 { display: flex; flex-direction: column; justify-content: center; padding-block: 6vh; }
+  #s4 .end-head { padding: 0 40px 4vh; }
+  #s4 .tiles { flex: none; height: auto; }
+  #s4 .tile { height: auto; min-height: 0; }
+  #s4 .tile { padding: 36px 40px; }
+  #s4 .tile i { width: min(11vh, 88px); height: min(11vh, 88px); }
+  #s4 .tile small { margin-top: 28px; }
+  #s4 .credit { padding: 3vh 40px 0; }
+}
+
+/* ---------- 3 · chat sizing follows the window ----------
+   The chat is drawn at a zoom (--cz) so it reads big on large screens; zoom, width and height all step with
+   the viewport instead of a fixed 1.4× at 60% width, which crushed the two columns on mid-size windows.
+   Height is in zoomed units, hence the divide: on screen it is always ~72% of the space under the nav. */
+#s1 .panel .ch-chat .convo.flow { --cz: 1.4; zoom: var(--cz); width: min(100%, 560px); height: calc((100vh - var(--nav)) * .72 / var(--cz)); }
+@media (max-width: 1400px), (max-height: 760px) { #s1 .panel .ch-chat .convo.flow { --cz: 1.2; } }
+@media (max-width: 1150px), (max-height: 640px) { #s1 .panel .ch-chat .convo.flow { --cz: 1; } }
+#s1 .panel .ch-chat { padding-inline: clamp(16px, 3vw, 40px); }
+/* single column (phones, narrow or short windows): full-width chat, a steady height */
 @media (max-width: 900px), (max-height: 600px) {
-  .evidence-notes { padding: 20px; }
-  .band[data-condition] { align-items: flex-start; }
-  .saved-evaluation { font-size: 11px; }
+  #s1 .panel .ch-chat { padding: 8px clamp(4px, 2vw, 16px); }
+  #s1 .panel .ch-chat .convo.flow { --cz: 1; width: 100%; height: clamp(420px, 70vh, 640px); }
 }
-@media (max-width: 640px) {
-  .cards[data-metrics="2"] { grid-template-columns: minmax(0, 1fr); }
-  #s1.ch, #s1 .panel { height: auto; overflow: visible; }
-  #s1 .panel .ch-chat { height: auto; padding: 32px 16px; }
-  #s1 .panel .ch-chat .convo.flow {
-    display: block; zoom: 1; width: 100%; max-width: 100%; height: auto; min-height: 0; max-height: none;
-    overflow: visible; -webkit-mask-image: none; mask-image: none;
-  }
+/* side rail narrows on mid-size windows; the chat keeps clear of the page dots on the right edge */
+@media (min-width: 901px) and (min-height: 601px) {
+  .ch-rail { grid-template-columns: clamp(300px, 28vw, 400px) minmax(0, 1fr); }
+  .ch-rail .rail { padding-inline: clamp(24px, 3vw, 48px); }
+  #s1 .panel .ch-chat { padding-right: max(56px, 3vw); }
 }
+
+/* ---------- 5 · is it a fluke: the sentence over one stacked bar per approach ----------
+   One thing to look at: the bars. Each test case is a slice, either the right move or how that approach
+   slipped. EvidenceTune's bar is the only solid one. Draws once when the screen comes into view. */
+#s2.fluke { padding: 0; }
+.fl-inner { height: 100%; box-sizing: border-box; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 32px;
+  padding: 7vh max(88px, calc((100% - 1200px) / 2)) 6vh; }
+.fl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; }
+.fl-hl { margin: 0; font: 400 clamp(36px, 3.8vw, 56px)/1.06 var(--display); letter-spacing: -.02em; max-width: 22ch; }
+.fl-hl span, .fl-hl em { display: block; }
+.fl-hl em { font-style: normal; color: #a9c8f5; }
+.fl-meta { font: 400 13px/1.4 var(--mono); color: #c9dcf8; white-space: nowrap; padding-top: 12px; }
+.fl-bars { display: grid; gap: 12px; align-content: center; }
+.fl-row { display: grid; grid-template-columns: 200px minmax(0, 1fr) 64px; gap: 16px; align-items: center; font-size: 16px; color: #c9dcf8; }
+.fl-track { height: 28px; display: flex; background: rgba(245, 249, 255, .08); }
+.fl-val { font: 400 22px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+.fl-row.me { color: #f5f9ff; font-weight: 500; }
+.fl-row.me .fl-track { height: 40px; }
+.fl-row.me .fl-val { font-size: 32px; }
+.fl-seg { display: block; height: 100%; }
+.s-ok { background: rgba(245, 249, 255, .34); }
+.fl-row.me .s-ok, .fl-key .s-ok { background: #f5f9ff; }
+.s-in { background: #ff8f86; }
+.s-ig { box-shadow: inset 0 0 0 1.5px rgba(245, 249, 255, .6); }
+.s-ask { background: repeating-linear-gradient(135deg, rgba(245, 249, 255, .5) 0 3px, transparent 3px 8px); }
+.fl-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; }
+.fl-key { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 14px; color: #c9dcf8; }
+.fl-key li { display: flex; align-items: center; gap: 8px; }
+.fl-key i { width: 16px; height: 16px; display: block; }
+#s2 .linkish { color: #f5f9ff; }
+/* the draw-in: headline, then the bars grow left to right one row after another, EvidenceTune last */
+#s2 .fl-hl span, #s2 .fl-hl em, #s2 .fl-meta, #s2 .fl-foot { opacity: 0; translate: 0 12px; transition: opacity 600ms cubic-bezier(.2, .7, .2, 1), translate 600ms cubic-bezier(.2, .7, .2, 1); }
+#s2 .fl-hl em { transition-delay: 500ms; }
+#s2 .fl-meta { transition-delay: 700ms; }
+#s2 .fl-foot { transition-delay: 2000ms; }
+#s2 .fl-seg { transform-origin: 0 50%; scale: 0 1; transition: scale 800ms cubic-bezier(.2, .7, .2, 1); transition-delay: calc(900ms + var(--d, 0ms)); }
+#s2 .fl-row { --d: 0ms; }
+#s2.shown .fl-hl span, #s2.shown .fl-hl em, #s2.shown .fl-meta, #s2.shown .fl-foot { opacity: 1; translate: 0 0; }
+#s2.shown .fl-seg { scale: 1 1; }
+@media (prefers-reduced-motion: reduce) { #s2 .fl-hl span, #s2 .fl-hl em, #s2 .fl-meta, #s2 .fl-foot, #s2 .fl-seg { transition: none; } }
+/* the fine-print grid now lives in the dialog */
+.all .egrid { background: #0b55b8; color: #f5f9ff; border: 0; border-radius: 16px 0 16px 0; --ink: #f5f9ff; --line: #f5f9ff; }
+.all .egrid-cells i.ok { background: #f5f9ff; }
+@media (max-width: 900px), (max-height: 600px) {
+  #s2.fluke { padding: 0; }
+  .fl-inner { padding: 56px 20px; gap: 28px; }
+  .fl-top { flex-direction: column; gap: 8px; }
+  .fl-meta { padding-top: 0; }
+  .fl-row { grid-template-columns: minmax(0, 1fr) 48px; gap: 6px 12px; }
+  .fl-name { grid-column: 1 / -1; }
+  .fl-track { grid-column: 1; }
+}
+/* screen 2 calendar for big runs: one bar, the slipped share in red */
+.tear-sum { display: grid; gap: 0; }
+.tear-bar { height: 22px; margin: 12px 12px 8px; background: rgba(11, 85, 184, .12); }
+.tear-bar i { display: block; height: 100%; background: #c32a22; transform-origin: 0 50%; transition: scale 900ms cubic-bezier(.2, .7, .2, 1); }
+#glance .clockcol:not(.is-done) .tear-bar i { scale: 0 1; }
+.tear-cap { padding: 0 12px 12px; font: 400 13px/1.3 var(--sans); color: #3c76c6; }
+.tear-cap b { font-weight: 500; color: #c32a22; }
+
+/* 2 · the two clock cards grow with the panel instead of stopping at 320px; height-capped so the active
+   card (scaled 1.12) still fits the screen. Phones keep the stacked size above. */
+@media (min-width: 901px) and (min-height: 601px) {
+  #glance .clocks { gap: clamp(28px, 3vw, 64px); }
+  #glance .clockcol .bigclock { width: min(26vw, 52vh, 520px); padding: clamp(20px, 1.8vw, 36px); gap: clamp(14px, 1.2vw, 22px); }
+  #glance .bigclock .clock.gauge { width: 100%; max-width: none; }
+  #glance .clock-name { font-size: clamp(22px, 1.7vw, 32px); }
+  #glance .tear-head { font-size: clamp(12px, .8vw, 15px); }
+  #glance .tear-cap { font-size: clamp(13px, .85vw, 16px); }
+  #glance .tear-bar { height: clamp(22px, 1.6vw, 30px); }
+}
+/* a flex item can't go below its content height unless told to, which made the reply columns pop in at full
+   height instead of growing from 0 at the split */
+#s1 .convo.flow > .fork, #s1 .convo.flow > .branches, #s1 .convo.flow > .trunk { min-height: 0; }
+
+/* 2 · proof strip under the two clocks: how often each model asks for the source when the quote doesn't settle it */
+#glance .panel { flex-direction: column; gap: clamp(20px, 3vh, 36px); }
+.g-proof { width: min(840px, calc(100% - 48px)); box-sizing: border-box; background: #f5f9ff; color: #0b55b8; padding: clamp(20px, 2.6vh, 28px) clamp(20px, 2vw, 32px);
+  display: grid; gap: 14px; border-radius: 0 24px 0 24px; position: relative; }
+.gp-claim { margin: 0; font: 400 clamp(19px, 1.3vw, 24px)/1.3 var(--display); color: #3c76c6; }
+.gp-claim b { font-weight: 500; color: #0b55b8; }
+.gp-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) 88px; gap: 16px; align-items: center; font-size: 16px; color: #3c76c6; }
+.gp-row.me { color: #0b55b8; font-weight: 500; }
+.gp-track { height: 24px; background: rgba(11, 85, 184, .08); display: flex; }
+.gp-row.me .gp-track { height: 32px; }
+.gp-track i { display: block; height: 100%; background: #7d9fd4; transform-origin: 0 50%; scale: 0 1; transition: scale 900ms cubic-bezier(.2, .7, .2, 1) 300ms; }
+.gp-row.me .gp-track i { background: #0b55b8; transition-delay: 600ms; }
+#glance.proof-in .gp-track i { scale: 1 1; }
+.gp-val { font: 400 24px/1 var(--display); text-align: right; font-variant-numeric: tabular-nums; }
+.gp-val small { font-size: 14px; color: #7d9fd4; }
+.gp-foot { margin: 0; font: 400 13px/1.4 var(--mono); color: #7d9fd4; }
+@media (prefers-reduced-motion: reduce) { .gp-track i { transition: none; scale: 1 1; } }
+@media (max-width: 900px) { .gp-row { grid-template-columns: minmax(0, 1fr) 64px; } .gp-name { grid-column: 1 / -1; } }
+/* the cards no longer carry the per-card strip, so they can sit a little higher */
+#glance .panel { padding-bottom: 6vh; }
+
+/* 3 · step controls: one bar under the chat (‹, five step dots, ›) with square keycap buttons */
+#s1 .ch-chat .convo-foot { justify-content: center; margin-top: clamp(16px, 2.4vh, 28px); max-width: none; }
+.convo-ctl { display: inline-flex; align-items: center; gap: 16px; padding: 8px; border-radius: 16px; background: rgba(245, 249, 255, .1); }
+.ckey { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; cursor: pointer;
+  background: #f5f9ff; color: #0b55b8; box-shadow: 0 3px 0 rgba(4, 30, 70, .45);
+  transition: translate 120ms var(--ease), box-shadow 120ms var(--ease), opacity 200ms var(--ease); }
+.ckey svg { width: 22px; height: 22px; }
+.ckey path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ckey:hover:not(:disabled) { background: #ffffff; }
+.ckey:active:not(:disabled) { translate: 0 2px; box-shadow: 0 1px 0 rgba(4, 30, 70, .45); }
+.ckey:disabled { opacity: .35; cursor: default; box-shadow: none; }
+.ckey:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
+.cdots { display: flex; align-items: center; gap: 8px; }
+.cdots i { width: 8px; height: 8px; border-radius: 4px; background: rgba(245, 249, 255, .3); transition: width 300ms var(--ease), background-color 300ms var(--ease); }
+.cdots i.done { background: rgba(245, 249, 255, .6); }
+.cdots i.on { width: 24px; background: #f5f9ff; }
+@media (max-width: 760px) { .convo-ctl { display: none; } }
+
+/* 2 · the clocks row is exactly as wide as the proof card under it, and stays that wide while it animates:
+   each card grows/shrinks from its outer edge, so the active one swells inward into the room the dimmed one
+   gives up, and nothing ever pokes past the edges of the card below. */
+#glance .panel { --gw: min(840px, calc(100% - 48px)); }
+#glance .g-proof { width: var(--gw); }
+#glance .clocks { width: var(--gw); display: flex; justify-content: space-between; gap: 32px; }
+#glance .clocks .clockcol { flex: 1 1 0; min-width: 0; }
+#glance .clocks .clockcol .bigclock { width: 100%; box-sizing: border-box; }
+#glance .clocks .clockcol:first-child { transform-origin: 0 50%; }
+#glance .clocks .clockcol:last-child { transform-origin: 100% 50%; }
+#glance .clocks .clockcol.is-on { transform: scale(1.1); }
+#glance .clocks .clockcol.is-dim { transform: scale(.8); }
+
+/* 5 · one tight block (label, one headline with the gain as a percentage, bars, key + link), centred.
+   Every kind of slip is red, so less red reads as better; EvidenceTune's right moves are the one solid bar. */
+#s2.fluke .fl-inner { grid-template-rows: auto auto auto; align-content: center; gap: 36px; padding: 6vh max(88px, calc((100% - 1040px) / 2)); }
+#s2 .fl-top { flex-direction: column; justify-content: flex-start; gap: 16px; }
+#s2 .fl-meta { padding-top: 0; font-size: 14px; }
+#s2 .fl-hl { max-width: 22ch; color: #a9c8f5; font-size: clamp(36px, 3.2vw, 52px); }
+#s2 .fl-hl b { font-weight: 400; color: #f5f9ff; }
+#s2 .fl-bars { gap: 14px; }
+#s2 .fl-row { grid-template-columns: 190px minmax(0, 1fr) 112px; }
+#s2 .fl-val { font-size: 24px; }
+#s2 .fl-val small { font-size: 15px; color: #c9dcf8; }
+#s2 .fl-row.me .fl-val { font-size: 32px; }
+#s2 .fl-foot { padding-top: 20px; border-top: 1px solid rgba(245, 249, 255, .18); }
+#s2 .s-in { background: #ff6f64; }
+#s2 .s-ig { background: rgba(255, 143, 134, .55); box-shadow: none; }
+#s2 .s-ask { background: repeating-linear-gradient(135deg, #ff8f86 0 3px, rgba(255, 143, 134, .18) 3px 8px); }
+#s2 .fl-row:not(.me) .s-ok { background: rgba(245, 249, 255, .3); }
+
+/* 3 · verdict under each reply: a quiet bar, line icon + a few words + right/wrong */
+.flow .cw-verdict.v4 { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: rgba(245, 249, 255, .08);
+  font: 400 14px/1.3 var(--sans); color: #d6e3f6; }
+.flow .cw-verdict.v4 .vi { width: 18px; height: 18px; flex: none; }
+.flow .cw-verdict.v4 .vi path { fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.flow .cw-verdict.v4 .vt { min-width: 0; }
+.flow .cw-verdict.v4 strong { color: #f5f9ff; font-weight: 500; }
+.flow .cw-verdict.v4 em { margin-left: auto; padding-left: 8px; font: 400 12px var(--mono); font-style: normal; }
+.flow .cw-verdict.v4.ko .vi, .flow .cw-verdict.v4.ko em { color: #ffa29b; }
+.flow .cw-verdict.v4.ok .vi, .flow .cw-verdict.v4.ok em { color: #7fe0b8; }
+
+/* 5 · head to head: one tile per test where only one model made the right move */
+#s2 .fl-tiles { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 6px; height: clamp(48px, 9vh, 80px); }
+#s2 .fl-tiles i { display: block; border-radius: 2px; opacity: 0; translate: 0 8px;
+  transition: opacity 400ms var(--ease), translate 400ms var(--ease); transition-delay: calc(900ms + var(--i) * 35ms); }
+#s2 .fl-tiles i.t, #s2 .fl-key i.t { background: #f5f9ff; }
+#s2 .fl-tiles i.r, #s2 .fl-key i.r { background: rgba(245, 249, 255, .28); }
+#s2.shown .fl-tiles i { opacity: 1; translate: 0 0; }
+#s2 .fl-note { margin: 4px 0 0; font: 400 13px/1.4 var(--mono); color: #c9dcf8; }
+#s2 .fl-key i { width: 16px; height: 16px; }
+#s2 .fl-key { font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { #s2 .fl-tiles i { transition: none; opacity: 1; translate: 0 0; } }
+@media (max-width: 900px) { #s2 .fl-tiles { gap: 3px; height: 40px; } }
+/* 5 · one plain sentence under the headline: who the two models are and why only some tests are shown */
+#s2 .fl-sub { margin: 0; max-width: 62ch; font: 400 clamp(16px, 1.1vw, 19px)/1.5 var(--sans); color: #c9dcf8;
+  opacity: 0; translate: 0 12px; transition: opacity 600ms var(--ease) 600ms, translate 600ms var(--ease) 600ms; }
+#s2.shown .fl-sub { opacity: 1; translate: 0 0; }
+@media (prefers-reduced-motion: reduce) { #s2 .fl-sub { transition: none; opacity: 1; translate: 0 0; } }
+/* 5 · small print as two short lines: the "is it luck?" answer, then what is left out */
+#s2 .fl-note { display: grid; gap: 4px; }
+#s2 .fl-note .fl-odds { color: #f5f9ff; font-family: var(--sans); font-size: 15px; }
+
+/* ---------- 7 · see the work: each card has the real page it opens tucked behind it ----------
+   The previews are screenshots of the live pages (assets/previews), framed as a plain browser window. */
+#s4 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; padding: 0 64px; background: none; border: 0; height: auto; }
+#s4 .tile { position: relative; display: flex; flex-direction: column; justify-content: flex-end; height: clamp(380px, 56vh, 560px); padding: 0; background: none; color: #f5f9ff; text-decoration: none; isolation: isolate; }
+#s4 .tile:hover { background: none; }
+#s4 .peek { position: absolute; z-index: -1; left: 24px; right: 24px; top: 0; height: 72%; display: flex; flex-direction: column; overflow: hidden; border-radius: 10px; background: #f5f9ff; box-shadow: 0 24px 50px -30px rgba(2, 16, 40, .8); transform: rotate(-2.5deg); transform-origin: bottom center; transition: transform 320ms var(--ease), top 320ms var(--ease); }
+#s4 .tile.data .peek { transform: rotate(1.5deg); }
+#s4 .tile.code .peek { transform: rotate(-1deg); }
+#s4 .tile:hover .peek, #s4 .tile:focus-visible .peek { top: -16px; transform: rotate(0deg); }
+#s4 .pbar { display: flex; align-items: center; gap: 6px; flex: none; padding: 9px 12px; background: #e4eefd; border-bottom: 1px solid rgba(11, 85, 184, .12); }
+#s4 .pbar i { width: 8px; height: 8px; border-radius: 50%; background: #a9c8f5; }
+#s4 .pbar em { margin-left: 8px; min-width: 0; flex: 1; font: 400 11px/1.4 var(--mono); font-style: normal; color: #3c76c6; background: #f5f9ff; padding: 4px 9px; border-radius: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#s4 .peek img { display: block; width: 100%; flex: 1; min-height: 0; object-fit: cover; object-position: top left; }
+#s4 .front { position: relative; display: grid; gap: 10px; align-content: end; min-height: 46%; padding: 28px 32px; background: #0b4ca6; border: 1px solid rgba(245, 249, 255, .25); border-radius: 4px; transition: background-color 200ms var(--ease); }
+#s4 .tile:hover .front { background: #0a4499; }
+#s4 .tile:focus-visible { outline: none; }
+#s4 .tile:focus-visible .front { outline: 2px solid #f5f9ff; outline-offset: 4px; }
+#s4 .front i { display: block; width: min(9vh, 72px); height: min(9vh, 72px); margin-bottom: auto; background: #f5f9ff; }
+#s4 .tile.model .front i { border-radius: 72px 0 0 0; } #s4 .tile.code .front i { border-radius: 0 0 72px 0; } #s4 .tile.data .front i { border-radius: 0; }
+#s4 .front small { margin-top: 20px; font: 400 13px/1 var(--mono); opacity: .75; }
+#s4 .front b { font: 400 clamp(22px, 2.2vw, 30px)/1.15 var(--display); }
+#s4 .front .url { font: 400 12px/1.4 var(--mono); opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#s4 .end-head { padding-bottom: 5vh; }
+@media (max-width: 900px) {
+  #s4 .tiles { grid-template-columns: minmax(0, 1fr); gap: 40px; padding: 0 20px; }
+  #s4 .tile { height: 340px; }
+  #s4 .peek { height: 64%; }
+}
+@media (prefers-reduced-motion: reduce) { #s4 .peek { transition: none; } }
+
+/* ---------- 4 · wrong quotes: heading, two stacked bars, one key ----------
+   One colour per move in both bars. The navy "asked for proof" number is the big one; the others are smaller and lighter. */
+.ch#listen { display: flex; flex-direction: column; justify-content: center; padding: 6vh max(64px, calc((100% - 1100px) / 2)); }
+#listen .ls-inner { display: grid; gap: 0; }
+#listen h2 { margin: 0; font: 400 clamp(36px, 3.8vw, 56px)/1.08 var(--display); letter-spacing: -.02em; text-wrap: balance; max-width: 24ch; }
+.ls-chart { display: grid; gap: 18px; }
+.ls-mdl { display: grid; gap: 8px; }
+.ls-name { font: 400 17px/1.2 var(--display); color: #3c76c6; }
+.ls-mdl.me .ls-name { color: #0b55b8; font-weight: 500; }
+.ls-bar { display: flex; gap: 4px; height: clamp(72px, 12vh, 112px); }
+.ls-sg { flex-basis: 0; min-width: 0; display: flex; align-items: center; padding: 0 clamp(10px, 1.2vw, 18px); border-radius: 6px; overflow: hidden; white-space: nowrap; }
+.ls-sg b { font: 300 clamp(16px, 1.4vw, 21px)/1 var(--display); font-variant-numeric: tabular-nums; }
+.ls-sg.ask b { font-weight: 400; font-size: clamp(22px, 2.2vw, 32px); }
+.ls-sg.keep, .ls-key .keep { background: #a9c8f5; color: #0b3a7a; }
+.ls-sg.ask, .ls-key .ask { background: #0b55b8; color: #f5f9ff; }
+.ls-sg.chg, .ls-key .chg { background: #c32a22; color: #f5f9ff; }
+.ls-key { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 15px; color: #3c76c6; }
+.ls-key li { display: flex; align-items: center; gap: 8px; }
+.ls-key i { width: 14px; height: 14px; border-radius: 3px; }
+@media (max-width: 900px), (max-height: 600px) {
+  .ch#listen { display: flex; padding: 56px 20px; }
+  .ls-bar { height: 64px; }
+}
+#listen .ls-why { margin: 16px 0 0; font: 400 clamp(17px, 1.4vw, 21px)/1.4 var(--display); color: #3c76c6; }
+#listen .ls-chart { margin-top: clamp(40px, 8vh, 72px); }
+#listen .ls-why + .ls-chart { margin-top: 28px; }
+
+/* ---------- 5 · is the test fair: one real case and its matched pushbacks, spotlit one at a time ---------- */
+#s3 { gap: clamp(20px, 4vh, 40px); }
+#s3 .ch-head h2 { margin: 0; }
+#s3 .fair-lead { margin: 12px 0 0; max-width: 60ch; font: 400 clamp(17px, 1.4vw, 21px)/1.45 var(--display); color: #3c76c6; }
+#s3 .fair { margin: 0; }
+.fair-svg { display: block; width: 100%; height: auto; max-height: 56vh; overflow: visible; }
+.fair-svg marker path { fill: #0b55b8; }
+.fh { font: 400 15px var(--display); fill: #7d9fd4; }
+.fc { fill: #ffffff; stroke: rgba(11, 85, 184, .3); stroke-width: 1.5; }
+.fc-k { font: 400 15px var(--display); fill: #7d9fd4; }
+.fc-s { font: 400 20px var(--display); fill: #0b55b8; }
+.fc-e { font: 400 16px var(--display); fill: #3c76c6; }
+.fc-id { font: 500 15px var(--mono); fill: #0b55b8; }
+.fc-hl { fill: #d6e4fa; opacity: 0; transition: opacity 400ms var(--ease); }
+.fc-hl.on { opacity: 1; }
+.fr .fa { fill: none; stroke: #0b55b8; stroke-width: 2; }
+.fr .ff { fill: none; stroke: #0b55b8; stroke-width: 3; stroke-dasharray: 6 8; opacity: 0; }
+.fr .fb { fill: #ffffff; stroke: rgba(11, 85, 184, .3); stroke-width: 1.5; transition: stroke-width 300ms var(--ease); }
+.fb-t { font: 400 22px var(--display); fill: #0b55b8; }
+.fb-s { font: 400 16px var(--display); fill: #3c76c6; }
+.fb-tag { font: 400 12px var(--mono); fill: #7d9fd4; }
+.fr .fx { fill: #e4eefd; transition: fill 300ms var(--ease); }
+.fx-t { font: 500 19px var(--display); fill: #0b55b8; transition: fill 300ms var(--ease); }
+/* every row stays readable; the highlighted one is marked by its heavier border and filled answer */
+.fr { opacity: 1; transition: opacity 400ms var(--ease); }
+.fr.on, .fair.still .fr { opacity: 1; }
+.fr.on .fb { stroke: #0b55b8; stroke-width: 3; }
+.fr.on .fx { fill: #0b55b8; }
+.fr.on .fx-t { fill: #f5f9ff; }
+.fr.on .ff { opacity: 1; animation: fair-flow .9s linear infinite; }
+@keyframes fair-flow { to { stroke-dashoffset: -28; } }
+#s3 .fair-facts { list-style: none; margin: 0; padding: 20px 0 0; border-top: 1px solid rgba(11, 85, 184, .16); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+#s3 .fair-facts li { display: grid; gap: 6px; font: 400 15px/1.45 var(--display); color: #3c76c6; }
+#s3 .fair-facts b { font: 500 17px var(--display); color: #0b55b8; }
+@media (max-width: 900px) { #s3 .fair-facts { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+/* 5 · room under the top bar: content centres only while it fits, and the diagram gives way first */
+@media (min-width: 901px) and (min-height: 601px) {
+  #s3 { justify-content: safe center; padding-top: clamp(48px, 9vh, 96px); padding-bottom: clamp(48px, 9vh, 96px); gap: clamp(16px, 3vh, 32px); }
+  .fair-svg { max-height: 40vh; }
+}
+
+/* 4 · one bar morphs from plain training into EvidenceTune; names and numbers crossfade */
+.ls-morph .ls-sg { position: relative; transition: flex-grow 900ms cubic-bezier(.45, 0, .2, 1); }
+.ls-morph .ls-sg b { position: absolute; left: clamp(10px, 1.2vw, 18px); top: 50%; translate: 0 -50%; transition: opacity 400ms var(--ease); }
+.ls-morph .ls-sg b.to, .ls-morph.is-to .ls-sg b.from { opacity: 0; }
+.ls-morph.is-to .ls-sg b.to { opacity: 1; transition-delay: 450ms; }
+.ls-swap { position: relative; display: block; height: 1.3em; }
+.ls-swap em { position: absolute; left: 0; font-style: normal; transition: opacity 400ms var(--ease); }
+.ls-swap .to, .ls-morph.is-to .ls-swap .from { opacity: 0; }
+.ls-morph.is-to .ls-swap .to { opacity: 1; color: #0b55b8; font-weight: 500; }
+.ls-delta { margin: 4px 0 0; font: 400 clamp(17px, 1.4vw, 21px)/1.3 var(--display); color: #3c76c6; opacity: 0; translate: 0 6px; transition: opacity 400ms var(--ease), translate 400ms var(--ease); }
+.ls-delta b { font: 400 clamp(22px, 2vw, 28px) var(--display); color: #0b55b8; margin-right: 6px; }
+.ls-delta.is-to { opacity: 1; translate: 0 0; transition-delay: 600ms; }
+.ls-morph .ls-bar { height: clamp(88px, 15vh, 140px); }
+
+/* 6 · see the work: the four pieces of the logo drift slowly behind the cards */
+#s4 { position: relative; overflow: hidden; }
+#s4 > :not(.s4-shapes) { position: relative; z-index: 1; }
+.s4-shapes { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.s4-shapes i { position: absolute; display: block; background: rgba(245, 249, 255, .07); will-change: transform; }
+.s4-shapes .q1 { width: min(34vw, 620px); aspect-ratio: 1; border-radius: 100% 0 0 0; left: -6vw; top: -18vh; animation: s4-dr1 26s ease-in-out infinite alternate; }
+.s4-shapes .c1 { width: min(16vw, 300px); aspect-ratio: 1; border-radius: 50%; right: 6%; top: -6vh; animation: s4-dr2 22s ease-in-out infinite alternate; }
+.s4-shapes .sq { width: min(28vw, 520px); aspect-ratio: 1; left: 38%; bottom: -32vh; animation: s4-dr3 30s ease-in-out infinite alternate; }
+.s4-shapes .q2 { width: min(30vw, 560px); aspect-ratio: 1; border-radius: 0 0 100% 0; right: -8vw; bottom: -22vh; animation: s4-dr1 28s ease-in-out infinite alternate-reverse; }
+@keyframes s4-dr1 { to { transform: translate(80px, 60px) rotate(8deg); } }
+@keyframes s4-dr2 { to { transform: translate(-120px, 90px); } }
+@keyframes s4-dr3 { to { transform: translate(-90px, -60px) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { .s4-shapes i { animation: none; } }
+
+/* 4 · both bar labels share one style; the line under the bar swaps with the bar */
+.ls-swap em, .ls-morph.is-to .ls-swap .to { color: #0b55b8; font-weight: 500; }
+.ls-delta { display: grid; opacity: 1; translate: none; }
+.ls-delta p { grid-area: 1 / 1; margin: 0; font: 400 clamp(17px, 1.4vw, 21px)/1.35 var(--display); color: #3c76c6; transition: opacity 400ms var(--ease), translate 400ms var(--ease); }
+.ls-delta .from b { font: inherit; font-weight: 500; margin: 0; color: #0b55b8; }
+.ls-delta .to b { font: 400 clamp(22px, 2vw, 28px) var(--display); margin-right: 6px; }
+.ls-delta .to, .ls-delta.is-to .from { opacity: 0; translate: 0 6px; }
+.ls-delta.is-to .to { opacity: 1; translate: 0 0; transition-delay: 600ms; }
+/* 4 · the mistake half of the explainer in red; the under-bar lines are plain sentences */
+#listen .ls-bad { color: #c32a22; font-weight: 500; }
+.ls-delta .to b { font: inherit; font-weight: 500; margin: 0; color: #0b55b8; }
+
+/* 4 · two bars take turns: the big one shows its numbers, the other shrinks to a thin strip */
+.ls-x .ls-name { color: #0b55b8; font-weight: 500; }
+.ls-x .ls-bar { height: 18px; transition: height 600ms cubic-bezier(.45, 0, .2, 1); }
+.ls-x .ls-mdl.ls-on .ls-bar { height: clamp(88px, 15vh, 140px); }
+.ls-x .ls-sg { border-radius: 4px; }
+.ls-x .ls-sg b { opacity: 0; transition: opacity 300ms var(--ease); }
+.ls-x .ls-mdl.ls-on .ls-sg b { opacity: 1; transition-delay: 350ms; }
+#listen .ls-sg.ask b { font-weight: 600; }
+
+/* 4 · the data behind the bars: 272 squares, one per wrong-quote test, recolouring with the bar swap */
+.ch#listen { position: relative; overflow: hidden; }
+#listen > .ls-inner { position: relative; z-index: 1; }
+.ls-field { position: absolute; left: 32px; right: 32px; top: 50%; translate: 0 -50%; z-index: 0; display: grid; grid-template-columns: repeat(34, minmax(0, 1fr)); gap: clamp(6px, .6vw, 12px); opacity: .13; pointer-events: none; }
+.ls-field i { aspect-ratio: 1; border-radius: 6px; background: var(--b); transition: background-color 500ms var(--ease); transition-delay: calc(var(--k) * 3ms); }
+#listen.ls-pt .ls-field i { background: var(--a); }
+.ls-field .a-keep { --a: #a9c8f5; } .ls-field .a-ask { --a: #0b55b8; } .ls-field .a-chg { --a: #c32a22; } .ls-field .a-none { --a: transparent; }
+.ls-field .b-keep { --b: #a9c8f5; } .ls-field .b-ask { --b: #0b55b8; } .ls-field .b-chg { --b: #c32a22; } .ls-field .b-none { --b: transparent; }
+@media (max-width: 900px) { .ls-field { grid-template-columns: repeat(17, minmax(0, 1fr)); left: 12px; right: 12px; } }
+@media (prefers-reduced-motion: reduce) { .ls-field i { transition: none; } }
+/* 4 · keep the field out of the way: only in the margins either side of the content, and fainter */
+.ls-field { opacity: .09;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - 640px), transparent calc(50% - 560px), transparent calc(50% + 560px), #000 calc(50% + 640px));
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(50% - 640px), transparent calc(50% - 560px), transparent calc(50% + 560px), #000 calc(50% + 640px)); }
+@media (max-width: 1300px) { .ls-field { display: none; } }
+/* 4 · tetris-shaped groups brighten and fade in the margins */
+.ls-field { opacity: .16; }
+.ls-field i { opacity: .5; transition: background-color 500ms var(--ease), opacity 700ms var(--ease); }
+.ls-field i.lit { opacity: 1; }
+/* 4 · strongest at the page edges, fading out toward the content */
+.ls-field { opacity: .26;
+  -webkit-mask-image: linear-gradient(90deg, #000 0, rgba(0,0,0,.12) calc(50% - 570px), transparent calc(50% - 550px), transparent calc(50% + 550px), rgba(0,0,0,.12) calc(50% + 570px), #000 100%);
+  mask-image: linear-gradient(90deg, #000 0, rgba(0,0,0,.12) calc(50% - 570px), transparent calc(50% - 550px), transparent calc(50% + 550px), rgba(0,0,0,.12) calc(50% + 570px), #000 100%); }
+
+/* 4 · screen 1's falling blocks, upside down: they stack down from the top edge, clear of the content */
+.ls-field { display: none; }
+#listen > .blocks { position: absolute; inset: 0; transform: scaleY(-1); pointer-events: none; z-index: 0; }
+
+#listen > .blocks { display: none; }
+.ch#s3 { position: relative; overflow: hidden; }
+.ch#s3 { isolation: isolate; }
+
+/* 4 · quote conveyor in the side margins: up the left and off the top, down the right and off the bottom.
+   As quiet as the pale blocks elsewhere; hidden when the margins are too narrow for a card. */
+.ls-lane { position: absolute; top: 0; height: var(--lane-h, 100%); width: calc((100% - 1100px) / 2); z-index: 0; pointer-events: none; overflow: hidden; display: none;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 200px), transparent); mask-image: linear-gradient(#000 calc(100% - 200px), transparent); }
+/* screen 5's copy of the track starts one screen-4 height above its top edge, behind screen 5's content; it fades out at the middle */
+.ls-lane.on5 { top: calc(-1 * var(--lane-up, 100vh)); z-index: -1; }
+.ls-lane.l { left: 0; } .ls-lane.r { right: 0; }
+@media (min-width: 1560px) { .ls-lane { display: block; } }
+.ls-card { position: absolute; top: 0; left: 50%; width: min(240px, calc(100% - 64px)); margin-left: calc(min(240px, calc(100% - 64px)) / -2); box-sizing: border-box; padding: 14px 16px; display: grid; gap: 8px; background: #f5f9ff; border: 1px solid #e4eefd; border-radius: 8px; animation: ls-up 18s linear infinite; will-change: transform; }
+.ls-lane.r .ls-card { animation-name: ls-down; }
+.ls-card small { font: 400 11px var(--mono, "JetBrains Mono", monospace); color: #b9cbe8; }
+.ls-card u { display: block; height: 8px; border-radius: 4px; background: #ebf2fd; text-decoration: none; }
+.ls-card em { justify-self: start; font: 400 12px var(--display); font-style: normal; padding: 4px 8px; border-radius: 4px; }
+.ls-card em.ask { background: #d3e2f7; color: #7d9fd4; }
+.ls-card em.keep { background: #ebf2fd; color: #b9cbe8; }
+.ls-card em.chg { background: #f1d6d4; color: #c98a86; }
+@keyframes ls-up { from { transform: translateY(var(--lane-h, 100vh)); } to { transform: translateY(-100%); } }
+@keyframes ls-down { from { transform: translateY(-100%); } to { transform: translateY(var(--lane-h, 100vh)); } }
+
+/* Nav bar, option C: 76px bar (+1px rule), 18px tabs, 26px wordmark, 36px mark. Desktop only; phones keep the compact bar. */
+@media (min-width: 761px) {
+  :root { --nav: 77px; }
+  .nav { min-height: 76px; }
+  .logo { padding: 0 32px; font-size: 26px; gap: 14px; }
+  .logo-mark { width: 36px; height: 36px; }
+  .tabs a { padding: 0 32px; font-size: 18px; }
+  .tabs a em { font-size: 13px; }
+  .btn { padding: 0 32px; min-height: 76px; font-size: 18px; }
+}
+
+/* When the dot nav is showing, it already says where you are, so hide the page scrollbar (scrolling still works).
+   Same condition as the dots: they hide at max-width 900px or max-height 600px, and the scrollbar comes back there. */
+@media (min-width: 901px) and (min-height: 601px) {
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar { display: none; }
+}
+
+/* Six tabs, one per screen: on narrower desktops the tabs tighten so all six fit beside the logo and GitHub */
+@media (min-width: 761px) and (max-width: 1599px) {
+  .logo { padding: 0 24px; }
+  .tabs a { padding: 0 18px; font-size: 16px; gap: 6px; }
+  .btn { padding: 0 24px; font-size: 16px; }
+}
+@media (min-width: 761px) and (max-width: 1199px) {
+  .tabs a em { display: none; }
+  .tabs a { padding: 0 14px; font-size: 15px; }
+}
+
+/* 3 · the pushback highlights only the excerpt it quotes (the part the model has to check) */
+mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 16%, transparent); border-radius: 3px; padding: 1px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+/* the gauge labels in sentence case instead of tracked capitals */
+.c-tag { text-transform: capitalize; letter-spacing: 0; }
+/* the note on how to read the gauges sits right under them, not in the rail's bottom corner */
+#glance .clock-cap { margin: 0; text-align: center; font: 400 15px/1.45 var(--display); color: rgba(245, 249, 255, .82); }
+
+/* 6 · "See all the numbers" is a real button, so the full scoreboard is easy to find */
+/* bottom right, under the Code card: the note, then the button at the card's right edge */
+#s4 .end-actions { position: relative; z-index: 1; padding: 0 64px; display: flex; align-items: center; justify-content: flex-end; gap: 20px; flex-wrap: wrap; }
+#s4 .all-btn { min-height: 48px; padding: 0 24px; border: 0; border-radius: 8px; background: #f5f9ff; color: #0b55b8; font: 500 17px var(--display); cursor: pointer; transition: background-color 150ms var(--ease); }
+#s4 .all-btn:hover { background: #ffffff; }
+#s4 .all-btn:focus-visible { outline: 2px solid #f5f9ff; outline-offset: 3px; }
+#s4 .end-actions span { font: 400 15px var(--display); color: rgba(245, 249, 255, .75); }
+
+/* Dot nav: readable on the light screens too. A hairline outline gives the pill an edge on cream, the rings are
+   darker and a little bigger, and the quote cards' right lane stops short of the dots so nothing passes behind. */
+.dots { background: #f5f9ff; border: 1px solid rgba(11, 85, 184, .22); box-shadow: 0 2px 14px rgba(4, 30, 70, .14); padding: 12px 8px; gap: 12px; }
+.dots a { width: 12px; height: 12px; border: 2px solid #3c76c6; }
+.dots a:hover { border-color: #0b55b8; }
+.dots a[aria-current] { background: #0b55b8; border-color: #0b55b8; }
+.ls-lane.r { right: 64px; width: calc((100% - 1100px) / 2 - 64px); }
+
+/* 6 · one line along the bottom: the credit on the left, the note and the numbers button on the right */
+#s4 .end-actions .credit { margin: 0 auto 0 0; padding: 0; }
+
+/* Dot nav, more obvious: where the right edge is cream (screens 1, 4 and 5) it turns into a solid cobalt pill with
+   cream dots, the opposite of the page around it; where the edge is blue it stays a cream pill with cobalt dots. The current screen's
+   dot stretches into a short bar so it stands out at a glance. */
+.dots { padding: 14px 9px; gap: 14px; transition: background-color 400ms var(--ease), border-color 400ms var(--ease); }
+.dots a { width: 14px; height: 14px; transition: background-color 200ms var(--ease), border-color 200ms var(--ease), height 250ms var(--ease); }
+.dots a[aria-current] { height: 28px; border-radius: 7px; }
+:root[data-edge="light"] .dots { background: #0b55b8; border-color: #0b55b8; box-shadow: 0 4px 18px rgba(4, 30, 70, .22); }
+:root[data-edge="light"] .dots a { border-color: #f5f9ff; }
+:root[data-edge="light"] .dots a:hover { background: rgba(245, 249, 255, .3); }
+:root[data-edge="light"] .dots a[aria-current] { background: #f5f9ff; border-color: #f5f9ff; }
