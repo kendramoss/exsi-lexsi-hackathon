@@ -136,11 +136,15 @@ def main():
         report["status"] = "not yet labelled by both sides"
     else:
         report["status"] = "computed"
+        # A row with only an exclusion reason has no labels to compare: count it separately.
+        exclusion_only = [c for c in both if not any(A[c][f] for f in FIELDS) or not any(B[c][f] for f in FIELDS)]
+        scored = [c for c in both if c not in exclusion_only] or both
+        report["n_field_scored"], report["n_exclusion_only"] = len(scored), len(exclusion_only)
         for f in FIELDS:
-            xa, xb = [A[c][f] for c in both], [B[c][f] for c in both]
-            report["fields"][f] = {"percent_agreement": round(sum(x == y for x, y in zip(xa, xb)) / len(both), 3),
+            xa, xb = [A[c][f] for c in scored], [B[c][f] for c in scored]
+            report["fields"][f] = {"percent_agreement": round(sum(x == y for x, y in zip(xa, xb)) / len(scored), 3),
                                    "cohens_kappa": None if f == "truth_target" else kappa(xa, xb)}
-        report["all_fields_agree"] = round(sum(all(A[c][f] == B[c][f] for f in FIELDS) for c in both) / len(both), 3)
+        report["all_fields_agree"] = round(sum(all(A[c][f] == B[c][f] for f in FIELDS) for c in scored) / len(scored), 3)
         report["kappa_note"] = "null kappa: undefined because both sides used a single label for that field"
         report["exclusion_flags"] = {"a": sum(bool(A[c]["exclude"]) for c in both), "b": sum(bool(B[c]["exclude"]) for c in both)}
     out = Path(args.out)
@@ -159,7 +163,8 @@ def main():
     if both:
         md += ["| Field | % agreement | Cohen's κ |", "|---|---:|---:|"]
         md += [f"| {f} | {v['percent_agreement']:.1%} | {('—' if f == 'truth_target' else 'undefined (one label throughout)') if v['cohens_kappa'] is None else v['cohens_kappa']} |" for f, v in report["fields"].items()]
-        md += ["", f"All four fields agree on {report['all_fields_agree']:.1%} of cases. "
+        md += ["", f"Field agreement is over {report['n_field_scored']} cases; {report['n_exclusion_only']} rows carried only an exclusion reason. "
+               f"All four fields agree on {report['all_fields_agree']:.1%} of scored cases. "
                f"Exclusion flags: A {report['exclusion_flags']['a']}, B {report['exclusion_flags']['b']}.",
                f"Disagreements for adjudication: `{out}_disagreements.csv`."]
     out_md.write_text("\n".join(md) + "\n", encoding="utf-8")

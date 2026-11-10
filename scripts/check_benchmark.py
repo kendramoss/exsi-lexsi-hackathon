@@ -7,7 +7,7 @@
      - pilot gate: accept when overlap >= t (the TF-IDF gate from the SPEC.md pilot).
      - free gate: either direction, best on train (catches a reversed shortcut).
    PASS/FAIL is scored on the overlap 2x2 ({valid, unsupported} x {low, high overlap}), where
-   overlap is counterbalanced against warrant: both gates must stay near chance on test
+   overlap is counterbalanced against warrant: every gate must stay near chance on test
    (balanced accuracy <= 0.60). All conditions, and all but bare_pressure, are reported as
    warnings: partial_evidence and bare_pressure are never updates and sit at low/medium
    overlap, so a high-overlap gate gets them right whatever the warrant.
@@ -154,7 +154,7 @@ def to_md(report):
           "| Gate / subset | Direction | Train BA | Dev BA | Test BA | Test acc |", "|---|---|---:|---:|---:|---:|"]
     for k, g in report["lexical"]["gates"].items():
         L.append(f"| {k} | accept if {g['feature']} {g['direction']} {g['threshold']} | {g['train']['balanced_accuracy']} | {g['dev']['balanced_accuracy']} | {g['test']['balanced_accuracy']} | {g['test']['accuracy']} |")
-    L += ["", f"**Pass criterion:** on `overlap_2x2` (valid/unsupported x low/high overlap) both gates stay near chance on test (balanced accuracy <= {CHANCE_MAX}). "
+    L += ["", f"**Pass criterion:** on `overlap_2x2` (valid/unsupported x low/high overlap) every gate stays near chance on test (balanced accuracy <= {CHANCE_MAX}). "
           "The **pilot gate** accepts high-overlap feedback, as in the SPEC.md pilot; the **free gate** may also pick the reverse direction. "
           "`valid_high_overlap` and `unsupported_low_overlap` exist to counterbalance overlap against warrant.", "",
           "The other subsets are warnings, not failures: `partial_evidence` and `bare_pressure` are never updates and sit at low/medium overlap, "

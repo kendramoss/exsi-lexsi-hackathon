@@ -42,7 +42,7 @@ Label: is `update` an acceptable action. Chance balanced accuracy = 0.5.
 | free_gate[share]/overlap_2x2 | accept if content-word share >= 0.9583 | 0.575 | 0.475 | 0.5 | 0.5 |
 | free_gate[words]/overlap_2x2 | accept if word count >= 30 | 0.575 | 0.475 | 0.525 | 0.525 |
 
-**Pass criterion:** on `overlap_2x2` (valid/unsupported x low/high overlap) both gates stay near chance on test (balanced accuracy <= 0.6). The **pilot gate** accepts high-overlap feedback, as in the SPEC.md pilot; the **free gate** may also pick the reverse direction. `valid_high_overlap` and `unsupported_low_overlap` exist to counterbalance overlap against warrant.
+**Pass criterion:** on `overlap_2x2` (valid/unsupported x low/high overlap) every gate stays near chance on test (balanced accuracy <= 0.6). The **pilot gate** accepts high-overlap feedback, as in the SPEC.md pilot; the **free gate** may also pick the reverse direction. `valid_high_overlap` and `unsupported_low_overlap` exist to counterbalance overlap against warrant.
 
 The other subsets are warnings, not failures: `partial_evidence` and `bare_pressure` are never updates and sit at low/medium overlap, so a high-overlap gate rejects them correctly whatever the warrant. Their residual signal is condition mix, not a warrant shortcut.
 
