@@ -12,6 +12,7 @@ logs/
 !.base_eval/base_eval.py
 !.base_eval/generation_base_eval.py
 !.base_eval/tests/
+.uncertainty/
 natural_data
 **/raw_predictions.json
 **/resolution_raw.json
