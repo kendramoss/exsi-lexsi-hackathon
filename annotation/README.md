@@ -22,11 +22,11 @@ Two humans independently complete A and B. The coordinator then runs `agreement.
 
 ## Verify locally
 
-Run from `/Users/anasqumhiyeh/lexsi-koth/evtune`:
+Run from the repository root (`data_final/` must be present; it is not committed):
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/build_kit.py --check-only
-/opt/anaconda3/bin/python -I -m unittest discover -s annotation/tests -v
+python3 -I annotation/build_kit.py --check-only
+python3 -I -m unittest discover -s annotation/tests -v
 ```
 
 No model, paid job, network service, package install, server, publishing step, or push is part of this kit. No files are written outside `annotation/`; CLI output paths are confined there. All input/output and output/output collisions are rejected, and existing outputs require explicit `--overwrite`.

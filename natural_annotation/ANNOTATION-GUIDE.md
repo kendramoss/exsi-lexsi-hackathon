@@ -164,7 +164,7 @@ The UI enforces cross-field consistency. Draft and complete provenance are delib
 Run from the project root with the two actual complete export paths. The existing CLI validators accept this kit's schema, dataset digest, assignments, and exports. **Their output writers are currently confined to `annotation/`**, so the examples place only derived coordinator outputs there; they do not alter the source packs or this kit.
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/agreement.py \
+python3 -I annotation/agreement.py \
   --items natural_annotation/items.json \
   --assignment-a natural_annotation/assignment_a.json \
   --assignment-b natural_annotation/assignment_b.json \
@@ -176,7 +176,7 @@ Run from the project root with the two actual complete export paths. The existin
 Prepare a conflict-only queue and blank decision worksheet:
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/adjudicate.py prepare \
+python3 -I annotation/adjudicate.py prepare \
   --items natural_annotation/items.json \
   --assignment-a natural_annotation/assignment_a.json \
   --assignment-b natural_annotation/assignment_b.json \
@@ -189,7 +189,7 @@ Prepare a conflict-only queue and blank decision worksheet:
 A human adjudicator applies this same guide, fills every blank annotation and rationale, sets a real adjudicator ID, and only then sets `human_attestation: true`. Leave `annotation_origin: human_attested` and `synthetic: false` unchanged.
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/adjudicate.py merge \
+python3 -I annotation/adjudicate.py merge \
   --items natural_annotation/items.json \
   --assignment-a natural_annotation/assignment_a.json \
   --assignment-b natural_annotation/assignment_b.json \
@@ -204,8 +204,8 @@ Agreement measures consistency, not correctness. Merged output is adjudicated hu
 ## Rebuild and validation
 
 ```bash
-/opt/anaconda3/bin/python -I -B natural_annotation/build_kit.py --check-only
-/opt/anaconda3/bin/python -I -B -m unittest discover \
+python3 -I -B natural_annotation/build_kit.py --check-only
+python3 -I -B -m unittest discover \
   -s natural_annotation/tests -v
 ```
 

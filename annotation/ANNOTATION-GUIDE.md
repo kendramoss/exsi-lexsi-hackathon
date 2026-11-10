@@ -94,7 +94,7 @@ The UI checks completeness and cross-field consistency. Complete exports carry `
 Run from the project root with the two actual export paths:
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/agreement.py \
+python3 -I annotation/agreement.py \
   --items annotation/pilot/items.json \
   --assignment-a annotation/pilot/assignment_a.json \
   --assignment-b annotation/pilot/assignment_b.json \
@@ -120,7 +120,7 @@ For action sets it includes exact set agreement, mean Jaccard similarity, and pe
 Create a queue containing only disagreements, the blind source, and both annotations, plus a blank decision worksheet:
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/adjudicate.py prepare \
+python3 -I annotation/adjudicate.py prepare \
   --items annotation/pilot/items.json \
   --assignment-a annotation/pilot/assignment_a.json \
   --assignment-b annotation/pilot/assignment_b.json \
@@ -135,7 +135,7 @@ A human adjudicator reads each conflict and fills **every** blank `annotation` a
 Then merge:
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/adjudicate.py merge \
+python3 -I annotation/adjudicate.py merge \
   --items annotation/pilot/items.json \
   --assignment-a annotation/pilot/assignment_a.json \
   --assignment-b annotation/pilot/assignment_b.json \
@@ -154,7 +154,7 @@ Merged output is **adjudicated human annotation**, not infallible gold. Preserve
 The default build never emits fresh text. When fresh human labeling is explicitly authorized later, run:
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/build_kit.py \
+python3 -I annotation/build_kit.py \
   --fresh \
   --acknowledge-evaluation-only \
   --output-dir annotation/fresh_evaluation
@@ -165,8 +165,8 @@ This exports **136 fresh cases / 136 correction rows**, one condition-stratified
 ## Rebuild and test
 
 ```bash
-/opt/anaconda3/bin/python -I annotation/build_kit.py --check-only
-/opt/anaconda3/bin/python -I -m unittest discover -s annotation/tests -v
+python3 -I annotation/build_kit.py --check-only
+python3 -I -m unittest discover -s annotation/tests -v
 ```
 
 The first command verifies deterministic artifacts byte-for-byte without writing. To intentionally regenerate an existing pilot, run `build_kit.py --overwrite` separately and verify that no human work is stored in its output paths. The tests use only synthetic fixtures and make no network or model calls.
