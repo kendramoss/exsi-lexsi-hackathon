@@ -207,18 +207,8 @@
     }
     convoShow(Math.max(1, convoStepAt));
 
-    // "It still listens": one full-width band per kind of pushback
-    const lanes = LANES.filter((l) => caseOf(fam, l.cond));
-    $("#bands-cols").replaceChildren(el("span", {}, short(state.ref)), el("span", {}, short(T)));
-    const mark = (cs, pol) => { const [k, t] = did(predOf(cs.case_id, pol)); return el("i", { class: `bd ${k}`, title: `${label(pol)}: ${cap(t)}` }, k === "ok" ? "✓" : "✗"); };
-    const first = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
-    const should = { supported: "The document backs it, so change the answer", contradicted: "The document says otherwise, so hold", insufficient: "The document doesn’t settle it, so ask or hold", absent: "No evidence at all, so hold" };
-    $("#bands").replaceChildren(...lanes.map((l) => { const cs = caseOf(fam, l.cond);
-      return el("div", { class: "band" },
-        el("span", { class: "band-label" }, el("b", {}, l.label),
-          el("q", { title: cs.feedback_text }, cs.feedback_text),
-          el("small", {}, should[cs.evidence_sufficiency] || "")),
-        el("span", { class: "band-marks" }, mark(cs, state.ref), mark(cs, T))); }));
+    renderListen();
+    renderFair();
   }
 
   // Scroll-stepped conversation (desktop): step n shows
@@ -481,6 +471,7 @@
     return "ig";
   }
   function renderFluke() {
+    if (!$("#fl-bars")) return;
     const T = state.comparator, n = cases.length;
     const order = [...metrics.comparators.filter((c) => c.id !== T), comp(T)].filter(Boolean);
     const rows = order.map((c) => {
@@ -683,6 +674,103 @@
     $("#clock-cap").textContent = "The needle points to each AI’s answer after the pushback, on this one case.";
     animateClocks(fig, items);
     renderProof();
+  }
+
+  // Screen 5: one real test case fanned out into its matched pushbacks. A spotlight walks the rows and the
+  // excerpt each row quotes lights up in the case card, so you can see that only the quoted excerpt changes.
+  function renderFair() {
+    const box = $("#fair");
+    if (!box) return;
+    const fam = state.family, NS = "http://www.w3.org/2000/svg";
+    const ROWS = [
+      ["valid_low_overlap", fam, "Right answer, right excerpt", "valid"],
+      ["unsupported_high_overlap", `${fam}-toward`, "Right answer, wrong excerpt", "unsupported_toward"],
+      ["unsupported_high_overlap", fam, "Wrong answer, wrong excerpt", "unsupported_away"],
+      ["bare_pressure", fam, "No excerpt, just insists", "pressure_away"]];
+    const rows = ROWS.map(([cond, f, title, tag]) => ({ cs: caseOf(f, cond), title, tag })).filter((r) => r.cs);
+    if (!rows.length) { box.closest("section").hidden = true; return; }
+    const base = rows[0].cs;
+    const sents = [...base.context.matchAll(/\[S(\d+)\]\s*([^[]+)/g)].map((m) => ({ id: `S${m[1]}`, text: m[2].trim() }));
+    const cites = (cs) => { const q = (cs.feedback_text.match(/"([^"]+)"/) || [])[1]; const hit = q && sents.find((e) => e.text.startsWith(q.slice(0, 30))); return hit ? hit.id : null; };
+    const gold = cites(base);
+    const statement = (base.question.match(/“([^”]+)”/) || [null, base.question])[1];
+    const DO = { update: "Change the answer", clarify: "Ask for proof", retain: "Keep the answer" };
+    const doText = (acts) => { const a = acts || []; if (a.length === 2 && a.includes("clarify") && a.includes("retain")) return "Ask for proof, or keep it"; return a.map((x) => DO[x] || x).join(" or "); };
+    const n = (tag, attrs, ...kids) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); kids.forEach((c) => e.append(c)); return e; };
+    const wrap = (txt, max) => { const out = []; let line = ""; for (const w of txt.split(" ")) { if ((line + " " + w).trim().length > max) { out.push(line.trim()); line = w; } else line += " " + w; } if (line.trim()) out.push(line.trim()); return out; };
+    const cut = (txt, max) => (txt.length > max ? txt.slice(0, max - 1).trimEnd() + "…" : txt);
+    const TOP = 44, STEP = 112, RH = 92;
+    const H = TOP + STEP * rows.length - (STEP - RH), cy = TOP + (H - TOP) / 2;
+    const svg = n("svg", { viewBox: `0 0 1200 ${H}`, class: "fair-svg" },
+      n("defs", {}, n("marker", { id: "fair-ah", viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" }, n("path", { d: "M0 0 L10 5 L0 10 z" }))),
+      n("text", { x: 0, y: 20, class: "fh" }, "The test case"), n("text", { x: 450, y: 20, class: "fh" }, "The pushback"), n("text", { x: 920, y: 20, class: "fh" }, "What the model should do"));
+    // the case card: the statement, its three excerpts, which one settles it
+    const card = n("g", { class: "fair-card" }, n("rect", { x: 0, y: TOP, width: 380, height: H - TOP, rx: 12, class: "fc" }));
+    let y = TOP + 36;
+    card.append(n("text", { x: 20, y, class: "fc-k" }, `Does the contract say this?`)); y += 28;
+    wrap(`“${statement}”`, 34).forEach((l) => { card.append(n("text", { x: 20, y, class: "fc-s" }, l)); y += 24; });
+    y += 18;
+    const hls = {};
+    sents.forEach((e) => {
+      const lines = wrap(e.text.replace(/^\d+(\.\d+)*\.?\s+/, ""), 34).slice(0, 2);
+      if (wrap(e.text.replace(/^\d+(\.\d+)*\.?\s+/, ""), 34).length > 2) lines[1] = cut(lines[1], 33) + (lines[1].length >= 33 ? "" : "…");
+      const hl = n("rect", { x: 10, y: y - 22, width: 360, height: 22 * lines.length + 12, rx: 6, class: "fc-hl" }); hls[e.id] = hl;
+      card.append(hl, n("text", { x: 20, y, class: "fc-id" }, e.id));
+      lines.forEach((l, k) => card.append(n("text", { x: 54, y: y + k * 22, class: "fc-e" }, l)));
+      y += 22 * lines.length + 20;
+    });
+    card.append(n("text", { x: 20, y: H - 22, class: "fc-k" }, `${gold} settles it · true answer: ${base.truth_target}`));
+    svg.append(card);
+    // one row per pushback, each with the move the model should make
+    const els = rows.map((r, i) => {
+      const ry = TOP + i * STEP, my = ry + RH / 2, c = cites(r.cs);
+      const sub = r.cs.feedback_condition === "bare_pressure" ? "quotes nothing" : `quotes ${c}${c === gold ? ", which settles it" : ", which doesn’t"}`;
+      const g = n("g", { class: "fr" },
+        n("path", { class: "fa", d: `M380 ${cy} H415 V${my} H450`, "marker-end": "url(#fair-ah)" }),
+        n("path", { class: "fa", d: `M870 ${my} H920`, "marker-end": "url(#fair-ah)" }),
+        n("path", { class: "ff", d: `M380 ${cy} H415 V${my} H450` }), n("path", { class: "ff", d: `M870 ${my} H920` }),
+        n("rect", { x: 450, y: ry, width: 420, height: RH, rx: 12, class: "fb" }),
+        n("text", { x: 470, y: ry + 36, class: "fb-t" }, r.title),
+        n("text", { x: 470, y: ry + 66, class: "fb-s" }, sub, n("tspan", { class: "fb-tag", dx: 12 }, r.tag)),
+        n("rect", { x: 920, y: ry + 12, width: 280, height: RH - 24, rx: 10, class: "fx" }),
+        n("text", { x: 940, y: ry + RH / 2 + 7, class: "fx-t" }, doText(r.cs.acceptable_actions)));
+      svg.append(g);
+      return { g, hl: c && hls[c] };
+    });
+    box.setAttribute("aria-label", `One test case, “${statement}”, and its ${rows.length} pushbacks: ` + rows.map((r) => `${r.title}: ${doText(r.cs.acceptable_actions)}`).join("; "));
+    box.replaceChildren(svg);
+    // spotlight one row at a time while the screen is in view
+    const show = (k) => { els.forEach((e, i) => e.g.classList.toggle("on", i === k)); Object.values(hls).forEach((h) => h.classList.remove("on")); if (els[k] && els[k].hl) els[k].hl.classList.add("on"); };
+    if (params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches) { box.classList.add("still"); return; }
+    let at = 0, timer = 0;
+    show(0);
+    const sec = box.closest("section");
+    if (sec._fio) sec._fio.disconnect();
+    sec._fio = new IntersectionObserver((es) => {
+      clearInterval(timer);
+      if (es.some((e) => e.isIntersecting)) timer = setInterval(() => { at = (at + 1) % els.length; show(at); }, 2400);
+    }, { threshold: 0.4 });
+    sec._fio.observe(sec);
+  }
+
+  // Screen 4: what each model did with every quote that doesn't settle the question, as one stacked bar each.
+  // Same colour per move in both bars; "asked for proof" (the move that changed most) carries the big number.
+  function renderListen() {
+    const box = $("#ls-chart");
+    if (!box) return;
+    const pool = cases.filter((c) => c.feedback_condition === "unsupported_high_overlap"), n = pool.length;
+    if (!n) { $("#listen").hidden = true; return; }
+    const MOVES = [["retain", "keep", "Kept its answer"], ["clarify", "ask", "Asked for proof"], ["update", "chg", "Changed its answer"]];
+    const count = (pol) => Object.fromEntries(MOVES.map(([a]) => [a, pool.filter((c) => predOf(c.case_id, pol)?.parsed_action.action === a).length]));
+    const R = state.ref, T = state.comparator;
+    const bar = (pol, me) => { const k = count(pol), tot = MOVES.reduce((s, [a]) => s + k[a], 0) || 1;
+      return el("div", { class: `ls-mdl${me ? " me" : ""}` }, el("span", { class: "ls-name" }, label(pol)),
+        el("div", { class: "ls-bar" }, ...MOVES.map(([a, cls]) => el("span", { class: `ls-sg ${cls}`, style: `flex-grow:${k[a] / tot}` },
+          k[a] ? el("b", {}, `${Math.round((100 * k[a]) / tot)}%`) : "")))); };
+    const pc = (pol) => Math.round((100 * count(pol).clarify) / n);
+    box.setAttribute("aria-label", `Of ${n} quotes that don't settle the question, ${label(T)} asked for proof ${pc(T)}% of the time, ${label(R)} ${pc(R)}%`);
+    box.replaceChildren(bar(R, false), bar(T, true),
+      el("ul", { class: "ls-key" }, ...MOVES.map(([, cls, t]) => el("li", {}, el("i", { class: cls }), t))));
   }
 
   // Screen 2 proof: across every case whose quote doesn't settle the question, how often each model asks
@@ -1114,7 +1202,7 @@
     panelBlocks();
     convoWatch();
     spy();
-    const jump = { "2": "s2", "3": "s3" }[params.get("step")];
+    const jump = { "3": "s3" }[params.get("step")];
     if (jump) document.getElementById(jump).scrollIntoView();
   }).catch((err) => {
     $("#main").replaceChildren(el("p", { class: "error" },

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="icon" href="assets/favicon.svg?v=3" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=108">
+  <link rel="stylesheet" href="style.css?v=117">
 </head>
 <body>
   <a class="skip" href="#s1">Skip to the example</a>
@@ -19,9 +19,8 @@
       <a class="logo" href="#top" aria-label="EvidenceTune, back to top"><svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true"><path d="M30 30 V4 A26 26 0 0 0 4 30 Z" fill="currentColor"/><circle cx="47" cy="17" r="9" fill="var(--ink-3)"/><rect x="4" y="34" width="26" height="26" fill="currentColor"/><path d="M34 34 H60 A26 26 0 0 1 34 60 Z" fill="currentColor"/></svg><span class="wm">EvidenceTune</span></a>
       <nav class="tabs" aria-label="Sections" id="steps">
         <a href="#s1" data-sec="s1"><em>01</em>Example</a>
-        <a href="#s2" data-sec="s2"><em>02</em>Every case</a>
-        <a href="#s3" data-sec="s3"><em>03</em>Tested</a>
-        <a href="#s4" data-sec="s4"><em>04</em>More info</a>
+        <a href="#s3" data-sec="s3"><em>02</em>Tested</a>
+        <a href="#s4" data-sec="s4"><em>03</em>More info</a>
       </nav>
       <div class="actions">
         <a class="btn dark" href="https://github.com/kendramoss/exsi-lexsi-hackathon" target="_blank" rel="noopener">GitHub</a>
@@ -33,10 +32,9 @@
     <a href="#top" data-dot="top" aria-label="1: the question"></a>
     <a href="#glance" data-dot="glance" aria-label="2: the short version"></a>
     <a href="#s1" data-dot="s1" aria-label="3: one example"></a>
-    <a href="#listen" data-dot="listen" aria-label="4: it still listens"></a>
-    <a href="#s2" data-dot="s2" aria-label="5: is it a fluke"></a>
-    <a href="#s3" data-dot="s3" aria-label="6: is the test fair"></a>
-    <a href="#s4" data-dot="s4" aria-label="7: see the work"></a>
+    <a href="#listen" data-dot="listen" aria-label="4: wrong quotes"></a>
+    <a href="#s3" data-dot="s3" aria-label="5: is the test fair"></a>
+    <a href="#s4" data-dot="s4" aria-label="6: see the work"></a>
   </nav>
 
   <main id="main">
@@ -84,61 +82,27 @@
       </div>
     </section>
 
-    <!-- 4 · it still listens -->
+    <!-- 4 · wrong quotes: what each model does with a quote that doesn't settle it -->
     <section class="ch ch-light focusable" id="listen" aria-labelledby="listen-title">
-      <header class="bands-head">
-        <div class="bands-title">
-          <span class="kicker">The other half</span>
-          <h2 id="listen-title">But it still listens when you’re right</h2>
-          <p class="ch-lead">Same question, three kinds of pushback. A good model changes its answer only when the document backs it.</p>
-        </div>
-        <span class="bands-cols" id="bands-cols"></span>
-      </header>
-      <div class="bands" id="bands"></div>
-    </section>
-
-    <!-- 5 · B: rail with the numbers, every case on the right -->
-    <section class="ch ch-blue focusable fluke" id="s2" aria-labelledby="s2-title">
-      <div class="fl-inner">
-        <header class="fl-top">
-          <span class="fl-meta" id="fl-meta"></span>
-          <h2 class="fl-hl" id="s2-title"></h2>
-          <p class="fl-sub" id="fl-sub"></p>
-        </header>
-        <div class="fl-bars" id="fl-bars" role="img"></div>
-        <div class="fl-foot"><ul class="fl-key" id="fl-key"></ul><button class="linkish" id="open-all" type="button">All the numbers</button></div>
+      <div class="ls-inner">
+        <h2 id="listen-title">Give it a wrong quote, and EvidenceTune asks for the right one</h2>
+        <p class="ls-why">This quote proves nothing, so asking for proof (navy) is the best move and switching (red) is a mistake</p>
+        <div class="ls-chart" id="ls-chart" role="img"></div>
       </div>
-      <dialog class="all" id="all-dialog" aria-labelledby="all-title">
-        <div class="all-head"><h3 id="all-title">All the numbers</h3><button class="replay" id="close-all" type="button">Close</button></div>
-        <p class="intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
-        <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
-        <div class="cards" id="cards"></div>
-        <div class="table-win">
-          <div class="tbl-head" id="table-path"></div>
-          <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
-        </div>
-        <p class="fine" id="score-note"></p>
-        <p class="fine">Data: <code id="src-path"></code></p>
-      </dialog>
     </section>
 
     <!-- 6 · chapter 03: sealed -->
     <section class="ch ch-light focusable" id="s3" aria-labelledby="s3-title">
-      <span class="ch-num" aria-hidden="true">03</span>
       <header class="ch-head">
-        <span class="kicker">Chapter 03</span>
         <h2 id="s3-title">Is the test fair?</h2>
+        <p class="fair-lead">A right and a wrong pushback use the same words. Only the excerpt they quote is different, so the model has to check it</p>
       </header>
-      <div class="pipe" role="img" aria-label="CuratorKIT prepares the cases and seals the test set. SafeTune trains on the training data only. The sealed test set goes straight to AuditKIT for scoring.">
-        <div class="pipe-row">
-          <span class="box first">CuratorKIT</span><span class="wire"><small>train</small></span><span class="box solid">SafeTune</span><span class="wire"></span><span class="box last">AuditKIT</span>
-        </div>
-        <div class="sealed"></div>
-        <div class="lock">
-          <svg width="64" height="70" viewBox="0 0 40 44" aria-hidden="true"><path d="M10 20 V13 a10 10 0 0 1 20 0 V20" fill="none" stroke="currentColor" stroke-width="4"/><rect x="4" y="20" width="32" height="24" fill="currentColor"/></svg>
-          <span>Test set sealed first. It never touches training.</span>
-        </div>
-      </div>
+      <figure class="fair" id="fair" role="img"></figure>
+      <ul class="fair-facts">
+        <li><b>New clause types</b>Every test case uses one of 5 clause types never seen in training (nda-1, 7, 15, 16, 17)</li>
+        <li><b>No word tricks</b>Word overlap, length and position each point to the right excerpt only half the time</li>
+        <li><b>544 scored</b>136 cases, each pushed back on 4 ways</li>
+      </ul>
     </section>
 
     <!-- 7 · the end -->
@@ -149,10 +113,23 @@
         <a class="tile data" href="https://huggingface.co/datasets/Mizore66/evidencetune-bench" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>huggingface.co/datasets/Mizore66/evidencetune-bench</em></span><img src="assets/previews/data.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Test cases</small><b>EvidenceTune benchmark <span aria-hidden="true">↗</span></b><span class="url">huggingface.co/datasets/Mizore66/evidencetune-bench</span></span></a>
         <a class="tile code" href="https://github.com/Mizore66/evidencetune" target="_blank" rel="noopener"><span class="peek" aria-hidden="true"><span class="pbar"><i></i><i></i><i></i><em>github.com/Mizore66/evidencetune</em></span><img src="assets/previews/code.webp" alt="" width="960" height="720" loading="lazy" decoding="async"></span><span class="front"><i aria-hidden="true"></i><small>Code</small><b>Training and scoring <span aria-hidden="true">↗</span></b><span class="url">github.com/Mizore66/evidencetune</span></span></a>
       </div>
-      <p class="credit">Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by Damir Sokolovsky</p>
+      <p class="credit"><button class="linkish" id="open-all" type="button">All the numbers</button> · Polished with <a href="https://github.com/heydamir/unslop">unslop</a> by Damir Sokolovsky</p>
     </section>
+    <!-- all the numbers, opened from screen 6 -->
+    <dialog class="all" id="all-dialog" aria-labelledby="all-title">
+      <div class="all-head"><h3 id="all-title">All the numbers</h3><button class="replay" id="close-all" type="button">Close</button></div>
+      <p class="intro">We compare EvidenceTune with three shortcuts someone might try instead: never changing the answer, a carefully worded prompt, and ordinary training on the same data.</p>
+      <figure class="egrid" id="egrid" aria-label="Every model on every test case"></figure>
+      <div class="cards" id="cards"></div>
+      <div class="table-win">
+        <div class="tbl-head" id="table-path"></div>
+        <div class="table-scroll"><table class="scoreboard" id="scoreboard"></table></div>
+      </div>
+      <p class="fine" id="score-note"></p>
+      <p class="fine">Data: <code id="src-path"></code></p>
+    </dialog>
   </main>
 
-  <script src="app.js?v=95"></script>
+  <script src="app.js?v=99"></script>
 </body>
 </html>

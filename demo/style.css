@@ -1561,3 +1561,65 @@ body.xf .focusable { transition: none; }
   #s4 .peek { height: 64%; }
 }
 @media (prefers-reduced-motion: reduce) { #s4 .peek { transition: none; } }
+
+/* ---------- 4 · wrong quotes: heading, two stacked bars, one key ----------
+   One colour per move in both bars. The navy "asked for proof" number is the big one; the others are smaller and lighter. */
+.ch#listen { display: flex; flex-direction: column; justify-content: center; padding: 6vh max(64px, calc((100% - 1100px) / 2)); }
+#listen .ls-inner { display: grid; gap: 0; }
+#listen h2 { margin: 0; font: 400 clamp(36px, 3.8vw, 56px)/1.08 var(--display); letter-spacing: -.02em; text-wrap: balance; max-width: 24ch; }
+.ls-chart { display: grid; gap: 18px; }
+.ls-mdl { display: grid; gap: 8px; }
+.ls-name { font: 400 17px/1.2 var(--display); color: #3c76c6; }
+.ls-mdl.me .ls-name { color: #0b55b8; font-weight: 500; }
+.ls-bar { display: flex; gap: 4px; height: clamp(72px, 12vh, 112px); }
+.ls-sg { flex-basis: 0; min-width: 0; display: flex; align-items: center; padding: 0 clamp(10px, 1.2vw, 18px); border-radius: 6px; overflow: hidden; white-space: nowrap; }
+.ls-sg b { font: 300 clamp(16px, 1.4vw, 21px)/1 var(--display); font-variant-numeric: tabular-nums; }
+.ls-sg.ask b { font-weight: 400; font-size: clamp(22px, 2.2vw, 32px); }
+.ls-sg.keep, .ls-key .keep { background: #a9c8f5; color: #0b3a7a; }
+.ls-sg.ask, .ls-key .ask { background: #0b55b8; color: #f5f9ff; }
+.ls-sg.chg, .ls-key .chg { background: #c32a22; color: #f5f9ff; }
+.ls-key { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 15px; color: #3c76c6; }
+.ls-key li { display: flex; align-items: center; gap: 8px; }
+.ls-key i { width: 14px; height: 14px; border-radius: 3px; }
+@media (max-width: 900px), (max-height: 600px) {
+  .ch#listen { display: flex; padding: 56px 20px; }
+  .ls-bar { height: 64px; }
+}
+#listen .ls-why { margin: 16px 0 0; font: 400 clamp(17px, 1.4vw, 21px)/1.4 var(--display); color: #3c76c6; }
+#listen .ls-chart { margin-top: clamp(40px, 8vh, 72px); }
+#listen .ls-why + .ls-chart { margin-top: 28px; }
+
+/* ---------- 5 · is the test fair: one real case and its matched pushbacks, spotlit one at a time ---------- */
+#s3 { gap: clamp(20px, 4vh, 40px); }
+#s3 .ch-head h2 { margin: 0; }
+#s3 .fair-lead { margin: 12px 0 0; max-width: 60ch; font: 400 clamp(17px, 1.4vw, 21px)/1.45 var(--display); color: #3c76c6; }
+#s3 .fair { margin: 0; }
+.fair-svg { display: block; width: 100%; height: auto; max-height: 56vh; overflow: visible; }
+.fair-svg marker path { fill: #0b55b8; }
+.fh { font: 400 15px var(--display); fill: #7d9fd4; }
+.fc { fill: #ffffff; stroke: rgba(11, 85, 184, .3); stroke-width: 1.5; }
+.fc-k { font: 400 15px var(--display); fill: #7d9fd4; }
+.fc-s { font: 400 20px var(--display); fill: #0b55b8; }
+.fc-e { font: 400 16px var(--display); fill: #3c76c6; }
+.fc-id { font: 500 15px var(--mono); fill: #0b55b8; }
+.fc-hl { fill: #d6e4fa; opacity: 0; transition: opacity 400ms var(--ease); }
+.fc-hl.on { opacity: 1; }
+.fr .fa { fill: none; stroke: #0b55b8; stroke-width: 2; }
+.fr .ff { fill: none; stroke: #0b55b8; stroke-width: 3; stroke-dasharray: 6 8; opacity: 0; }
+.fr .fb { fill: #ffffff; stroke: rgba(11, 85, 184, .3); stroke-width: 1.5; transition: stroke-width 300ms var(--ease); }
+.fb-t { font: 400 22px var(--display); fill: #0b55b8; }
+.fb-s { font: 400 16px var(--display); fill: #3c76c6; }
+.fb-tag { font: 400 12px var(--mono); fill: #7d9fd4; }
+.fr .fx { fill: #e4eefd; transition: fill 300ms var(--ease); }
+.fx-t { font: 500 19px var(--display); fill: #0b55b8; transition: fill 300ms var(--ease); }
+.fr { opacity: .3; transition: opacity 400ms var(--ease); }
+.fr.on, .fair.still .fr { opacity: 1; }
+.fr.on .fb { stroke: #0b55b8; stroke-width: 3; }
+.fr.on .fx { fill: #0b55b8; }
+.fr.on .fx-t { fill: #f5f9ff; }
+.fr.on .ff { opacity: 1; animation: fair-flow .9s linear infinite; }
+@keyframes fair-flow { to { stroke-dashoffset: -28; } }
+#s3 .fair-facts { list-style: none; margin: 0; padding: 20px 0 0; border-top: 1px solid rgba(11, 85, 184, .16); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+#s3 .fair-facts li { display: grid; gap: 6px; font: 400 15px/1.45 var(--display); color: #3c76c6; }
+#s3 .fair-facts b { font: 500 17px var(--display); color: #0b55b8; }
+@media (max-width: 900px) { #s3 .fair-facts { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
