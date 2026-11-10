@@ -37,7 +37,7 @@
   "kit_code_sha256": {
     "build_kit.py": "3c8ead0d61371a6089365cb00f06d8ee99662db4f7498cc9e485908378473ea1",
     "ui_template.html": "8daa5105c41997524ce140c18c009d147e45089ff979c98796c96f8dfb0df721",
-    "ANNOTATION-GUIDE.md": "e279351afd63382c474b9115396875fe82cb482ed5a75c5779396fc09e57e3c6"
+    "ANNOTATION-GUIDE.md": "564313f5eb9f11f22a040570cb40aec3c8cf9ccb093ab99c412eead9ff258bf5"
   },
   "files": {
     "items.json": {

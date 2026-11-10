@@ -28,6 +28,8 @@ def main() -> None:
                         help="Allow replacing an existing output; never allows input collisions")
     parser.add_argument("--allow-synthetic", action="store_true",
                         help="Synthetic unit tests only; report remains NOT_HUMAN")
+    parser.add_argument("--expected-kit-revision",
+                        help="Coordinator-approved kit_revision from the Arabic manifest")
     args = parser.parse_args()
     try:
         input_paths = [args.items, args.assignment_a, args.assignment_b, args.a, args.b]
@@ -36,6 +38,7 @@ def main() -> None:
             read_json(args.a), read_json(args.b), read_json(args.items),
             read_json(args.assignment_a), read_json(args.assignment_b),
             allow_synthetic=args.allow_synthetic,
+            expected_kit_revision=args.expected_kit_revision,
         )
         output.parent.mkdir(parents=True, exist_ok=True)
         with output.open("w" if args.overwrite else "x", encoding="utf-8") as handle:

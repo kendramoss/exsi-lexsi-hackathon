@@ -39,6 +39,8 @@ def add_pair_arguments(parser: argparse.ArgumentParser) -> None:
                         help="Allow replacing existing outputs; never allows input collisions")
     parser.add_argument("--allow-synthetic", action="store_true",
                         help="Synthetic unit tests only; outputs remain NOT_HUMAN")
+    parser.add_argument("--expected-kit-revision",
+                        help="Coordinator-approved kit_revision from the Arabic manifest")
 
 
 def load_pair(args):
@@ -73,7 +75,8 @@ def main() -> None:
         a, b, items, assignment_a, assignment_b = load_pair(args)
         if args.command == "prepare":
             queue = prepare_adjudication(a, b, items, assignment_a, assignment_b,
-                                         allow_synthetic=args.allow_synthetic)
+                                         allow_synthetic=args.allow_synthetic,
+                                         expected_kit_revision=args.expected_kit_revision)
             write_json(args.output, queue, overwrite=args.overwrite)
             write_json(args.template_output, decision_template(queue, synthetic=args.allow_synthetic),
                        overwrite=args.overwrite)
@@ -82,7 +85,8 @@ def main() -> None:
                   "and change human_attestation to true only after independent human review.")
         else:
             merged = merge_adjudications(a, b, items, assignment_a, assignment_b,
-                                         read_json(args.decisions), allow_synthetic=args.allow_synthetic)
+                                         read_json(args.decisions), allow_synthetic=args.allow_synthetic,
+                                         expected_kit_revision=args.expected_kit_revision)
             write_json(args.output, merged, overwrite=args.overwrite)
             adjudicated = sum(row["merge_provenance"] == "ADJUDICATED" for row in merged["rows"])
             print(f"Merged {len(merged['rows'])} rows: {adjudicated} adjudicated, "

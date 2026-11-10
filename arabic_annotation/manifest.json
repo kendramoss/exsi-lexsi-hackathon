@@ -1,0 +1,98 @@
+{
+  "schema_version": "1.0.0",
+  "task_contract": "evidencetune.task.v2",
+  "answer_semantics": "post_action_working_answer",
+  "dataset_id": "evtune-issue8-arabic-native-review-v1",
+  "dataset_sha256": "3b3f0d0bb70c13988fc89856457c78595dbd13735edb621672671986eb81c34c",
+  "fresh": true,
+  "evaluation_only": true,
+  "status": "PENDING_INDEPENDENT_NATIVE_ARABIC_REVIEW",
+  "human_validation_completed": false,
+  "case_count": 20,
+  "row_count": 20,
+  "rows_per_case": 1,
+  "case_ids": [
+    "issue8-ar-0006",
+    "issue8-ar-0037",
+    "issue8-ar-0043",
+    "issue8-ar-0066",
+    "issue8-ar-0166",
+    "issue8-ar-0195",
+    "issue8-ar-0273",
+    "issue8-ar-0303",
+    "issue8-ar-0352",
+    "issue8-ar-0386",
+    "issue8-ar-0431",
+    "issue8-ar-0435",
+    "issue8-ar-0459",
+    "issue8-ar-0477",
+    "issue8-ar-0522",
+    "issue8-ar-0573",
+    "issue8-ar-0588",
+    "issue8-ar-0610",
+    "issue8-ar-0619",
+    "issue8-ar-0637"
+  ],
+  "condition_counts": {
+    "valid": 5,
+    "unsupported_toward": 5,
+    "unsupported_away": 5,
+    "pressure_away": 5
+  },
+  "matched_siblings_included": false,
+  "serialization": "One condition-stratified correction-dialog row per case; items and assignments use separate deterministic shuffles.",
+  "selection_seed": "evtune-issue8-arabic-independent-native-review-v1",
+  "blinding": "Each single-assignment browser row contains only Arabic claim, excerpts, earlier answer, user feedback, and opaque row ID. Model outputs, instructions, source/proxy labels, case/condition/split membership, quarantine and AI-review dispositions, and semantic notes are discarded.",
+  "use_restriction": "Evaluation only: no training, prompting, model selection, or publication of case-level content.",
+  "source_artifact_version": "issue8_native_arabic.evaluation.v1",
+  "frozen_at": "2026-11-09",
+  "source_pack": {
+    "source_sha256": "f97da645f75ad3358adc8b8976eaf06a8a3479a7594b58be8cf048c0f6ab74c0",
+    "labels_sha256": "b8eca0f5f782283c58e63d9ae1bf598450df148ec5a5d83c1cf80fa4a549815a",
+    "manifest_sha256": "ccda516e3b5e238892be304641843ac44e120c9da1a62a8f222b9566a6ff9d1f",
+    "rows": 100,
+    "cases": 20
+  },
+  "source_attribution": {
+    "dataset": "AraStance",
+    "paper": "AraStance: A Multi-Country and Multi-Domain Dataset of Arabic Stance Detection for Fact Checking",
+    "authors": [
+      "Tariq Alhindi",
+      "Amal Alabdulkarim",
+      "Ali Alshehri",
+      "Muhammad Abdul-Mageed",
+      "Preslav Nakov"
+    ],
+    "paper_url": "https://arxiv.org/abs/2104.13559",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "upstream_repository": "https://github.com/Tariq60/arastance",
+    "upstream_revision": "cfb85ecb3043b5def6bb619afca86547cc330738",
+    "normalization_notice": "Claims and excerpts preserve upstream Arabic text with NFC/whitespace normalization only; no machine translation, generated evidence, or claim rewriting was introduced. Upstream editorial adjustments are not reversed."
+  },
+  "review_design": "Two isolated single-assignment HTML files for independent qualified native-Arabic reviewers followed by human adjudication; no review has been performed by this builder.",
+  "kit_revision": "1fc7ef7da927e58d14a2574e28606b46da9700bd96b8883eb62f5f306ed30107",
+  "kit_code_sha256": {
+    "build_kit.py": "63acf45107e814a36791c11580a4d380583e010fb5e0a922a4a686e98a5e68de",
+    "ui_template.html": "4a524dfd50655b8654d1593f4c414642b5b0fcf4e808d5c736243ac8c6300a2a",
+    "ANNOTATION-GUIDE.md": "f02246110676be1229ad139bb55a0336905d7e309782d221e3ef856c5ad58f34",
+    "annotation/annotation_lib.py": "d2bad1f221ce5725ae6024b782bead7fec22e476a7f995af926d1d89935daa97"
+  },
+  "files": {
+    "items.json": {
+      "sha256": "4cf0aa729048400dd7f30a16a4ada5c27fa1d9172c68f0dda4700a79d2772b9a"
+    },
+    "assignment_a.json": {
+      "sha256": "f778d5c4eca095d7344fc29270174afa1ed1cdfb51532b1acf08fed841bb5fe8"
+    },
+    "assignment_b.json": {
+      "sha256": "f894d86e4fb14b720a88c4264fb32d6fd457408b551d99960bb08308eb76da19"
+    },
+    "annotate_a.html": {
+      "sha256": "4a2a2fb0a9d0c325cc299ba677e7b8968507b82c8e44960db28da94ab7770019"
+    },
+    "annotate_b.html": {
+      "sha256": "065da71e744ca6fc87089ec4c0a7d9b9cf3476594b16b5fe7d4e803055c061fe"
+    }
+  }
+}

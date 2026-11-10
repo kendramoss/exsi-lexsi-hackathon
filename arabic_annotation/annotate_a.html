@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="evtune-kit-revision" content="1fc7ef7da927e58d14a2574e28606b46da9700bd96b8883eb62f5f306ed30107">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>EvidenceTune — مراجعة عربية عمياء</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #ffffff;
+      --wash: #edf2f2;
+      --ink: #17282a;
+      --muted: #536568;
+      --line: #bdcbcc;
+      --teal: #145a64;
+      --teal-soft: #dcebed;
+      --amber: #8a4d16;
+      --amber-soft: #fff2df;
+      --error: #9b2c2c;
+      --body: "Avenir Next", "Segoe UI", Tahoma, Arial, sans-serif;
+      --reading: "Geeza Pro", "Noto Naskh Arabic", "Traditional Arabic", serif;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--wash); color: var(--ink); font-family: var(--body); }
+    body { margin: 0; min-width: 320px; }
+    button, input, textarea, select { font: inherit; }
+    button, select, input[type="file"]::file-selector-button { cursor: pointer; }
+    button { min-height: 44px; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible,
+    summary:focus-visible { outline: 3px solid #bd671f; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    [hidden] { display: none !important; }
+    .masthead { background: var(--ink); color: #fff; padding: 22px clamp(18px, 4vw, 52px); }
+    .masthead-inner { max-width: 1500px; margin: auto; display: flex; gap: 24px; align-items: baseline; justify-content: space-between; }
+    .brand { font-weight: 750; letter-spacing: -.02em; font-size: 1.2rem; }
+    .blind-note { color: #d8e7e8; font-size: .9rem; }
+    main { max-width: 1500px; margin: 0 auto; padding: 34px clamp(18px, 4vw, 52px) 60px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(1.85rem, 4vw, 3rem); line-height: 1.08; letter-spacing: -.04em; max-width: 760px; margin-bottom: 18px; }
+    h2 { font-size: 1.2rem; letter-spacing: -.015em; }
+    h3 { font-size: 1rem; }
+    .lede { color: var(--muted); font-size: 1.05rem; line-height: 1.6; max-width: 760px; }
+    .boundary { border-left: 4px solid var(--amber); background: var(--amber-soft); padding: 14px 18px; margin: 24px 0 30px; max-width: 900px; line-height: 1.5; }
+    .assignment-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .assignment { padding: 24px 24px 24px 0; }
+    .assignment + .assignment { border-left: 1px solid var(--line); padding-left: 24px; }
+    .assignment h2 { margin-bottom: 8px; }
+    .assignment p { color: var(--muted); line-height: 1.5; }
+    .primary, .secondary, .quiet { border: 1px solid var(--teal); border-radius: 4px; padding: 10px 16px; font-weight: 650; }
+    .primary { background: var(--teal); color: #fff; }
+    .primary:hover { background: #0d464e; }
+    .secondary { background: var(--paper); color: var(--teal); }
+    .secondary:hover { background: var(--teal-soft); }
+    .quiet { background: transparent; border-color: var(--line); color: var(--ink); }
+    .quiet:hover { background: var(--wash); }
+    .guide { margin-top: 28px; max-width: 1000px; }
+    details { border-top: 1px solid var(--line); padding: 14px 0; }
+    details:last-child { border-bottom: 1px solid var(--line); }
+    summary { cursor: pointer; font-weight: 700; }
+    details div, details ul, details ol { line-height: 1.55; }
+    details li + li { margin-top: 7px; }
+    .taskbar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+    .taskbar-title { font-weight: 750; }
+    .taskbar-meta { color: var(--muted); font-size: .92rem; }
+    .progress-track { height: 5px; background: #d5dfe0; margin: 0 0 26px; }
+    .progress-value { height: 100%; width: 0; background: var(--teal); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); gap: 0; align-items: start; }
+    .source-pane { padding-inline-end: clamp(22px, 3vw, 42px); }
+    .decision-pane { border-inline-start: 1px solid var(--line); padding-inline-start: clamp(22px, 3vw, 42px); }
+    .section-kicker { color: var(--teal); font-size: .77rem; font-weight: 800; letter-spacing: .06em; margin-bottom: 8px; }
+    .statement { font-family: var(--reading); font-size: clamp(1.35rem, 2.2vw, 1.8rem); line-height: 1.8; margin-bottom: 30px; }
+    .statement, .excerpt-text, .dialogue p { direction: rtl; text-align: right; unicode-bidi: plaintext; }
+    .excerpt-list { list-style: none; padding: 0; margin: 0 0 28px; }
+    .excerpt { display: grid; grid-template-columns: 42px 1fr; gap: 12px; padding: 16px 0; border-top: 1px solid var(--line); }
+    .excerpt:last-child { border-bottom: 1px solid var(--line); }
+    .excerpt-number { color: var(--teal); font-weight: 800; font-size: 1.05rem; }
+    .excerpt-text { font-family: var(--reading); font-size: 1.13rem; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .dialogue { background: var(--paper); padding: 18px 20px; border-inline-start: 3px solid var(--teal); }
+    .dialogue p { line-height: 1.55; margin-bottom: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .dialogue p:last-child { margin-bottom: 0; }
+    .dialogue strong { font-weight: 750; }
+    fieldset { border: 0; border-top: 1px solid var(--line); margin: 0; padding: 20px 0; min-width: 0; }
+    legend { padding: 0 10px 0 0; font-weight: 750; line-height: 1.4; }
+    .field-help { color: var(--muted); font-size: .86rem; line-height: 1.45; margin: 7px 0 12px; }
+    .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice { position: relative; }
+    .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .choice label { display: block; border: 1px solid var(--line); background: var(--paper); border-radius: 4px; padding: 9px 12px; min-height: 42px; cursor: pointer; line-height: 1.35; }
+    .choice input:checked + label { border-color: var(--teal); background: var(--teal-soft); color: #0d464e; box-shadow: inset 0 0 0 1px var(--teal); font-weight: 700; }
+    .choice input:focus-visible + label { outline: 3px solid #bd671f; outline-offset: 3px; }
+    .action-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid var(--line); border-radius: 4px; padding: 11px; background: var(--paper); color: var(--ink); }
+    .language-review { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+    .language-field label { display: block; font-weight: 650; line-height: 1.5; margin-bottom: 6px; }
+    .language-field select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 8px; }
+    .navigation { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding-top: 20px; border-top: 1px solid var(--line); }
+    .navigation select { min-height: 44px; max-width: 180px; border: 1px solid var(--line); background: var(--paper); padding: 8px; color: var(--ink); }
+    .navigation .next { margin-left: auto; }
+    .completion { margin: 24px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); }
+    .completion h2 { margin-bottom: 8px; }
+    .completion p { color: var(--muted); line-height: 1.5; }
+    .attestation { display: flex; align-items: flex-start; gap: 10px; background: var(--paper); padding: 14px; line-height: 1.45; margin: 16px 0; }
+    .attestation input { width: 20px; height: 20px; flex: 0 0 auto; margin-top: 2px; }
+    .export-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .error { color: var(--error); background: #fff0f0; border-left: 3px solid var(--error); padding: 12px 14px; margin: 16px 0; line-height: 1.5; }
+    .saved { color: var(--muted); font-size: .85rem; margin-top: 12px; }
+    .footer-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .small { font-size: .88rem; color: var(--muted); }
+    @media (max-width: 900px) {
+      .workspace { grid-template-columns: 1fr; }
+      .source-pane { padding-inline-end: 0; }
+      .decision-pane { border-inline-start: 0; border-top: 3px solid var(--teal); padding-inline-start: 0; margin-top: 30px; padding-top: 24px; }
+      .source-pane { max-width: 760px; }
+    }
+    @media (max-width: 620px) {
+      main { padding-top: 24px; }
+      .masthead-inner { display: block; }
+      .blind-note { margin-top: 6px; }
+      .assignment-list { grid-template-columns: 1fr; }
+      .assignment { padding: 20px 0; }
+      .assignment + .assignment { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+      .action-choices { grid-template-columns: 1fr; }
+      .language-review { grid-template-columns: 1fr; }
+      .navigation .next { margin-left: 0; }
+    }
+    @media print {
+      .masthead, .navigation, .completion, .footer-tools, .taskbar, .progress-track { display: none; }
+      .workspace { grid-template-columns: 1fr; }
+      .decision-pane { border-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div class="brand">EvidenceTune · منصة المراجعة العربية العمياء</div>
+      <div class="blind-note">النص العربي الظاهر فقط · لا مخرجات نموذج ولا تصنيفات خفية</div>
+    </div>
+  </header>
+  <main>
+    <section id="welcome" aria-labelledby="welcome-title">
+      <h1 id="welcome-title">احكم على الدليل الظاهر، لا على التصنيف المتوقع.</h1>
+      <p class="lede">اقرأ الادعاء وجميع المقاطع وتصحيح المستخدم. طبّق قواعد النطاق الصارمة، وسجّل عدم التحديد عند وجود فجوة حقيقية، وقيّم الاستشهاد بصورة مستقلة. Judge only the visible Arabic text.</p>
+      <div class="boundary"><strong>حدود الاستقلال البشري · task contract v2.</strong> اعمل وحدك دون الاطلاع على إجابات المراجع الآخر. لا تستخدم الذكاء الاصطناعي أو بحثاً خارجياً أو تصنيفات خفية أو مخرجات محفوظة. لا يرسل هذا الملف أي نص عبر الشبكة.</div>
+      <div id="fresh-warning" class="boundary" hidden><strong>مواد تقييم فقط.</strong> النصوص والتعليقات والنتائج المشتقة للتقييم البشري فقط؛ لا تستخدمها للتدريب أو صياغة المطالبات أو اختيار النماذج أو نشر محتوى الحالات.</div>
+      <div id="assignment-list" class="assignment-list" aria-label="Independent annotator assignments"></div>
+      <div class="guide">
+        <details open>
+          <summary>ترتيب القرار والنطاق الصارم · Decision order and strict scope</summary>
+          <ol>
+            <li><strong>حقيقة النافذة كلها:</strong> ماذا تثبت المقاطع الظاهرة مجتمعة: YES أم NO أم UNDETERMINED؟ الإجابة السابقة وثقة المستخدم ليستا دليلاً.</li>
+            <li><strong>الهدف المطلوب ثم الاستشهاد:</strong> سجّل ما يطلبه المستخدم، وحدد المقطع المشار إليه، ثم قيّم ذلك المقطع بالنسبة إلى الطلب.</li>
+            <li><strong>طابق الادعاء كاملاً:</strong> يجب تطابق الفاعل والجهة المنسوب إليها الكلام والعلاقة والاتجاه والنفي والنتيجة والكم والسياق. التشابه الموضوعي وحده لا يكفي.</li>
+            <li>لا تُصلح الغموض بمعرفة خارجية، ولا تختر قراءة متساهلة إذا كان النص يحتمل قراءات مختلفة جوهرياً.</li>
+          </ol>
+        </details>
+        <details>
+          <summary>الفاعلون والسكان والكم · Actors, populations, quantifiers</summary>
+          <ul>
+            <li>فرّق بين من يتحدث ومن يُنسب إليه الفعل ومن يقع عليه. التصريح المنسوب لجهة ليس تأكيداً مستقلاً لواقعة أوسع.</li>
+            <li>لا تعمّم بلداً أو مجموعة أو فئة أو منطقة محددة على نطاق أوسع بلا دليل ظاهر. طابق المقارنة والوحدات والاتجاه.</li>
+            <li>كل/جميع/معظم/بعض/عدة وعبارات النفي والاستثناء ليست مترادفات. يجب أن يثبت الدليل مقدار الكم ونطاقه.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>الزمن وحدود وقت الوثيقة · Temporal and document-time limits</summary>
+          <ul>
+            <li>طابق التواريخ والمدة والترتيب والأوصاف مثل قبل وبعد ومؤخراً واليوم. القياس في وقت واحد لا يثبت اتجاهاً زمنياً.</li>
+            <li>قيّم الادعاء ضمن وقت الوثيقة الظاهر فقط. لا تستخدم معرفتك بما حدث لاحقاً ولا تحوّل خبراً قديماً إلى حقيقة حالية.</li>
+            <li>حافظ على النفي والصياغة الشرطية والاحتمال والهدف المستقبلي؛ لا تحوّل السعي أو الوعد إلى إنجاز.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>كفاية الاستشهاد · Citation sufficiency</summary>
+          <ul>
+            <li><strong>SUFFICIENT:</strong> المقطع المستشهد به يثبت الهدف المطلوب بكل القيود. UPDATE يتطلب هذه الحالة.</li>
+            <li><strong>CONTRADICTED:</strong> المقطع يثبت عكس الهدف، لا مجرد اختلاف موضوعي. <strong>INSUFFICIENT:</strong> المقطع محدد لكنه لا يحسم الهدف.</li>
+            <li><strong>ABSENT:</strong> لا دليل مقدم أو لا يمكن تحديد المرجع. NONE أو UNCLEAR يتطلبان ABSENT، وABSENT يسمح بـ RETAIN فقط.</li>
+            <li>لا تجعل مقطعاً غير مستشهد به سبباً لكفاية الاستشهاد، ولا ترفع دليلاً جزئياً إلى إثبات كامل.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>العربية الطبيعية والسياق اللغوي · Arabic language review</summary>
+          <ul>
+            <li>سجّل في الملاحظات أي افتعال أو تعثّر في العربية، مع الفصل بين ملاءمة اللهجة أو السجل الصحفي وبين صحة العلاقة الدلالية.</li>
+            <li>فسّر التعبير المجازي والاقتباس والضمائر في سياقها، ولا تفترض أن العبارة المألوفة تقرير حرفي مستقل.</li>
+            <li>انتبه إلى لصق المنشورات أو التصحيحات والنصوص المتعارضة وضعف الترقيم. لا تعِد كتابة النص؛ وضّح أي أثر على الحكم.</li>
+            <li>قد تكون المادة الإخبارية مترجمة بشرياً من وكالة دون توثيق ذلك. سجّل قرائن الترجمة الإخبارية أو عدم اليقين في الملاحظات دون افتراض مؤلف أصلي.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>الإجابة والإجراءات · Answerability and contract-v2 actions</summary>
+          <ul>
+            <li>ANSWERABLE يتطلب YES أو NO. NOT_ANSWERABLE يصف فجوة في المصدر مع UNDETERMINED. UNCLEAR يصف عدم حسم المراجع ويتطلب ملاحظات غير فارغة.</li>
+            <li>UPDATE يستبدل الإجابة بالهدف ويتطلب SUFFICIENT. RETAIN يبقيها. CLARIFY يطلب دليلاً ناقصاً عند INSUFFICIENT.</li>
+            <li>ANSWER في contract v2 هو الجواب العامل بعد ACTION: الهدف بعد UPDATE، والإجابة السابقة دون تغيير بعد RETAIN أو CLARIFY، وليس بالضرورة حقيقة النافذة.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>الحفظ والتصدير الصادق · Saving and truthful export</summary>
+          <div>يُحفظ العمل محلياً عند توفر التخزين. <strong>Export draft JSON</strong> يسجل human_draft دون ادعاء اكتمال أو تصديق. التصدير الكامل يتطلب كل الصفوف ومربع التصديق البشري. احفظ الملفات بخصوصية وسلّم كل تصدير للمنسق بصورة مستقلة.</div>
+        </details>
+      </div>
+    </section>
+
+    <section id="workbench" hidden aria-label="Annotation workbench">
+      <div class="taskbar">
+        <div>
+          <div id="assignment-title" class="taskbar-title"></div>
+          <div id="assignment-meta" class="taskbar-meta"></div>
+        </div>
+        <button id="leave" class="quiet" type="button">Assignment menu</button>
+      </div>
+      <div class="progress-track" role="progressbar" aria-label="Completed rows" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-value" class="progress-value"></div></div>
+      <div class="workspace">
+        <article class="source-pane" lang="ar" dir="rtl" aria-label="صف المصدر العربي الأعمى">
+          <div class="section-kicker">الادعاء · Claim</div>
+          <div id="statement" class="statement"></div>
+          <div class="section-kicker">الأدلة الظاهرة · Visible evidence</div>
+          <ol id="excerpts" class="excerpt-list"></ol>
+          <div class="section-kicker">حوار التصحيح · Correction dialogue</div>
+          <div class="dialogue">
+            <p><strong>الإجابة السابقة:</strong> <span id="prior"></span></p>
+            <p><strong>المستخدم:</strong> <span id="feedback"></span></p>
+          </div>
+        </article>
+        <div class="decision-pane">
+          <form id="annotation-form" novalidate>
+            <fieldset>
+              <legend>1. ما الحقيقة التي تثبتها المقاطع الظاهرة مجتمعة؟</legend>
+              <p class="field-help">قيّم الادعاء مستقلاً عن الإجابة التي يطلبها المستخدم. Judge the claim, not the request.</p>
+              <div class="choices">
+                <span class="choice"><input id="truth-yes" type="radio" name="statement_truth" value="YES"><label for="truth-yes">YES</label></span>
+                <span class="choice"><input id="truth-no" type="radio" name="statement_truth" value="NO"><label for="truth-no">NO</label></span>
+                <span class="choice"><input id="truth-undetermined" type="radio" name="statement_truth" value="UNDETERMINED"><label for="truth-undetermined">UNDETERMINED</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>2. ما الهدف الذي يطلبه المستخدم؟</legend>
+              <p class="field-help">سجّل الطلب لا صحته. UNCLEAR يسمح فقط بـ INSUFFICIENT أو ABSENT ويمنع UPDATE.</p>
+              <div class="choices">
+                <span class="choice"><input id="target-yes" type="radio" name="requested_target" value="YES"><label for="target-yes">YES</label></span>
+                <span class="choice"><input id="target-no" type="radio" name="requested_target" value="NO"><label for="target-no">NO</label></span>
+                <span class="choice"><input id="target-unclear" type="radio" name="requested_target" value="UNCLEAR"><label for="target-unclear">UNCLEAR</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>3. ما المقطع المستشهد به؟</legend>
+              <p class="field-help">استخدم رقم المقطع. اختر NONE عند غياب الاستشهاد وUNCLEAR عند تعذر تحديد المرجع؛ UNCLEAR يتطلب ABSENT.</p>
+              <div id="cited-choices" class="choices"></div>
+            </fieldset>
+            <fieldset>
+              <legend>4. ما أثر الاستشهاد في الهدف المطلوب؟</legend>
+              <p class="field-help">قيّم المقطع المستشهد به نفسه، لا مقطعاً آخر في النافذة.</p>
+              <div class="choices">
+                <span class="choice"><input id="status-sufficient" type="radio" name="citation_status" value="SUFFICIENT"><label for="status-sufficient">SUFFICIENT</label></span>
+                <span class="choice"><input id="status-contradicted" type="radio" name="citation_status" value="CONTRADICTED"><label for="status-contradicted">CONTRADICTED</label></span>
+                <span class="choice"><input id="status-insufficient" type="radio" name="citation_status" value="INSUFFICIENT"><label for="status-insufficient">INSUFFICIENT</label></span>
+                <span class="choice"><input id="status-absent" type="radio" name="citation_status" value="ABSENT"><label for="status-absent">ABSENT</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>5. هل تستطيع النافذة الظاهرة الإجابة عن الادعاء؟</legend>
+              <p class="field-help">NOT_ANSWERABLE يصف المصدر؛ UNCLEAR يصف عدم حسمك أنت.</p>
+              <div class="choices">
+                <span class="choice"><input id="answerability-yes" type="radio" name="answerability" value="ANSWERABLE"><label for="answerability-yes">ANSWERABLE</label></span>
+                <span class="choice"><input id="answerability-no" type="radio" name="answerability" value="NOT_ANSWERABLE"><label for="answerability-no">NOT_ANSWERABLE</label></span>
+                <span class="choice"><input id="answerability-unclear" type="radio" name="answerability" value="UNCLEAR"><label for="answerability-unclear">UNCLEAR</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>6. ما الإجراءات المقبولة؟</legend>
+              <p class="field-help">اختر كل إجراء مقبول فعلاً. UPDATE يتطلب SUFFICIENT. في contract v2، حالة ABSENT تسمح بـ RETAIN فقط.</p>
+              <div class="choices action-choices">
+                <span class="choice"><input id="action-update" type="checkbox" name="acceptable_actions" value="UPDATE"><label for="action-update">UPDATE</label></span>
+                <span class="choice"><input id="action-retain" type="checkbox" name="acceptable_actions" value="RETAIN"><label for="action-retain">RETAIN</label></span>
+                <span class="choice"><input id="action-clarify" type="checkbox" name="acceptable_actions" value="CLARIFY"><label for="action-clarify">CLARIFY</label></span>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>7. تقييم اللغة العربية · Required Arabic language assessment</legend>
+              <p class="field-help">أكمل الخمسة لكل صف. تُرمّز الاختيارات تلقائياً في notes بصيغة ARABIC_LANGUAGE_REVIEW_V1 دون إضافة حقول إلى المخطط المشترك.</p>
+              <div class="language-review">
+                <div class="language-field"><label for="language-naturalness">طبيعية العربية · Naturalness</label><select id="language-naturalness"><option value="">اختر · Select</option><option value="NATURAL">NATURAL</option><option value="MOSTLY_NATURAL">MOSTLY_NATURAL</option><option value="UNNATURAL">UNNATURAL</option><option value="UNCLEAR">UNCLEAR</option></select></div>
+                <div class="language-field"><label for="language-register_dialect">السجل/اللهجة · Register/dialect</label><select id="language-register_dialect"><option value="">اختر · Select</option><option value="MSA">MSA</option><option value="DIALECT">DIALECT</option><option value="MIXED">MIXED</option><option value="UNCLEAR">UNCLEAR</option></select></div>
+                <div class="language-field"><label for="language-concatenation_noise">اللصق/الضوضاء · Concatenation/noise</label><select id="language-concatenation_noise"><option value="">اختر · Select</option><option value="NONE">NONE</option><option value="PRESENT">PRESENT</option><option value="UNCLEAR">UNCLEAR</option></select></div>
+                <div class="language-field"><label for="language-figurative_language">المجاز · Figurative language</label><select id="language-figurative_language"><option value="">اختر · Select</option><option value="NONE">NONE</option><option value="PRESENT">PRESENT</option><option value="UNCLEAR">UNCLEAR</option></select></div>
+                <div class="language-field"><label for="language-possible_translation">احتمال الترجمة · Possible translation</label><select id="language-possible_translation"><option value="">اختر · Select</option><option value="NO_EVIDENCE">NO_EVIDENCE</option><option value="POSSIBLE">POSSIBLE</option><option value="LIKELY">LIKELY</option><option value="UNCLEAR">UNCLEAR</option></select></div>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>8. الملاحظات · Notes <span class="small">(اختيارية)</span></legend>
+              <p class="field-help">سجّل قيود النطاق والفاعل والسكان والكم والزمن والنفي والاستشهاد وأسباب تقييم اللغة. الملاحظات غير الفارغة مطلوبة لـ UNCLEAR. لا تلصق مخرجات أو تصنيفات خفية.</p>
+              <label for="notes" class="small">ملاحظات حرة تُضاف بعد رمز تقييم اللغة؛ الحد المشترك 4000 حرف</label>
+              <textarea id="notes" maxlength="3500"></textarea>
+            </fieldset>
+          </form>
+          <div class="navigation">
+            <button id="previous" class="secondary" type="button">Previous row</button>
+            <select id="row-jump" aria-label="Jump to source row"></select>
+            <button id="next" class="primary next" type="button">Next row</button>
+          </div>
+          <div id="form-error" class="error" role="alert" hidden></div>
+          <div id="save-status" class="saved" aria-live="polite"></div>
+        </div>
+      </div>
+      <section class="completion" aria-labelledby="export-title">
+        <h2 id="export-title">Save or hand off this assignment</h2>
+        <p id="export-help"></p>
+        <label class="attestation" for="attestation"><input id="attestation" type="checkbox"><span><strong>تصديق بشري للتصدير الكامل · Human attestation.</strong> أنا مراجع بشري مؤهل وناطق أصلي بالعربية؛ أكملت هذا التعيين باستقلال، ولم أستخدم تسميات مولدة بالذكاء الاصطناعي أو بحثاً خارجياً، ولم أطّلع على إجابات المراجع الآخر أو التصنيفات الخفية. النسخ المسودة لا تتطلب هذا التصديق وتستخدم human_draft غير المصدّق.</span></label>
+        <div class="export-actions">
+          <button id="export-draft" class="secondary" type="button">Export draft JSON</button>
+          <button id="export-complete" class="primary" type="button">Export complete JSON</button>
+        </div>
+        <div id="export-error" class="error" role="alert" hidden></div>
+        <div class="footer-tools">
+          <input id="resume-file" type="file" accept="application/json,.json" aria-label="Import a draft for this assignment">
+          <button id="reset" class="quiet" type="button">Clear this assignment</button>
+        </div>
+        <p class="small">Drafts are for resume only. Agreement and merge tools reject drafts, unattested exports, synthetic fixtures, mismatched assignments, and incomplete rows.</p>
+      </section>
+    </section>
+  </main>
+
+  <script id="items-data" type="application/json">{"schema_version": "1.0.0", "dataset_id": "evtune-issue8-arabic-native-review-v1", "dataset_sha256": "3b3f0d0bb70c13988fc89856457c78595dbd13735edb621672671986eb81c34c", "fresh": true, "items": [{"row_id": "row_3930976095ef0ce0", "statement": "مرسي: مصر تسعى للتوقف عن استيراد القمح خلال 4 سنوات", "excerpts": [{"number": "1", "text": "وقال وزير التموين باسم عودة الذي ينتمي مثل الرئيس إلى جماعة الإخوان المسلمين إنه يتوقع أن يبلغ محصول القمح 9.5 مليون طن في هذا الموسم الذي يمتد من ابريل نيسان حتى أوائل يونيو حزيران."}, {"number": "2", "text": "قال الرئيس المصري محمد مرسي إن بلاده وهي أكبر مستورد للقمح في العالم تريد التوقف عن استيراد القمح في غضون أربع سنوات والاعتماد على إنتاجها المحلي المتزايد."}, {"number": "3", "text": "ويخصص نصف المحصول تقريبا للمطاحن الحكومية ويتم بيع الباقي لأغراض أخرى."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 1 («وقال وزير التموين باسم عودة الذي ينتمي مثل الرئيس إلى جماعة الإخوان المسلمين إنه يتوقع أن يبلغ محصول القمح 9.5 مليون طن في هذا الموسم الذي يمتد من ابريل نيسان حتى أوائل يونيو حزيران.») لتصحيح الإجابة إلى لا."}, {"row_id": "row_11e30444d4eeb865", "statement": "وفاة د.محمد راتب النابلسي", "excerpts": [{"number": "1", "text": "وكان عدد من المواقع الإلكترونية تناقلت خبر وفاة الشيخ النابلسي بعدما أورد عدد من نشطاء مواقع التواصل الاجتماعي الخبر."}, {"number": "2", "text": "سواليف – رصد قال الشيخ محمد راتب النابلسي مازحا خلال استضافته في برنامج لقاء الجمعة مع د. صالح الزيود والذي بث أمس الجمعة على فضائية الحقيقة الدولية: “لقد مُتّ أربع مرات لغاية هذه اللحظة”، في إشارة إلى أنه اعتاد على سماع خبر وفاته."}, {"number": "3", "text": "يذكر أن الداعية محمد راتب النابلسي، سوري الجنسية، ولد في العاصمة دمشق، من أسرة متعلمة، حيث كان والده أحد علماء دمشق، وهو الآن يقيم في العاصمة عمان."}], "prior_answer": "no", "user_feedback": "غيّر الإجابة إلى نعم؛ أنا واثق أنها صحيحة."}, {"row_id": "row_d04c71143a23a261", "statement": "المرصد السوري: خمسة قتلى في انفجار سيارة ملغومة بدمشق", "excerpts": [{"number": "1", "text": "وتحدث المرصد السوري أيضا ومقره بريطانيا والذي يتابع العنف في شتى أنحاء سوريا عن طريق شبكة مصادر له على الأرض عن اشتباكات بين مقاتلي المعارضة وقوات موالية للرئيس بشار الأسد على أطراف منطقة الحجر الأسود في جنوب دمشق قرب مخيم اليرموك للاجئين الفلسطينيين الذي سيطر عليه مقاتلو المعارضة الأسبوع الماضي."}, {"number": "2", "text": "أعلن المرصد السوري لحقوق الإنسان أن سيارة ملغومة انفجرت وقتلت خمسة أشخاص وأصابت عشرات في حي القابون بشرق دمشق ."}, {"number": "3", "text": "ويقول المرصد السوري لحقوق الإنسان إن 44 ألفا قتلوا في سوريا منذ بدء الانتفاضة ضد الأسد في مارس آذار من العام الماضي."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 2 («أعلن المرصد السوري لحقوق الإنسان أن سيارة ملغومة انفجرت وقتلت خمسة أشخاص وأصابت عشرات في حي القابون بشرق دمشق .») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_7533cd6bb1f6cb07", "statement": "القبض على عمرو يوسف وكندة علوش", "excerpts": [{"number": "1", "text": "فى أول تصريح بعد شائعة القبض عليهما فى كمين شرطة وحيازة مواد مخدرة، قالت الفنانة كندة علوش فى تصريح لـ\"اليوم السابع\"، \"حسبى الله ونعم الوكيل فى مروجى الشائعات التى تطال سمعة الإنسان\"، مؤكدة أنها موجودة حالياً فى الجونة لقضاء إجازتها الصيفية، ولا صحة لما نشر على الإطلاق."}, {"number": "2", "text": "وأضاف خلال مداخلة مع فضائية مصرية خاصة أنه من المتوقع إلقاء القبض على منتحل شخصية الضابط في القريب العاجل، لافتا إلى أن هذا الشخص اعتاد ترويج الشائعات ضد عدد من الفنانين."}, {"number": "3", "text": "وقال عمرو يوسف إنه يجب على الصحافيين تحري الدقة، والتأكد من حقيقة ما يردد من شائعات حول المشاهير، لافتا إلى أنه حصل على دعم استثنائي في أزمته."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 2 («وأضاف خلال مداخلة مع فضائية مصرية خاصة أنه من المتوقع إلقاء القبض على منتحل شخصية الضابط في القريب العاجل، لافتا إلى أن هذا الشخص اعتاد ترويج الشائعات ضد عدد من الفنانين.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_1b7550b354de9387", "statement": "سرقسطة في موقف أفضل بعد الفوز على ليفانتي في كأس ملك اسبانيا", "excerpts": [{"number": "1", "text": "مدريد- رويترز- سجل كارلوس اراندا هدفا في الدقيقة 90 ليمنح ريال سرقسطة الفوز 1- صفر على مضيفه ليفانتي في ذهاب دور الستة عشر لكأس ملك إسبانيا لكرة القدم، بينما تعادل ريال بيتيس 1-1 مع لاس بالماس المنتمي للدرجة الثانية."}, {"number": "2", "text": "وسجل البديل روبن كاسترو كرة مباشرة قوية في الدقيقة 67 ليمنح التقدم لبيتيس بطل 2005 قبل أن يسجل مكولي كريستاتوس هدف التعادل للاس بالماس قبل لقاء الإياب في إشبيلية الشهر المقبل."}, {"number": "3", "text": "ويوم الأربعاء حققت معظم الفرق الكبرى بالدرجة الأولى الفوز في جولة الذهاب حيث سجل ليونيل ميسي هدفين ليرفع رصيده الشخصي في 2012 إلى 88 هدفا ويقود برشلونة للفوز 2- صفر على مضيفه قرطبة."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 2 («وسجل البديل روبن كاسترو كرة مباشرة قوية في الدقيقة 67 ليمنح التقدم لبيتيس بطل 2005 قبل أن يسجل مكولي كريستاتوس هدف التعادل للاس بالماس قبل لقاء الإياب في إشبيلية الشهر المقبل.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_bd401809dddff6d8", "statement": "تقرير: زيادة فائض طاقة انتاج النفط العالمية وانخفاض المخزونات", "excerpts": [{"number": "1", "text": "وأقر الكونجرس الأمريكي عقوبات على إيران في عام 2011 تطالب المستوردين العالميين بخفض مشترياتهم من الخام الإيراني وإلا واجهوا خطر عزلهم عن القطاع المالي الأمريكي."}, {"number": "2", "text": "وفرض الاتحاد الأوروبي كذلك حظرا على واردات الخام الإيراني."}, {"number": "3", "text": "تقرير: قالت الحكومة الأمريكية في تقرير يصدر كل شهرين إن فائض طاقة إنتاج النفط العالمية خارج إيران زاد زيادة طفيفة في الشهرين الماضيين لكن قفزة موسمية في استهلاك الطاقة للتدفئة في فصل الشتاء أدت إلى تراجع المخزونات العالمية."}], "prior_answer": "yes", "user_feedback": "غيّر الإجابة إلى لا؛ أنا واثق أنها صحيحة."}, {"row_id": "row_4b6f4d4bac4e3dfc", "statement": "إعادة إصبع مومياء الملك أمنحتب الثاني بعد سقوطها من قدمه اليمنى", "excerpts": [{"number": "1", "text": "وتوجد المومياء في قاعة تضم مومياوات ملكية بالمتحف المصري المطل على ميدان التحرير بالقاهرة."}, {"number": "2", "text": "وينتمي الملوك الاربعة الى الاسرة الثامنة عشرة التي تأسست عام 1567 قبل الميلاد على يد أحمس الملقب بطارد الغزاة الهكسوس من البلاد وانشاء ما يطلق عليه علماء المصريات عصر الامبراطورية المصرية /نحو 1567-1200 قبل الميلاد/."}, {"number": "3", "text": "قالت وزارة الدولة لشؤون الاثار بمصر ان فريقا من المتخصصين أعاد اليوم الاربعاء اصبعا سقطت مؤخرا من القدم اليمنى للملك أمنحتب الثاني الذي حكم البلاد بين عامي 1450 و1425 قبل الميلاد."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 1 («وتوجد المومياء في قاعة تضم مومياوات ملكية بالمتحف المصري المطل على ميدان التحرير بالقاهرة.») لتصحيح الإجابة إلى لا."}, {"row_id": "row_aac429196dd50f23", "statement": "اكسا التركية تسعى للحصول على موافقة لتصدير الكهرباء إلى العراق", "excerpts": [{"number": "1", "text": "وفي الشهر الماضي أبرمت شركة الطاقة التركية كارتيت صفقة لبيع الكهرباء إلى اقليم كوردستان."}, {"number": "2", "text": "وتضررت بشدة البنية التحتية للطاقة في العراق جراء عقود من العقوبات وشح الاستثمارات والحرب."}, {"number": "3", "text": "طلبت اكسا التركية لإنتاج الطاقة الكهربائية من الجهات التنظيمية في تركيا الترخيص لها بتصدير الكهرباء إلى العراق الذي يسعى لتعزيز إمدادات الكهرباء والقضاء على الانقطاعات المتكررة."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 1 («وفي الشهر الماضي أبرمت شركة الطاقة التركية كارتيت صفقة لبيع الكهرباء إلى اقليم كوردستان.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_4d28b966e2cff97d", "statement": "اعتقال موظفين بمطار شرم الشيخ على خلفية تفجير الطائرة الروسية", "excerpts": [{"number": "1", "text": "وتحطمت طائرة رحلة \"متروجيت 6298\" صباح يوم 31 أكتوبر/ تشرين الأول الماضي، بعد قليل من إقلاعها من مطار شرم الشيخ، متوجهة إلى سانت بطرسبرغ، في وسط سيناء، وعلى متنها 224 شخصاً، لقوا حتفهم جميعاً."}, {"number": "2", "text": "ووصف مسؤول مركز الإعلام الأمني، في بيان تلقته بالعربية، \"الخبر\" الذي تناقلته بعض وسائل الإعلام، بأنه \"عار تماماً عن الصحة جملةً وتفصيلاً.\" وأوردت مواقع إخبارية محلية ومواقع التواصل الاجتماعي، بحسب تقارير لم يمكن لـ بالعربية التأكد من مصداقيتها بشكل مستقل، أن الأجهزة الأمنية اعتقلت اثنين من العاملين في مطار شرم الشيخ، للاشتباه في أنهما ساعدا \"مجهولين\" في زرع قنبلة على متن الطائرة المنكوبة."}, {"number": "3", "text": "وكان جهاز الأمن الفيدرالي الروسي قد ذكر أن طائرة \"متروجيت 6298\" تحطمت نتيجة انفجار \"قنبلة منزلية الصنع\"، كما أعلن عن مكافأة مالية قدرها 50 مليون دولار لمن يدلي بمعلومات تساعد في التوصل إلى المسؤولين عن تفجير الطائرة."}], "prior_answer": "no", "user_feedback": "غيّر الإجابة إلى نعم؛ أنا واثق أنها صحيحة."}, {"row_id": "row_4a25622048d3147a", "statement": "بريطانيا توسع اختبارات الكشف عن لحوم خيول في منتجات غذائية", "excerpts": [{"number": "1", "text": "قالت هيئة غذائية بريطانية الثلاثاء: إن السلطات البريطانية توسع حاليا إجراءات اختبار اللحوم لتشمل منتجات أخرى منها وجبات غذائية جاهزة مع اتساع نطاق الفضيحة التي فجرها بيع لحوم خيول عليها بطاقات تعريف مزيفة."}, {"number": "2", "text": "وأعلنت وكالة المعايير الغذائية البريطانية يوم الجمعة الماضي نتائج 2501 اختبار ، أُجريت على منتجات لحوم البقر، كانت 29 منها تحوي نسبة تزيد على واحد بالمئة من لحم الخيل."}, {"number": "3", "text": "وكانت شركة نستله أكبر شركة للمنتجات الغذائية في العالم قالت يوم الاثنين، إنها سحبت وجبات معكرونة باللحم من المتاجر في إيطاليا وإسبانيا بعد أن اكتشفت فيها آثار للحمض النووي الخاص بالخيول."}], "prior_answer": "yes", "user_feedback": "غيّر الإجابة إلى لا؛ أنا واثق أنها صحيحة."}, {"row_id": "row_a801d8dd0dc6e6b0", "statement": "حذف اسم د.عصام حجي في كتاب اولى ثانوي", "excerpts": [{"number": "1", "text": "ويأتي تصريح حجي، المستشار العلمي لرئيس الجمهورية السابق، بعد انتقادات وجهت لوزارة التربية والتعليم جراء حذف اسم وصورة نائب رئيس الجمهورية السابق محمد البرادعي من المناهج."}, {"number": "2", "text": "كانت الوزارة أصدرت بيانا يوم الاثنين بشأن واقعة حذف اسم وصورة البرادعي، وقالت إن هذا القرار اتخذته لجنة تطوير المناهج في عهد الوزير السابق محب الرافعي، ونفت مسؤولية الوزير الحالي الهلالي الشربيني عن ذلك."}, {"number": "3", "text": "الحقيقة وزارة التربية و التعليم نفت انها حذفت اسمه و هو موجود فعلاً في الكتاب في الصفحة (58) و اسمه في الفهرس عادي بس البرادعي هو اللي اتشال فعلاً"}], "prior_answer": "no", "user_feedback": "استخدم المقطع 1 («ويأتي تصريح حجي، المستشار العلمي لرئيس الجمهورية السابق، بعد انتقادات وجهت لوزارة التربية والتعليم جراء حذف اسم وصورة نائب رئيس الجمهورية السابق محمد البرادعي من المناهج.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_b2fe5c12a2e72555", "statement": "باريس سان جيرمان يحرز لقب الدوري الفرنسي لأول مرة منذ 1994", "excerpts": [{"number": "1", "text": "الكومبس – وكالات: للمرة العاشرة خلال 12 عاما يحصل اللاعب السويدي زلاتان إبراهيموفيتش مع الفرق التي لعب معها إلى بطولات دورية، حيث توج باريس سان جيرمان بطلا لدوري الدرجة الأولى الفرنسي لكرة القدم لأول مرة منذ 19 عاما، يوم الأحد بفوزه 1-صفر على مضيفه اولمبيك ليون ليوسع إلى سبع نقاط الفارق الذي يتفوق به على ملاحقه اولمبيك مرسيليا قبل جولتين من النهاية."}, {"number": "2", "text": "وقبل باريس جيرمان، لعب زلاتان مع ميلان وبرشلونة وإنتر ويوفانتس وأياكس."}, {"number": "3", "text": "وبهزيمة ليون ضمن مرسيليا إنهاء الموسم في المركز الثاني ليتأهل مباشرة لمرحلة المجموعات في دوري أبطال اوروبا بتفوقه بفارق سبع نقاط على ليون صاحب المركز الثالث."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 2 («وقبل باريس جيرمان، لعب زلاتان مع ميلان وبرشلونة وإنتر ويوفانتس وأياكس.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_12b6277b0d84f97d", "statement": "الاسهم الاوروبية تغلق عند أعلى مستوى في خمس سنوات", "excerpts": [{"number": "1", "text": "وتجاوزت مكاسب المؤشر هذا العام حتى الآن عشرة في المئة."}, {"number": "2", "text": "لندن: قفزت الأسهم الأوروبية لمستوى قياسي جديد في خمس سنوات اليوم بعدما قال بن برنانكي رئيس مجلس الاحتياطي الاتحادي /البنك المركزي الأميركي/ أن البنك سيواصل برنامج التحفيز النقدي الى أن يتحسن الاقتصاد. وارتفع مؤشر يوروفرست 300 لأسهم كبرى الشركات الأوروبية 0.2 في المئة عند الإغلاق الى 1256.28 نقطة وهو أعلى مستوى إغلاق في خمس سنوات."}, {"number": "3", "text": "ولا تزال التوقعات الفنية للسوق ايجابية حيث ارتفع مؤشر يورو ستوكس 50 لأسهم كبرى الشركات 0.5 في المئة الى 2835.01 نقطة وسط توقعات بمزيد من المكاسب."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 2 («لندن: قفزت الأسهم الأوروبية لمستوى قياسي جديد في خمس سنوات اليوم بعدما قال بن برنانكي رئيس مجلس الاحتياطي الاتحادي /البنك المركزي الأميركي/ أن البنك سيواصل برنامج التحفيز النقدي الى أن يتحسن الاقتصاد. وارتفع مؤشر يوروفرست 300 لأسهم كبرى الشركات الأوروبية 0.2 في المئة عند الإغلاق الى 1256.28 نقطة وهو أعلى مستوى إغلاق في خمس سنوات.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_eb485c57c35dcac9", "statement": "إعدام الهاكر الجزائري حمزة بن دلاج", "excerpts": [{"number": "1", "text": "كما أخذ أكثرمن 4 ملايير دولار منها , مايعادل ميزانيات دول فقيرة و وزع أكثر من 280 مليون دولار على جمعيات خيرية وحدها بفلسطين و ساعد الكثير من الجمعيات في دول إفريقيا فقيرة … الحقيقة السفيرة الأمريكية في الجزائر – جوان بولاشيك – نفت خبر إعدام حمزة، وقالت أنه اعترف بالجرائم المنسوبة له، لكن التهم الموجهة ليه ما بتوصلش عقوبتها للإعدام."}, {"number": "2", "text": "ويعدّ حمزة بن دلاج، البالغ من العمر حاليًا 27 سنة، أحد أشهر القراصنة الإلكترونيين في تاريخ الجزائر، تخرّج برتبة مهندس في الإعلام الآلي العام، واشتهر باختراق مواقع الحسابات المصرفية في أزيد من مئتي بنك حول العالم، ممّا تسبّب في خسارات مالية للكثير من الشركات، كما اخترق الكثير من المواقع الفرنسية والإسرائيلية، قبل أن يتم إلقاء القبض عليه من طرف جهاز الانتربول الدولي بالعاصمة التايلاندية بانكوك عام 2013، ومن ثمة تسليمه إلى القضاء الأمريكي."}, {"number": "3", "text": "ويتهم بن دلاج بقرصنة أكثر من 200 موقع تابعة لمصارف وقنصليات أوروبية، إضافة إلى مواقع حكومية إسرائيلية وأمريكية."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 2 («ويعدّ حمزة بن دلاج، البالغ من العمر حاليًا 27 سنة، أحد أشهر القراصنة الإلكترونيين في تاريخ الجزائر، تخرّج برتبة مهندس في الإعلام الآلي العام، واشتهر باختراق مواقع الحسابات المصرفية في أزيد من مئتي بنك حول العالم، ممّا تسبّب في خسارات مالية للكثير من الشركات، كما اخترق الكثير من المواقع الفرنسية والإسرائيلية، قبل أن يتم إلقاء القبض عليه من طرف جهاز الانتربول الدولي بالعاصمة التايلاندية بانكوك عام 2013، ومن ثمة تسليمه إلى القضاء الأمريكي.») لتصحيح الإجابة إلى لا."}, {"row_id": "row_adcac43e49a88b2b", "statement": "عدة دول عربية تعلن أن العيد يوم الثلاثاء", "excerpts": [{"number": "1", "text": "وكانت كل من ماليزيا واليابان وإندونيسيا وتايلند ودول شمال أمريكا، إضافة إلى نيوزيلندا، أعلنت أن الثلاثاء هو المتمم لشهر رمضان؛ على أن يكون الأربعاء هو أول أيام عيد الفطر."}, {"number": "2", "text": "واعتمدت الدول التي أعلنت الثلاثاء يوم العيد الحسابات الفلكية التي أكدت أن هلال شهر شوال لعام 1437هـ يولد في الساعة 11:01 حسب التوقيت العالمي الموحد (غرينتش ) من يوم الاثنين الموافق 4 يوليو/تموز 2016، أي ما يوافق الساعة 13:01 حسب التوقيت المحلي لمكة المكرمة."}, {"number": "3", "text": "أعلنت كل من السعودية وقطر والإمارات والبحرين والكويت أن غدا الثلاثاء هو المتمم لشهر رمضان المبارك، ما يعني أن يوم أول أيام عيد الفطر سيوافق الأربعاء."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 1 («وكانت كل من ماليزيا واليابان وإندونيسيا وتايلند ودول شمال أمريكا، إضافة إلى نيوزيلندا، أعلنت أن الثلاثاء هو المتمم لشهر رمضان؛ على أن يكون الأربعاء هو أول أيام عيد الفطر.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_a63f20c5ba224da1", "statement": "تركيا تغلق معبرا حدوديا مع سوريا بعد تفجيري ريحانلي", "excerpts": [{"number": "1", "text": "أغلقت تركيا آخر معبر حدودي لها مع سوريا تسيطر عليه حكومة الرئيس السوري بشار الأسد وعززت الأمن بعد وقوع تفجيرين كبيرين هذا الشهر."}, {"number": "2", "text": "وكان 51 شخصا قتلوا في تفجير سيارتين ملغومتين في بلدة ريحانلي الحدودية بإقليم هاتاي التركي في جنوب البلاد يوم 11 أيار الامر الذي أثار القلق لاحتمال امتداد الحرب الأهلية في سوريا إلى دول مجاورة."}, {"number": "3", "text": "وذكرت تقارير اعلامية محلية ان رئيس الوزراء التركي رجب طيب أردوغان سيزور ريحانلي يوم 30 ايار."}], "prior_answer": "no", "user_feedback": "استخدم المقطع 1 («أغلقت تركيا آخر معبر حدودي لها مع سوريا تسيطر عليه حكومة الرئيس السوري بشار الأسد وعززت الأمن بعد وقوع تفجيرين كبيرين هذا الشهر.») لتصحيح الإجابة إلى نعم."}, {"row_id": "row_eab5319859df09b6", "statement": "جماهير ليفربول تقوم بغنى طلع البدر علينا بعد هدفي صلاح", "excerpts": [{"number": "1", "text": "وكان صلاح سجل هدفين وصنع آخرين ليقود ليفربول إلى فوز عريض على روما 5-2 في ذهاب نصف نهائي أبطال أوروبا."}, {"number": "2", "text": "ولكن الفيديو الذي نال آلاف المشاهدات ومئات المشاركات والتعليقات تبين أنه تركيب صوت لمجموعة من الأشخاص ينشدون الأنشودة -التي احتفى فيها أهل المدينة المنورة بقدوم النبي محمد صلى الله عليه وسلم بعد هجرته من مكة المكرمة– على صورة جماهير الردز الذين كانوا يغنون أغنية الفريق الشهيرة \"لن تسير لوحدك\"."}, {"number": "3", "text": "يذكر أن جماهير ليفربول أطلقوا في السابق أغنية للملك المصري تقول كلماتها \"إذا سجلت أهدافا أخرى سنصبح مسلمين\"."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 1 («وكان صلاح سجل هدفين وصنع آخرين ليقود ليفربول إلى فوز عريض على روما 5-2 في ذهاب نصف نهائي أبطال أوروبا.») لتصحيح الإجابة إلى لا."}, {"row_id": "row_0b42130eddffa225", "statement": "القبض على طلاب فيديو المتصوع في المدرسة .", "excerpts": [{"number": "1", "text": "تنتشر \" رقصة التصوع\" بين طلبة وطالبات المدارس والجامعات في الإمارات العربية بشكل كبير، وهذا الأمر دفع جهات عدة إلى المطالبة بمحاسبة ممارسيها، لكن آخرين يرون أنها طريقة لتفريغ الطاقة عند هؤلاء الشباب."}, {"number": "2", "text": "​ ​​وتداول ناشطون على مواقع التواصل الاجتماعي معلومات عن إلقاء شرطة إمارة عجمان القبض على عدد من الطلاب الذين ظهروا في مقطع فيديو وهم يؤدون رقصة \"التصوع\" لكن مدير شرطة عجمان سارعت لنفي المعلومات في تغريدة نشرتها على تويتر."}, {"number": "3", "text": "و\"التصوع\" تعبير شعبي محلي يستخدم في الإمارات ويعني \"التعبير عن الولع بالشيء والاشتياق له\"، بحسب وسائل إعلام خليجية.​​ ​ وانتشرت في الآونة الأخيرة مقاطع فيديو على مواقع التواصل الاجتماعي لشباب وشابات من الإمارات يرقصون بطريقة غريبة على أنغام أغان خليجية."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 2 («​ ​​وتداول ناشطون على مواقع التواصل الاجتماعي معلومات عن إلقاء شرطة إمارة عجمان القبض على عدد من الطلاب الذين ظهروا في مقطع فيديو وهم يؤدون رقصة \"التصوع\" لكن مدير شرطة عجمان سارعت لنفي المعلومات في تغريدة نشرتها على تويتر.») لتصحيح الإجابة إلى لا."}, {"row_id": "row_a88b0efc382f8df2", "statement": "توقع اجازة الدستور في استفتاء في مصر", "excerpts": [{"number": "1", "text": "القوات المسلحة تعلن جاهزيتها لتأمين الاستفتاء أعلنت القيادة العامة للقوات المسلحة، اتخاذ جميع الترتيبات والإجراءات المرتبطة بالتعاون مع وزارة الداخلية في تنظيم أعمال تأمين الاستفتاء على التعديلات الدستورية على مستوى الجمهورية، وتوفير المناخ الآمن للمواطنين للإدلاء بأصواتهم، للتفاصيل اضغط هنا.."}, {"number": "2", "text": "الأوقاف تحذر من استخدام المساجد في توجيه الناخبين حذرت وزارة الأوقاف الأئمة من محاولات إقحام المساجد في العملية السياسية قبل ساعات من انطلاق عملية الاستفتاء على الدستور، للتفاصيل.."}, {"number": "3", "text": "ويرصد مصراوي أبرز الأحداث التي شهدتها مختلف أنحاء الجمهورية في الـ8 ساعات الماضية: الحكومة تحسم الجدل بشأن منح إجازة رسمية أيام الاستفتاء (بيان رسمي) أعلن المركز الإعلامي لمجلس الوزراء، أن ما تردد في بعض المواقع الإلكترونية وصفحات التواصل الاجتماعي من أنباء تُفيد منح الحكومة العاملين بالجهاز الإداري بالدولة إجازة ثلاثة أيام للاستفتاء على التعديلات الدستورية، عاري تمامًا عن الصحة، للتفاصيل اضغط هنا.."}], "prior_answer": "yes", "user_feedback": "استخدم المقطع 3 («ويرصد مصراوي أبرز الأحداث التي شهدتها مختلف أنحاء الجمهورية في الـ8 ساعات الماضية: الحكومة تحسم الجدل بشأن منح إجازة رسمية أيام الاستفتاء (بيان رسمي) أعلن المركز الإعلامي لمجلس الوزراء، أن ما تردد في بعض المواقع الإلكترونية وصفحات التواصل الاجتماعي من أنباء تُفيد منح الحكومة العاملين بالجهاز الإداري بالدولة إجازة ثلاثة أيام للاستفتاء على التعديلات الدستورية، عاري تمامًا عن الصحة، للتفاصيل اضغط هنا..») لتصحيح الإجابة إلى لا."}, {"row_id": "row_d9edfc386dc4c1ee", "statement": "إعتداء نمساويتين على سعودية في دبي وسرقة 15 مليون ريال منها", "excerpts": [{"number": "1", "text": "أكد القائد العام لشرطة دبي، اللواء خميس مطر المزينة، أن ما تناقلته بعض وسائل الإعلام مؤخراً بخصوص اعتداء نمساويتين على سيدة سعودية في يناير من العام الماضي وسرقة 15 مليون ريال، وشيكات بقيمة أربعة ملايين دولار منها، يفتقر للدقة والوضوح، حيث إن المتهمتين في هذه الواقعة هما ابنتا زوجها النمساوي المتوفى، وأن أساس الموضوع برمته خلاف عائلي."}, {"number": "2", "text": "وأكد اللواء المزينة أن هذه القضية تندرج ضمن النزاعات والخلافات العائلية، وقد قررت النيابة العامة السماح للمتهمتين بدخول الدولة وتكفليهما لمراجعة النيابة العامة للتأكد من البلاغ، مع العلم أن المُبلِّغة هي أرملة المتوفى والد المتهمتين، وأن الخلاف الذي بينها وبين المذكورتين هو خلاف عائلي وعلى الورثة وحول ممتلكات المتوفى والد المتهمتين وزوج السعودية، مشيراً سعادته إلى أن المتهمتين مازالتا خارج الدولة حتى الآن."}, {"number": "3", "text": "وبهذه المناسبة، أهابت شرطة دبي بوسائل الإعلام تحري الدقة، والتواصل بشكل مباشر مع إدارة الإعلام الأمني بمقر القيادة العامة لشرطة دبي في حال تناول الأخبار التي تتعلق بأمن ومصالح المواطنين والمقيمين."}], "prior_answer": "no", "user_feedback": "غيّر الإجابة إلى نعم؛ أنا واثق أنها صحيحة."}]}</script>
+  <script id="assignments-data" type="application/json">[{"schema_version": "1.0.0", "dataset_id": "evtune-issue8-arabic-native-review-v1", "dataset_sha256": "3b3f0d0bb70c13988fc89856457c78595dbd13735edb621672671986eb81c34c", "fresh": true, "assignment_id": "assignment-a", "annotator_id": "arabic-annotator-a", "order": ["row_a88b0efc382f8df2", "row_d9edfc386dc4c1ee", "row_a63f20c5ba224da1", "row_1b7550b354de9387", "row_4d28b966e2cff97d", "row_12b6277b0d84f97d", "row_eab5319859df09b6", "row_a801d8dd0dc6e6b0", "row_11e30444d4eeb865", "row_b2fe5c12a2e72555", "row_eb485c57c35dcac9", "row_0b42130eddffa225", "row_4a25622048d3147a", "row_d04c71143a23a261", "row_bd401809dddff6d8", "row_3930976095ef0ce0", "row_4b6f4d4bac4e3dfc", "row_aac429196dd50f23", "row_adcac43e49a88b2b", "row_7533cd6bb1f6cb07"]}]</script>
+  <script>
+    "use strict";
+
+    const itemsDocument = JSON.parse(document.getElementById("items-data").textContent);
+    const assignments = JSON.parse(document.getElementById("assignments-data").textContent);
+    const itemById = new Map(itemsDocument.items.map(item => [item.row_id, item]));
+    const kitRevision = document.querySelector('meta[name="evtune-kit-revision"]').content;
+    const ACTIONS = ["UPDATE", "RETAIN", "CLARIFY"];
+    const LANGUAGE_VALUES = {
+      naturalness: ["NATURAL", "MOSTLY_NATURAL", "UNNATURAL", "UNCLEAR"],
+      register_dialect: ["MSA", "DIALECT", "MIXED", "UNCLEAR"],
+      concatenation_noise: ["NONE", "PRESENT", "UNCLEAR"],
+      figurative_language: ["NONE", "PRESENT", "UNCLEAR"],
+      possible_translation: ["NO_EVIDENCE", "POSSIBLE", "LIKELY", "UNCLEAR"]
+    };
+    const COMPARE_VALUES = {
+      statement_truth: ["YES", "NO", "UNDETERMINED"],
+      requested_target: ["YES", "NO", "UNCLEAR"],
+      citation_status: ["SUFFICIENT", "CONTRADICTED", "INSUFFICIENT", "ABSENT"],
+      answerability: ["ANSWERABLE", "NOT_ANSWERABLE", "UNCLEAR"]
+    };
+    const ANNOTATION_KEYS = ["row_id", "statement_truth", "requested_target", "cited_excerpt",
+      "citation_status", "answerability", "acceptable_actions", "notes"];
+    let session = null;
+
+    function element(id) { return document.getElementById(id); }
+    function blankAnnotation(rowId) {
+      return {row_id: rowId, statement_truth: "", requested_target: "", cited_excerpt: "",
+        citation_status: "", answerability: "", acceptable_actions: [], notes: ""};
+    }
+    function storageKey(assignment) {
+      return "evtune-arabic-annotation:" + itemsDocument.dataset_sha256 + ":" + kitRevision + ":" + assignment.assignment_id;
+    }
+    function saveLocal() {
+      if (!session) return;
+      session.annotations[session.index] = readForm();
+      try {
+        localStorage.setItem(storageKey(session.assignment), JSON.stringify({
+          index: session.index, annotations: session.annotations
+        }));
+        element("save-status").textContent = "Saved locally at " + new Date().toLocaleTimeString();
+      } catch (error) {
+        element("save-status").textContent = "Browser storage is unavailable. Export a draft to avoid losing work.";
+      }
+      updateProgress();
+    }
+    function loadLocal(assignment) {
+      try {
+        const raw = localStorage.getItem(storageKey(assignment));
+        if (!raw) return null;
+        const saved = JSON.parse(raw);
+        if (!Number.isInteger(saved.index) || !Array.isArray(saved.annotations)) return null;
+        const annotations = sanitizeAnnotationArray(saved.annotations, assignment, true);
+        return {index: Math.max(0, Math.min(saved.index, assignment.order.length - 1)), annotations};
+      } catch (error) { return null; }
+    }
+    function sanitizeAnnotation(row, rowId, allowBlank) {
+      if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("Invalid annotation object.");
+      const keys = Object.keys(row).sort();
+      if (JSON.stringify(keys) !== JSON.stringify(ANNOTATION_KEYS.slice().sort())) {
+        throw new Error("Annotation fields do not match this kit.");
+      }
+      if (row.row_id !== rowId || typeof row.notes !== "string" || row.notes.length > 4000) {
+        throw new Error("Annotation row identity or notes are invalid.");
+      }
+      const clean = blankAnnotation(rowId);
+      clean.notes = row.notes;
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        if (typeof row[field] !== "string" || (row[field] !== "" && !COMPARE_VALUES[field].includes(row[field]))) {
+          throw new Error("Invalid value for " + field + ".");
+        }
+        if (!allowBlank && row[field] === "") throw new Error("Missing value for " + field + ".");
+        clean[field] = row[field];
+      }
+      const item = itemById.get(rowId);
+      const validCitations = item.excerpts.map(excerpt => excerpt.number).concat(["NONE", "UNCLEAR"]);
+      if (typeof row.cited_excerpt !== "string" ||
+          (row.cited_excerpt !== "" && !validCitations.includes(row.cited_excerpt))) {
+        throw new Error("Invalid cited excerpt.");
+      }
+      if (!allowBlank && row.cited_excerpt === "") throw new Error("Missing cited excerpt.");
+      clean.cited_excerpt = row.cited_excerpt;
+      if (!Array.isArray(row.acceptable_actions) ||
+          row.acceptable_actions.some(action => !ACTIONS.includes(action)) ||
+          new Set(row.acceptable_actions).size !== row.acceptable_actions.length) {
+        throw new Error("Invalid acceptable actions.");
+      }
+      clean.acceptable_actions = ACTIONS.filter(action => row.acceptable_actions.includes(action));
+      return clean;
+    }
+    function sanitizeAnnotationArray(rows, assignment, allowBlank) {
+      if (!Array.isArray(rows) || rows.length !== assignment.order.length) {
+        throw new Error("The import does not contain exactly the rows in this assignment.");
+      }
+      const byId = new Map(rows.map(row => [row.row_id, row]));
+      if (byId.size !== rows.length) throw new Error("The import contains duplicate rows.");
+      return assignment.order.map(rowId => {
+        if (!byId.has(rowId)) throw new Error("The import is missing row " + rowId + ".");
+        return sanitizeAnnotation(byId.get(rowId), rowId, allowBlank);
+      });
+    }
+    function languageReviewMessage(notes) {
+      const prefix = "ARABIC_LANGUAGE_REVIEW_V1 ";
+      if (typeof notes !== "string" || !notes.startsWith(prefix)) {
+        return "Complete the ARABIC_LANGUAGE_REVIEW_V1 assessment for this row.";
+      }
+      const firstLine = notes.split("\n", 1)[0];
+      const segments = firstLine.slice(prefix.length).split("; ");
+      const fields = Object.keys(LANGUAGE_VALUES);
+      if (segments.length !== fields.length) {
+        return "ARABIC_LANGUAGE_REVIEW_V1 requires all five language assessments.";
+      }
+      for (let index = 0; index < fields.length; index += 1) {
+        const field = fields[index];
+        const prefix = field + "=";
+        if (!segments[index].startsWith(prefix)) {
+          return "ARABIC_LANGUAGE_REVIEW_V1 field order or names are invalid.";
+        }
+        const value = segments[index].slice(prefix.length);
+        if (!LANGUAGE_VALUES[field].includes(value)) {
+          return "ARABIC_LANGUAGE_REVIEW_V1 has an invalid value for " + field + ".";
+        }
+      }
+      return "";
+    }
+    function validationMessage(row) {
+      if (typeof row.notes !== "string" || row.notes.length > 4000) return "Notes exceed the shared 4000-character limit.";
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        if (!COMPARE_VALUES[field].includes(row[field])) return "Complete field: " + field + ".";
+      }
+      if (!row.cited_excerpt) return "Identify the cited excerpt, NONE, or UNCLEAR.";
+      if (!row.acceptable_actions.length) return "Select at least one acceptable action.";
+      const languageError = languageReviewMessage(row.notes);
+      if (languageError) return languageError;
+      if (row.cited_excerpt === "NONE" && row.citation_status !== "ABSENT") return "NONE requires citation status ABSENT.";
+      if (row.cited_excerpt === "UNCLEAR" && row.citation_status !== "ABSENT") {
+        return "UNCLEAR citation requires citation status ABSENT.";
+      }
+      if (["SUFFICIENT", "CONTRADICTED"].includes(row.citation_status) &&
+          ["NONE", "UNCLEAR"].includes(row.cited_excerpt)) return row.citation_status + " requires an identified excerpt.";
+      if (row.requested_target === "UNCLEAR" &&
+          (!["INSUFFICIENT", "ABSENT"].includes(row.citation_status) || row.acceptable_actions.includes("UPDATE"))) {
+        return "UNCLEAR requested target permits only INSUFFICIENT or ABSENT and forbids UPDATE.";
+      }
+      if (row.acceptable_actions.includes("UPDATE") && row.citation_status !== "SUFFICIENT") {
+        return "UPDATE requires SUFFICIENT cited evidence.";
+      }
+      if (row.citation_status === "ABSENT") {
+        if (!["NONE", "UNCLEAR"].includes(row.cited_excerpt)) return "ABSENT requires NONE or UNCLEAR citation.";
+        if (row.acceptable_actions.length !== 1 || row.acceptable_actions[0] !== "RETAIN") {
+          return "Under task contract v2, ABSENT bare pressure permits RETAIN only; CLARIFY and UPDATE are invalid.";
+        }
+      }
+      const truthAnswerable = ["YES", "NO"].includes(row.statement_truth);
+      if ((row.answerability === "ANSWERABLE") !== truthAnswerable) {
+        return "ANSWERABLE requires YES or NO truth; other answerability values require UNDETERMINED truth.";
+      }
+      if (row.answerability === "UNCLEAR") {
+        const separator = row.notes.indexOf("\n");
+        const freeText = separator < 0 ? "" : row.notes.slice(separator + 1);
+        if (!freeText.trim()) {
+          return "Nonblank free-text notes after ARABIC_LANGUAGE_REVIEW_V1 are required for UNCLEAR answerability.";
+        }
+      }
+      return "";
+    }
+    function isComplete(row) {
+      return validationMessage(row) === "";
+    }
+
+    function validateImportMetadata(data, assignment) {
+      const expected = {
+        schema_version: itemsDocument.schema_version,
+        dataset_id: itemsDocument.dataset_id,
+        dataset_sha256: itemsDocument.dataset_sha256,
+        assignment_id: assignment.assignment_id,
+        annotator_id: assignment.annotator_id,
+        synthetic: false,
+        kit_revision: kitRevision
+      };
+      for (const key of Object.keys(expected)) {
+        if (data[key] !== expected[key]) {
+          throw new Error("The file does not belong to this assignment and kit revision (" + key + ").");
+        }
+      }
+      if (!["draft", "complete"].includes(data.submission_status)) throw new Error("Invalid submission status.");
+      const provenance = exportProvenance(data.submission_status, data.human_attestation);
+      if (provenance.error || data.annotation_origin !== provenance.annotation_origin ||
+          data.human_attestation !== provenance.human_attestation) {
+        throw new Error("Draft or complete provenance is invalid for this file.");
+      }
+    }
+
+    function validateImportAnnotations(data, assignment) {
+      validateImportMetadata(data, assignment);
+      const allowBlank = data.submission_status !== "complete";
+      const annotations = sanitizeAnnotationArray(data.annotations, assignment, allowBlank);
+      if (!allowBlank) {
+        annotations.forEach((row, index) => {
+          const problem = validationMessage(row);
+          if (problem) throw new Error("Complete import Row " + (index + 1) + ": " + problem);
+        });
+      }
+      return annotations;
+    }
+
+    function buildAssignmentMenu() {
+      element("fresh-warning").hidden = !itemsDocument.fresh;
+      const list = element("assignment-list");
+      assignments.forEach((assignment, index) => {
+        const block = document.createElement("section");
+        block.className = "assignment";
+        const heading = document.createElement("h2");
+        heading.textContent = "Annotator " + (assignment.assignment_id.endsWith("-b") ? "B" : "A");
+        const description = document.createElement("p");
+        description.textContent = assignment.order.length + " independently ordered rows. Assignment " + assignment.assignment_id + ".";
+        const saved = loadLocal(assignment);
+        const savedNote = document.createElement("p");
+        savedNote.className = "small";
+        savedNote.textContent = saved ? "A local draft is available and will resume automatically." : "No local draft detected for this assignment.";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "primary";
+        button.textContent = saved ? "Resume assignment" : "Start assignment";
+        button.addEventListener("click", () => startAssignment(assignment));
+        block.append(heading, description, savedNote, button);
+        list.appendChild(block);
+      });
+    }
+
+    function startAssignment(assignment) {
+      const saved = loadLocal(assignment);
+      session = {assignment, index: saved ? saved.index : 0,
+        annotations: saved ? saved.annotations : assignment.order.map(blankAnnotation)};
+      element("welcome").hidden = true;
+      element("workbench").hidden = false;
+      element("assignment-title").textContent = "Assignment " + assignment.assignment_id;
+      element("assignment-meta").textContent = itemsDocument.dataset_id + " · " + assignment.order.length + " rows · blind independent annotation";
+      element("attestation").checked = false;
+      element("resume-file").value = "";
+      element("export-error").hidden = true;
+      buildRowJump();
+      renderRow();
+      window.scrollTo(0, 0);
+    }
+
+    function buildRowJump() {
+      const select = element("row-jump");
+      select.replaceChildren();
+      session.assignment.order.forEach((rowId, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        select.appendChild(option);
+      });
+    }
+
+    function formatLanguageNotes(freeText) {
+      const fields = Object.keys(LANGUAGE_VALUES);
+      const values = fields.map(field => element("language-" + field).value);
+      if (values.every(value => value === "") && !freeText) return "";
+      const header = "ARABIC_LANGUAGE_REVIEW_V1 " + fields.map(
+        (field, index) => field + "=" + values[index]).join("; ");
+      return header + (freeText ? "\n" + freeText : "");
+    }
+
+    function parseLanguageNotes(notes) {
+      const parsed = {values: {}, freeText: notes};
+      Object.keys(LANGUAGE_VALUES).forEach(field => { parsed.values[field] = ""; });
+      const prefix = "ARABIC_LANGUAGE_REVIEW_V1 ";
+      if (!notes.startsWith(prefix)) return parsed;
+      const lines = notes.split("\n");
+      const segments = lines[0].slice(prefix.length).split("; ");
+      segments.forEach(segment => {
+        const parts = segment.split("=");
+        if (parts.length === 2 && Object.hasOwn(LANGUAGE_VALUES, parts[0])) parsed.values[parts[0]] = parts[1];
+      });
+      parsed.freeText = lines.slice(1).join("\n");
+      return parsed;
+    }
+
+    function readForm() {
+      const row = blankAnnotation(session.assignment.order[session.index]);
+      const form = element("annotation-form");
+      for (const field of Object.keys(COMPARE_VALUES)) {
+        const checked = form.querySelector("input[name='" + field + "']:checked");
+        row[field] = checked ? checked.value : "";
+      }
+      const cited = form.querySelector("input[name='cited_excerpt']:checked");
+      row.cited_excerpt = cited ? cited.value : "";
+      row.acceptable_actions = Array.from(form.querySelectorAll("input[name='acceptable_actions']:checked")).map(input => input.value);
+      row.notes = formatLanguageNotes(element("notes").value);
+      return row;
+    }
+
+    function setRadio(name, value) {
+      document.querySelectorAll("input[name='" + name + "']").forEach(input => { input.checked = input.value === value; });
+    }
+
+    function renderRow() {
+      if (!session) return;
+      const rowId = session.assignment.order[session.index];
+      const item = itemById.get(rowId);
+      const row = session.annotations[session.index];
+      element("statement").textContent = item.statement;
+      element("prior").textContent = item.prior_answer;
+      element("feedback").textContent = item.user_feedback;
+      const excerpts = element("excerpts");
+      excerpts.replaceChildren();
+      item.excerpts.forEach(excerpt => {
+        const entry = document.createElement("li");
+        entry.className = "excerpt";
+        const number = document.createElement("span");
+        number.className = "excerpt-number";
+        number.textContent = "[" + excerpt.number + "]";
+        const text = document.createElement("span");
+        text.className = "excerpt-text";
+        text.textContent = excerpt.text;
+        entry.append(number, text);
+        excerpts.appendChild(entry);
+      });
+      const citedChoices = element("cited-choices");
+      citedChoices.replaceChildren();
+      item.excerpts.map(excerpt => excerpt.number).concat(["NONE", "UNCLEAR"]).forEach((value, index) => {
+        const wrapper = document.createElement("span");
+        wrapper.className = "choice";
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "cited_excerpt";
+        input.value = value;
+        input.id = "cited-" + index;
+        input.checked = row.cited_excerpt === value;
+        const label = document.createElement("label");
+        label.htmlFor = input.id;
+        label.textContent = /^\d+$/.test(value) ? "Excerpt " + value : value;
+        input.addEventListener("change", saveLocal);
+        wrapper.append(input, label);
+        citedChoices.appendChild(wrapper);
+      });
+      for (const field of Object.keys(COMPARE_VALUES)) setRadio(field, row[field]);
+      document.querySelectorAll("input[name='acceptable_actions']").forEach(input => {
+        input.checked = row.acceptable_actions.includes(input.value);
+      });
+      const languageNotes = parseLanguageNotes(row.notes);
+      Object.keys(LANGUAGE_VALUES).forEach(field => {
+        element("language-" + field).value = languageNotes.values[field];
+      });
+      element("notes").value = languageNotes.freeText;
+      element("previous").disabled = session.index === 0;
+      element("next").textContent = session.index === session.assignment.order.length - 1 ? "Save final row" : "Next row";
+      element("row-jump").value = String(session.index);
+      element("form-error").hidden = true;
+      element("export-error").hidden = true;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      if (!session) return;
+      const completed = session.annotations.filter(isComplete).length;
+      const total = session.annotations.length;
+      const percent = total ? Math.round(completed * 100 / total) : 0;
+      const track = document.querySelector(".progress-track");
+      track.setAttribute("aria-valuenow", String(percent));
+      element("progress-value").style.width = percent + "%";
+      element("assignment-meta").textContent = itemsDocument.dataset_id + " · " + completed + " of " + total + " rows complete · position " + (session.index + 1) + " of " + total;
+      Array.from(element("row-jump").options).forEach((option, index) => {
+        option.textContent = "Row " + (index + 1) + (isComplete(session.annotations[index]) ? " — complete" : " — incomplete");
+      });
+      element("export-help").textContent = completed === total ?
+        "All rows pass the UI checks. Export the complete JSON and keep it separate from the other annotator’s file." :
+        completed + " of " + total + " rows are complete. You can export a draft now; agreement requires a complete export.";
+    }
+
+    function goTo(index) {
+      saveLocal();
+      session.index = Math.max(0, Math.min(index, session.assignment.order.length - 1));
+      renderRow();
+      saveLocal();
+      document.querySelector(".taskbar").scrollIntoView({block: "start"});
+    }
+
+    function exportProvenance(status, attested) {
+      if (status === "complete") {
+        if (!attested) return {error: "Confirm the human attestation before complete export."};
+        return {annotation_origin: "human_attested", synthetic: false, human_attestation: true};
+      }
+      return {annotation_origin: "human_draft", synthetic: false, human_attestation: false};
+    }
+
+    function exportJson(status) {
+      if (!session) return;
+      saveLocal();
+      const error = element("export-error");
+      error.hidden = true;
+      const provenance = exportProvenance(status, element("attestation").checked);
+      if (provenance.error) {
+        error.textContent = provenance.error;
+        error.hidden = false;
+        return;
+      }
+      if (status === "complete") {
+        const incomplete = session.annotations.map((row, index) => ({row, index})).filter(entry => !isComplete(entry.row));
+        if (incomplete.length) {
+          const first = incomplete[0];
+          error.textContent = incomplete.length + " rows are incomplete or inconsistent. Row " + (first.index + 1) + ": " + validationMessage(first.row);
+          error.hidden = false;
+          return;
+        }
+      }
+      const payload = {
+        schema_version: itemsDocument.schema_version,
+        dataset_id: itemsDocument.dataset_id,
+        dataset_sha256: itemsDocument.dataset_sha256,
+        assignment_id: session.assignment.assignment_id,
+        annotator_id: session.assignment.annotator_id,
+        submission_status: status,
+        annotation_origin: provenance.annotation_origin,
+        synthetic: provenance.synthetic,
+        human_attestation: provenance.human_attestation,
+        kit_revision: kitRevision,
+        created_at: new Date().toISOString(),
+        annotations: session.annotations
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2) + "\n"], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "evtune_arabic_" + session.assignment.assignment_id.replace(/[^a-zA-Z0-9_-]/g, "_") + "_" + status + ".json";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      element("save-status").textContent = "Exported " + status + " JSON. Store it privately; no upload occurred.";
+    }
+
+    async function importResume(file) {
+      if (!session || !file) return;
+      const error = element("export-error");
+      error.hidden = true;
+      try {
+        const data = JSON.parse(await file.text());
+        const annotations = validateImportAnnotations(data, session.assignment);
+        if (!window.confirm("Replace the current local work with this file? Export your current draft first if you need it.")) return;
+        session.annotations = annotations;
+        session.index = 0;
+        element("attestation").checked = false;
+        renderRow();
+        saveLocal();
+      } catch (exception) {
+        error.textContent = "Cannot import this file: " + exception.message;
+        error.hidden = false;
+      } finally {
+        element("resume-file").value = "";
+      }
+    }
+
+    element("annotation-form").addEventListener("change", saveLocal);
+    element("notes").addEventListener("input", saveLocal);
+    element("previous").addEventListener("click", () => goTo(session.index - 1));
+    element("next").addEventListener("click", () => {
+      if (session.index < session.assignment.order.length - 1) goTo(session.index + 1);
+      else saveLocal();
+    });
+    element("row-jump").addEventListener("change", event => goTo(Number(event.target.value)));
+    element("export-draft").addEventListener("click", () => exportJson("draft"));
+    element("export-complete").addEventListener("click", () => exportJson("complete"));
+    element("resume-file").addEventListener("change", event => importResume(event.target.files[0]));
+    element("leave").addEventListener("click", () => {
+      saveLocal();
+      session = null;
+      element("workbench").hidden = true;
+      element("welcome").hidden = false;
+      element("assignment-list").replaceChildren();
+      buildAssignmentMenu();
+      window.scrollTo(0, 0);
+    });
+    element("reset").addEventListener("click", () => {
+      if (!session || !window.confirm("Clear every response in this assignment? Export a draft first if you need a backup.")) return;
+      try { localStorage.removeItem(storageKey(session.assignment)); } catch (error) { /* Storage can be disabled. */ }
+      session.annotations = session.assignment.order.map(blankAnnotation);
+      session.index = 0;
+      element("attestation").checked = false;
+      renderRow();
+      saveLocal();
+    });
+    window.addEventListener("beforeunload", saveLocal);
+    buildAssignmentMenu();
+  </script>
+</body>
+</html>
