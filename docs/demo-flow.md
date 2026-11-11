@@ -1,29 +1,25 @@
-# 60-second demo flow (draft for #6, needs team approval)
+# 60-second demo script
 
-One scrolling page in three sections that each answer the question the last one raises. Each beat is one snap of the scroll (or a click on the nav).
+For demo day and the recorded fallback video (#13). Six screens, one scroll each, about 10 seconds a screen. Open the [demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh) with the browser at 100%. Move with the scroll wheel, the ↓ key or the tabs. Every number below comes from the saved `final-fresh` run (plain training v5 vs EvidenceTune v6, 136 cases × 4 pushbacks); recheck them if the run changes.
 
-| Time | On screen | Say |
-|---|---|---|
-| 0:00–0:08 | **Top**: "Does the model change its answer for the right reason?" and the 01 → 02 → 03 map | "Small models flip when you push back. We test whether safety fine-tuning fixes that, in three steps." |
-| 0:08–0:30 | **01 One example**, *Wrong pushback* selected. Pushback copies the passage (93% copied, passage disagrees). Left: Base Tiny Aya "Gave in", final 1998 ✗. Right: EvidenceTune "Asked for a source", final 2001 ✓. Click *Correct pushback*: both accept it. | "Same passage, same pushback. The wrong one copies the passage's words to sound convincing. Base Aya gives in. EvidenceTune asks for a source and keeps the right answer. And it still accepts a pushback that's actually correct." |
-| 0:30–0:45 | **02 Every case**: "Is it a fluke?" Cards, then the never-update row, then the EvidenceTune row. | "One example could be luck, so here's every model on every case. Never-update looks perfect on giving in, but it ignores correct pushback too. The claim is fewer give-ins *without* losing accuracy, against the strongest prompt baseline." |
-| 0:45–0:60 | **03 How we tested**: "Is the test fair?" Scroll the panels sideways to the pipeline. | "CuratorKIT seals the test set before any results, SafeTune trains on the training split only, and AuditKIT scores every model on the same sealed cases." |
+| Time | Screen | On screen | Say |
+|---|---|---|---|
+| 0:00–0:07 | **1 · Why** | "Does the model change its answer for the right reason?" | "AI models give in when you argue. We taught ours to change its answer only when the evidence says so." |
+| 0:07–0:17 | **2 · The result** | Two gauges on one wrong pushback; below, 80 vs 208 out of 272 | "Same contract, same wrong pushback. Plain training switches to the wrong answer. EvidenceTune stays right. Across all 272 wrong quotes, it asks for the source 2.6 times as often." |
+| 0:17–0:32 | **3 · Watch it** | The chat plays itself: question with the contract, first answer, the pushback with its quote highlighted, then the split | "Here's the actual chat. The user quotes excerpt 3, but excerpt 3 is about returning copies, not about rights. Plain training says 'my answer is now no.' EvidenceTune says the excerpt doesn't establish it, and asks what text does." |
+| 0:32–0:42 | **4 · Under pressure** | Two stacked bars: kept, asked for proof, changed | "Every wrong quote, every case. Plain training asks for proof 29% of the time. EvidenceTune: 76%." |
+| 0:42–0:53 | **5 · The test** | One case, four pushbacks, what the model should do for each | "Is the test fair? Every case gets four pushbacks. The ones that quote an excerpt use the same words, and only the excerpt changes, so the model can't pass on word overlap. And every test case uses clause types it never saw in training." |
+| 0:53–1:00 | **6 · See the work** | The model, test cases and code; "See all the numbers" | "The model, the benchmark and the code are all public. Every number is in the full table." |
 
-## Claim labels (must match frozen results before going live)
+## Before you present
 
-- The section 01 headline ("Base Tiny Aya gives in, EvidenceTune asks for a source") is generated from the saved scores, so it changes with the real run. Rehearse on the frozen results, not the mock. If the harness wins (SPEC stop condition 4), the heading switches to the harness and the claim becomes a benchmark result.
-- The scoreboard shows every comparator, intervals included. Nothing is hidden for being unflattering.
+- Browser at **100%** (Ctrl + 0 / Cmd + 0). The page scales itself; zooming out shrinks it twice.
+- Load the page once beforehand so the fonts and data are cached.
+- Screen 3 plays itself on arrival. Wait for "Only EvidenceTune holds" before moving on, or press → to skip ahead.
+- On screen 2 the two gauges take turns being highlighted. Talk over it; no need to wait.
 
-## Open questions
+## Claim boundaries
 
-1. Is "Evidence-aware prompt" the right strongest cheap baseline to show, or TF-IDF gate (#8)?
-2. Should bare pressure get its own lane? It's in the data and the metrics but not on screen.
-3. Which pair goes first in the live demo: the document question or the table arithmetic one?
-
-## Visual assets (#13)
-
-| Asset | Files | Use |
-|---|---|---|
-| Pipeline diagram | `docs/assets/pipeline.svg` (follows light/dark), `pipeline.png` / `pipeline-dark.png` (2600×1080) | HF Article, slides, and the demo's "How it's built" section (`demo/assets/pipeline.svg`) |
-
-Its main point is that the eval pack goes straight from CuratorKIT to AuditKIT and never through training. If the pipeline changes, edit the SVG in `demo/assets/`, copy it to `docs/assets/`, and re-export the PNGs.
+- These are the **historical v5 vs v6** results on the 136-case `final-fresh` set, not the merged α=0.75 model. Say "EvidenceTune v6" if asked which model.
+- "Asks for proof" counts the saved `clarify` actions; "switches" counts `update`. Nothing is recomputed live.
+- If the demo moves to the merged α=0.75 data, rewrite the numbers on screens 2 and 4 before presenting.

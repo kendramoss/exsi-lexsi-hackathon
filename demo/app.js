@@ -51,6 +51,10 @@
   const caseOf = (fam, cond) => cases.find((c) => c.family_id === fam && c.feedback_condition === cond);
   // The nav bar's height comes from the --nav CSS variable, so JS and CSS never disagree.
   const navH = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--nav")) || 49;
+  // The page scales itself to 80% on desktop (CSS zoom on the root). On-screen positions, scrollY and the window size
+  // are in screen pixels; offsetHeight, scrollHeight and CSS lengths are in the page's own pixels. Z converts.
+  const Z = () => parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+  const navPx = () => navH() * Z();   // the nav bar's height on screen
   const predOf = (id, pol) => preds.find((r) => r.case_id === id && r.policy === pol);
   const comp = (id) => metrics.comparators.find((c) => c.id === id);
   // Plain-language names for people who don't know the models; the technical name stays in hover titles.
@@ -230,7 +234,7 @@
   function centerPush(animate) {
     const trunk = convoWins.trunk, bub = trunk && trunk.querySelector(".chat-row.push .bubble");
     if (!bub) return;
-    const z = parseFloat(getComputedStyle($("#convo")).zoom) || 1;
+    const z = (parseFloat(getComputedStyle($("#convo")).zoom) || 1) * Z();
     bub.style.transition = "none"; bub.style.translate = "0px 0px";
     const tr = trunk.getBoundingClientRect(), br = bub.getBoundingClientRect();
     const dx = ((tr.left + tr.width / 2) - (br.left + br.width / 2)) / z;
@@ -912,7 +916,7 @@
     // Sections taller than the screen snap to their top instead of the centre.
     // "Tall" means the content (not the padding around it) is taller than the screen.
     const contentH = (s) => { const cs = getComputedStyle(s); return s.scrollHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); };
-    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) > innerHeight - navH()));
+    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) * Z() > innerHeight - navPx()));
     addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
     addEventListener("resize", () => { sizes(); update(); });
     new ResizeObserver(sizes).observe(document.body);
@@ -939,13 +943,13 @@
   // showcase, normal scrolling continues until its edge. Off on phones.
   function pager(secs) {
     // Read live: the nav height changes between the phone and desktop layouts.
-    let NAV = navH();
-    addEventListener("resize", () => { NAV = navH(); });
+    let NAV = navPx();
+    addEventListener("resize", () => { NAV = navPx(); });
     const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
     const targetY = (s) => {
-      const top = s.getBoundingClientRect().top + scrollY, h = s.offsetHeight, vh = innerHeight - NAV;
-      const pad = parseFloat(getComputedStyle(s).paddingTop) || 0;
+      const r = s.getBoundingClientRect(), top = r.top + scrollY, h = r.height, vh = innerHeight - NAV;
+      const pad = (parseFloat(getComputedStyle(s).paddingTop) || 0) * Z();
       return Math.max(0, !s.classList.contains("tall") ? top + h / 2 - (NAV + vh / 2) : top - NAV + Math.max(0, pad - 32));
     };
     const current = () => {
@@ -955,7 +959,7 @@
     // Can this section still scroll natively in direction dir? (content only; padding hanging off an edge doesn't count)
     const moreInside = (cur, dir) => {
       const r = cur.getBoundingClientRect(), cs = getComputedStyle(cur);
-      return dir > 0 ? r.bottom - parseFloat(cs.paddingBottom) > innerHeight + 2 : r.top + parseFloat(cs.paddingTop) < NAV - 2;
+      return dir > 0 ? r.bottom - parseFloat(cs.paddingBottom) * Z() > innerHeight + 2 : r.top + parseFloat(cs.paddingTop) * Z() < NAV - 2;
     };
 
     let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0, queued = null, fading = false;
@@ -1192,9 +1196,10 @@
     };
     // How high each column may stack: under the text only up to the button, at the sides about half the screen.
     function caps(cols) {
-      const b = box.getBoundingClientRect();
-      const cue = $("#top .cue").getBoundingClientRect();
-      const words = [...box.parentElement.querySelectorAll(".stage > *")].map((e) => e.getBoundingClientRect());
+      const z = Z(), page = (r) => ({ left: r.left / z, right: r.right / z, top: r.top / z, bottom: r.bottom / z, height: r.height / z });
+      const b = page(box.getBoundingClientRect());
+      const cue = page($("#top .cue").getBoundingClientRect());
+      const words = [...box.parentElement.querySelectorAll(".stage > *")].map((e) => page(e.getBoundingClientRect()));
       const left = Math.min(...words.map((r) => r.left)) - b.left - 24;
       const right = Math.max(...words.map((r) => r.right)) - b.left + 24;
       const low = Math.max(1, Math.floor((b.bottom - cue.bottom - 24) / C));
