@@ -51,11 +51,7 @@ blind kit rows ──► label: each teacher × N samples (structured JSON, the 
 
 ## Run it
 
-```bash
-pip install -r teacher/requirements.txt
-```
-
-`label` and `judge` call the Claude API: credentials come from `ANTHROPIC_API_KEY` or an `ant auth login` profile. Everything else is offline.
+Teachers run through a **local headless Claude Code CLI** (`claude -p`), using the login it already has: no API key, no SDK, nothing to install beyond Claude Code itself. Each call replaces Claude Code's system prompt with the annotation guide, disables every tool, loads no settings, MCP servers or session history, runs in an empty temporary directory, and forces the answer into a JSON schema (`--json-schema`). The teacher sees only the guide and one blind row. `label` and `judge` call the CLI; everything else is offline.
 
 ```bash
 python teacher/run.py label annotation/pilot --out teacher/runs/pilot
@@ -89,9 +85,15 @@ Only for kits that allow training:
 python teacher/run.py export-train annotation/pilot --out teacher/runs/pilot
 ```
 
-Defaults: teachers `claude-fable-5-2` and `claude-opus-5-5`, 2 samples each, judge `claude-fable-5-2`, effort `high`, adaptive thinking, the guide sent as a cached system prompt. Server-side refusal fallbacks are on; the record keeps the model that actually served each label (`served_model`). `label` and `judge` are resumable: re-running skips finished rows. Every record stores the prompt and guide SHA-256 so a label can be tied to the exact instructions that produced it.
+Defaults: teachers `claude-fable-5-2` and `claude-opus-5-5`, 2 samples each, judge `claude-fable-5-2`, effort `high`, 4 parallel CLI processes (`--workers`). Each record keeps the model that actually served it (`served_model`) and the CLI's reported cost. `label` and `judge` are resumable: re-running skips finished rows. Every record stores the prompt and guide SHA-256 so a label can be tied to the exact instructions that produced it.
 
-Cost: a 48-row kit with the defaults is 192 teacher calls plus one judge call per conflicting row. Run `label` on a handful of rows first and check `report.md` before labelling a whole kit.
+Cost (measured, Nov 2026): about $0.07 per Opus label and $0.13 per Fable label, so roughly $0.40 per row with the defaults. Try `--limit 2` first and read `report.md` before labelling a whole kit.
+
+The template benchmark (`data/benchmark`, a different label format) has its own blind labeller:
+
+```bash
+python teacher/label_template.py --out annotation/teacher-v1
+```
 
 ## Outputs (in `--out`)
 
@@ -110,4 +112,4 @@ Cost: a 48-row kit with the defaults is 192 teacher calls plus one judge call pe
 python3 -m unittest discover -s teacher/tests
 ```
 
-The tests use a fake client, so they check the pipeline's logic (gating, consensus, judging, tiers, audit, export guards), not any model's labelling quality. The live API path has not been run from this repository yet.
+The tests use a fake runner, so they check the pipeline's logic (the locked-down CLI command, gating, consensus, judging, tiers, audit, export guards), not any model's labelling quality.

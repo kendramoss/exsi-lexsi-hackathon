@@ -4,7 +4,8 @@ EvidenceTune distills the judgement of frontier "teacher" models (Claude Fable, 
 into a small student (Tiny Aya). This module produces and validates the teacher labels:
 
   1. label     every blind kit row is labelled by each teacher model, several samples each,
-               under the kit's own annotation guide, with structured (JSON-schema) output;
+               under the kit's own annotation guide, with structured (JSON-schema) output,
+               through a local headless Claude Code CLI (`claude -p`): no API key or SDK;
   2. gate      every label must pass the kit's deterministic task.v2 contract
                (annotation_lib.validate_annotation); failures are kept and counted, never used;
   3. agree     teachers' modal labels are compared field by field (agreement, Cohen's kappa)
@@ -42,7 +43,6 @@ from annotation_lib import (  # noqa: E402
 DEFAULT_TEACHERS = ("claude-fable-5-2", "claude-opus-5-5")
 DEFAULT_JUDGE = "claude-fable-5-2"
 PIPELINE_VERSION = "teacher-v1"
-FALLBACK_BETA = "server-side-fallback-2026-07-01"
 LABEL_FIELDS = COMPARE_FIELDS + ("acceptable_actions",)
 
 # JSON schema for one teacher label. cited_excerpt stays a free string here (the valid IDs differ
@@ -154,57 +154,88 @@ def label_key(annotation: dict) -> tuple:
 
 # --------------------------------------------------------------------------- model calls
 
-def call_model(client, model: str, system: str, user: str, schema: dict, effort: str,
-               fallbacks: bool) -> dict:
-    """One structured-output request. Returns what the record needs, including the served model."""
-    kwargs = dict(
-        model=model,
-        max_tokens=16000,
-        thinking={"type": "adaptive"},
-        output_config={"effort": effort, "format": {"type": "json_schema", "schema": schema}},
-        system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
-        messages=[{"role": "user", "content": user}],
-    )
-    if fallbacks:
-        stream = client.beta.messages.stream(betas=[FALLBACK_BETA], fallbacks="default", **kwargs)
-    else:
-        stream = client.messages.stream(**kwargs)
-    with stream as s:
-        msg = s.get_final_message()
-    text = next((b.text for b in msg.content if getattr(b, "type", None) == "text"), "")
-    return {
-        "served_model": getattr(msg, "model", model),
-        "stop_reason": msg.stop_reason,
-        "request_id": getattr(msg, "_request_id", None),
-        "raw_text": text,
-        "usage": {k: getattr(msg.usage, k, None) for k in ("input_tokens", "output_tokens",
-                                                          "cache_read_input_tokens")},
-    }
+class ClaudeCLI:
+    """Runs one teacher call through a local headless Claude Code CLI (`claude -p`).
+
+    No API key or SDK is involved: the CLI uses whatever login it already has. Each call replaces
+    Claude Code's own system prompt with ours, disables every tool, loads no settings, MCP servers
+    or session history, and runs in an empty working directory, so the teacher sees only the guide
+    and the blind row. The answer is forced into `schema` with --json-schema.
+    """
+
+    def __init__(self, binary: str = "claude", timeout: int = 900, workdir: Path | None = None):
+        self.binary, self.timeout = binary, timeout
+        self.workdir = Path(workdir) if workdir else None
+
+    def __call__(self, model: str, system: str, user: str, schema: dict, effort: str) -> dict:
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory(dir=self.workdir) as tmp:
+            sys_file = Path(tmp) / "system.txt"
+            sys_file.write_text(system, encoding="utf-8")
+            cmd = [self.binary, "-p", "--output-format", "json", "--model", model, "--effort", effort,
+                   "--system-prompt-file", str(sys_file), "--json-schema", json.dumps(schema),
+                   "--tools", "", "--strict-mcp-config", "--setting-sources", "", "--no-session-persistence"]
+            proc = subprocess.run(cmd, input=user, capture_output=True, text=True, timeout=self.timeout, cwd=tmp)
+        try:
+            out = json.loads(proc.stdout)
+        except ValueError:
+            raise RuntimeError(f"claude exited {proc.returncode}: {(proc.stderr or proc.stdout)[-500:]}")
+        structured = out.get("structured_output")
+        failed = out.get("is_error") or out.get("subtype") != "success"
+        return {
+            "served_model": ",".join(out.get("modelUsage", {})) or model,
+            "stop_reason": "error" if failed else ("end_turn" if structured is not None else "no_structured_output"),
+            "error_detail": out.get("result") if failed else None,
+            "session_id": out.get("session_id"),
+            "raw_text": json.dumps(structured) if structured is not None else (out.get("result") or ""),
+            "usage": {k: out.get("usage", {}).get(k) for k in ("input_tokens", "output_tokens",
+                                                               "cache_read_input_tokens")},
+            "cost_usd": out.get("total_cost_usd"),
+        }
 
 
-def label_rows(kit: Kit, client, teachers=DEFAULT_TEACHERS, samples: int = 2, effort: str = "high",
-               fallbacks: bool = True, done: set | None = None, log=print):
-    """Yield one raw record per (row, teacher, sample). Skips keys already in `done`."""
+def _parallel(jobs, workers: int):
+    """Run zero-argument callables, yielding results as they finish (in completion order)."""
+    if workers <= 1:
+        for job in jobs:
+            yield job()
+        return
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for fut in as_completed([pool.submit(j) for j in jobs]):
+            yield fut.result()
+
+
+def label_rows(kit: Kit, runner, teachers=DEFAULT_TEACHERS, samples: int = 2, effort: str = "high",
+               done: set | None = None, workers: int = 1, limit: int | None = None, log=print):
+    """Yield one raw record per (row, teacher, sample). Skips keys already in `done`.
+    `runner(model, system, user, schema, effort)` makes the call (ClaudeCLI, or a fake in tests)."""
     system = LABEL_INSTRUCTIONS + kit.guide
     guide_sha = sha256_text(kit.guide)
-    for item in kit.items:
+
+    def job(item, model, k, key):
         user = render_item(item)
+        rec = {"key": key, "kind": "label", "row_id": item["row_id"], "teacher": model,
+               "sample": k, "dataset_id": kit.dataset_id, "pipeline": PIPELINE_VERSION,
+               "guide_sha256": guide_sha, "prompt_sha256": sha256_text(system + "\n" + user),
+               "created_at": now()}
+        try:
+            rec.update(runner(model, system, user, LABEL_SCHEMA, effort))
+        except Exception as e:  # recorded, not fatal: a failed call is an invalid sample
+            rec.update({"error": f"{type(e).__name__}: {e}"})
+        rec.update(gate(rec, item))
+        log(f"{key}: {'ok' if rec['valid'] else 'INVALID ' + rec['invalid_reason']}")
+        return rec
+
+    jobs = []
+    for item in kit.items[:limit]:
         for model in teachers:
             for k in range(samples):
                 key = f"{item['row_id']}|{model}|{k}"
-                if done and key in done:
-                    continue
-                rec = {"key": key, "kind": "label", "row_id": item["row_id"], "teacher": model,
-                       "sample": k, "dataset_id": kit.dataset_id, "pipeline": PIPELINE_VERSION,
-                       "guide_sha256": guide_sha, "prompt_sha256": sha256_text(system + "\n" + user),
-                       "created_at": now()}
-                try:
-                    rec.update(call_model(client, model, system, user, LABEL_SCHEMA, effort, fallbacks))
-                except Exception as e:  # recorded, not fatal: a failed call is an invalid sample
-                    rec.update({"error": f"{type(e).__name__}: {e}"})
-                rec.update(gate(rec, item))
-                log(f"{key}: {'ok' if rec['valid'] else 'INVALID ' + rec['invalid_reason']}")
-                yield rec
+                if not (done and key in done):
+                    jobs.append(lambda item=item, model=model, k=k, key=key: job(item, model, k, key))
+    yield from _parallel(jobs, workers)
 
 
 def gate(rec: dict, item: dict) -> dict:
@@ -215,6 +246,8 @@ def gate(rec: dict, item: dict) -> dict:
         return {"valid": False, "invalid_reason": "refusal", "annotation": None}
     if rec.get("stop_reason") == "max_tokens":
         return {"valid": False, "invalid_reason": "truncated", "annotation": None}
+    if rec.get("stop_reason") in ("error", "no_structured_output"):
+        return {"valid": False, "invalid_reason": f"cli: {rec['stop_reason']}", "annotation": None}
     try:
         label = json.loads(rec.get("raw_text") or "")
         annotation = validate_annotation(to_annotation(item["row_id"], label), item)
@@ -223,12 +256,13 @@ def gate(rec: dict, item: dict) -> dict:
     return {"valid": True, "invalid_reason": None, "annotation": annotation}
 
 
-def judge_rows(kit: Kit, client, conflicts: dict, judge: str = DEFAULT_JUDGE, effort: str = "high",
-               fallbacks: bool = True, log=print):
+def judge_rows(kit: Kit, runner, conflicts: dict, judge: str = DEFAULT_JUDGE, effort: str = "high",
+               workers: int = 1, log=print):
     """Ask the judge to choose among the distinct candidate labels of each conflicting row."""
     system = JUDGE_INSTRUCTIONS + kit.guide
     items = {it["row_id"]: it for it in kit.items}
-    for row_id, candidates in conflicts.items():
+
+    def job(row_id, candidates):
         letters = [chr(ord("A") + i) for i in range(len(candidates))]
         body = [render_item(items[row_id]), "", "Candidate labels:"]
         for letter, cand in zip(letters, candidates):
@@ -240,7 +274,7 @@ def judge_rows(kit: Kit, client, conflicts: dict, judge: str = DEFAULT_JUDGE, ef
                "dataset_id": kit.dataset_id, "pipeline": PIPELINE_VERSION,
                "prompt_sha256": sha256_text(system + "\n" + user), "created_at": now()}
         try:
-            rec.update(call_model(client, judge, system, user, JUDGE_SCHEMA, effort, fallbacks))
+            rec.update(runner(judge, system, user, JUDGE_SCHEMA, effort))
             out = json.loads(rec["raw_text"])
             choice = out["choice"].strip().upper()
             rec["choice"] = choice if choice in letters else "AMBIGUOUS"
@@ -248,7 +282,9 @@ def judge_rows(kit: Kit, client, conflicts: dict, judge: str = DEFAULT_JUDGE, ef
         except Exception as e:
             rec.update({"choice": "AMBIGUOUS", "error": f"{type(e).__name__}: {e}"})
         log(f"{rec['key']}: {rec['choice']}")
-        yield rec
+        return rec
+
+    yield from _parallel([lambda r=r, c=c: job(r, c) for r, c in conflicts.items()], workers)
 
 
 def _jsonable(v):

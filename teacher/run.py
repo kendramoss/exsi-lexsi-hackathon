@@ -8,8 +8,8 @@
   python teacher/run.py export-train KIT --out DIR      # refuses evaluation-only kits
 
 KIT is a task.v2 kit directory holding items.json (and manifest.json), e.g. annotation/pilot.
-`label` and `judge` call the Claude API (pip install -r teacher/requirements.txt; credentials from
-ANTHROPIC_API_KEY or an `ant auth login` profile). The other commands are offline.
+`label` and `judge` run teachers through a local headless Claude Code CLI (`claude -p`), using its
+existing login: no API key and no SDK. The other commands are offline.
 """
 
 from __future__ import annotations
@@ -43,11 +43,6 @@ def append_jsonl(path: Path, recs) -> int:
 def write_json(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-
-def make_client():
-    import anthropic  # only the API-calling commands need the SDK
-    return anthropic.Anthropic()
 
 
 def build(kit, out: Path, teachers):
@@ -91,19 +86,21 @@ def main(argv=None) -> int:
     ap.add_argument("--judge-model", default=P.DEFAULT_JUDGE)
     ap.add_argument("--samples", type=int, default=2)
     ap.add_argument("--effort", default="high", choices=["low", "medium", "high", "xhigh", "max"])
-    ap.add_argument("--no-fallbacks", action="store_true", help="don't use server-side refusal fallbacks")
+    ap.add_argument("--workers", type=int, default=4, help="parallel claude processes")
+    ap.add_argument("--limit", type=int, help="label: only the first N rows (trial runs)")
+    ap.add_argument("--claude-bin", default="claude", help="path to the Claude Code CLI")
     ap.add_argument("--n", type=int, default=15, help="audit-sample: consensus rows to sample")
     ap.add_argument("--seed", default="teacher-audit-v1")
     ap.add_argument("--human", type=Path, help="audit-score: a kit export JSON with human annotations")
     a = ap.parse_args(argv)
     kit = P.Kit.load(a.kit, a.guide)
     out = a.out
-    fallbacks = not a.no_fallbacks
+    runner = P.ClaudeCLI(a.claude_bin)
 
     if a.command == "label":
         done = {r["key"] for r in read_jsonl(out / "raw_labels.jsonl")}
         n = append_jsonl(out / "raw_labels.jsonl",
-                         P.label_rows(kit, make_client(), a.teachers, a.samples, a.effort, fallbacks, done))
+                         P.label_rows(kit, runner, a.teachers, a.samples, a.effort, done, a.workers, a.limit))
         print(f"{n} new label record(s) in {out / 'raw_labels.jsonl'}")
         return 0
 
@@ -111,7 +108,7 @@ def main(argv=None) -> int:
         rows, conflicts, *_ = build(kit, out, a.teachers)
         judged = {j["row_id"] for j in read_jsonl(out / "judgements.jsonl")}
         todo = {r: c for r, c in conflicts.items() if r not in judged}
-        n = append_jsonl(out / "judgements.jsonl", P.judge_rows(kit, make_client(), todo, a.judge_model, a.effort, fallbacks))
+        n = append_jsonl(out / "judgements.jsonl", P.judge_rows(kit, runner, todo, a.judge_model, a.effort, a.workers))
         print(f"{n} judgement(s); {len(conflicts)} conflicting row(s) in total")
         return 0
 

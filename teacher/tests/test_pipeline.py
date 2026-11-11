@@ -27,37 +27,18 @@ UPDATE = dict(statement_truth="YES", requested_target="YES", cited_excerpt="1",
 BROKEN = dict(UPDATE, citation_status="ABSENT")  # violates the task.v2 contract
 
 
-class FakeStream:
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *a):
-        return False
-
-    def get_final_message(self):
-        return self.msg
-
-
-class FakeClient:
-    """script(model, user_text) -> (payload dict | raw str, stop_reason)."""
+class FakeRunner:
+    """Stands in for ClaudeCLI. script(model, user_text) -> (payload dict | raw str, stop_reason)."""
 
     def __init__(self, script):
         self.script = script
         self.calls = []
-        self.messages = SimpleNamespace(stream=self._stream)
-        self.beta = SimpleNamespace(messages=SimpleNamespace(stream=self._stream))
 
-    def _stream(self, **kw):
-        self.calls.append(kw)
-        payload, stop = self.script(kw["model"], kw["messages"][0]["content"])
+    def __call__(self, model, system, user, schema, effort):
+        self.calls.append(dict(model=model, system=system, user=user, schema=schema, effort=effort))
+        payload, stop = self.script(model, user)
         text = payload if isinstance(payload, str) else json.dumps(payload)
-        msg = SimpleNamespace(content=[SimpleNamespace(type="text", text=text)], model=kw["model"],
-                              stop_reason=stop, usage=SimpleNamespace(input_tokens=1, output_tokens=1,
-                                                                      cache_read_input_tokens=0))
-        return FakeStream(msg)
+        return {"served_model": model, "stop_reason": stop, "raw_text": text, "usage": {}, "cost_usd": 0.0}
 
 
 class PipelineTests(unittest.TestCase):
@@ -86,24 +67,56 @@ class PipelineTests(unittest.TestCase):
     def run_all(self, tmp: Path):
         self.assertIn(self.rows[1], self.has1)
         self.assertIn(self.rows[2], self.has1)
-        client = FakeClient(self.script)
+        client = FakeRunner(self.script)
         recs = list(P.label_rows(self.kit, client, samples=2, log=lambda *_: None))
         R.append_jsonl(tmp / "raw_labels.jsonl", recs)
         rows, conflicts, *_ = R.build(self.kit, tmp, P.DEFAULT_TEACHERS)
-        judge = FakeClient(lambda m, u: ({"choice": "A" if self.rows[1] in u else "AMBIGUOUS",
+        judge = FakeRunner(lambda m, u: ({"choice": "A" if self.rows[1] in u else "AMBIGUOUS",
                                           "rationale": "r"}, "end_turn"))
         R.append_jsonl(tmp / "judgements.jsonl", P.judge_rows(self.kit, judge, conflicts, log=lambda *_: None))
         return client, recs
 
-    def test_label_requests_use_structured_output_and_fallbacks(self):
-        client = FakeClient(self.script)
-        list(P.label_rows(self.kit, client, samples=1, log=lambda *_: None))
-        kw = client.calls[0]
-        self.assertEqual(kw["output_config"]["format"]["type"], "json_schema")
-        self.assertEqual(kw["thinking"], {"type": "adaptive"})
-        self.assertEqual(kw["fallbacks"], "default")
-        self.assertIn("cache_control", kw["system"][0])
-        self.assertEqual(len(client.calls), len(self.rows) * len(P.DEFAULT_TEACHERS))
+    def test_label_requests_carry_guide_schema_and_row(self):
+        runner = FakeRunner(self.script)
+        list(P.label_rows(self.kit, runner, samples=1, log=lambda *_: None))
+        call = runner.calls[0]
+        self.assertEqual(call["schema"], P.LABEL_SCHEMA)
+        self.assertTrue(call["system"].startswith(P.LABEL_INSTRUCTIONS))
+        self.assertIn(self.kit.guide, call["system"])
+        self.assertTrue(call["user"].startswith("Row: "))
+        self.assertEqual(len(runner.calls), len(self.rows) * len(P.DEFAULT_TEACHERS))
+
+    def test_parallel_matches_serial(self):
+        serial = list(P.label_rows(self.kit, FakeRunner(self.script), samples=1, log=lambda *_: None))
+        par = list(P.label_rows(self.kit, FakeRunner(self.script), samples=1, workers=4, log=lambda *_: None))
+        strip = lambda rs: sorted((r["key"], r["valid"]) for r in rs)
+        self.assertEqual(strip(serial), strip(par))
+
+    def test_cli_runner_command(self):
+        """ClaudeCLI builds a locked-down headless command and reads structured_output."""
+        import subprocess
+        seen = {}
+
+        def fake_run(cmd, input, capture_output, text, timeout, cwd):
+            seen.update(cmd=cmd, input=input, cwd=cwd)
+            out = {"is_error": False, "subtype": "success", "structured_output": {"x": 1},
+                   "modelUsage": {"claude-opus-5-5": {}}, "usage": {}, "total_cost_usd": 0.01}
+            return subprocess.CompletedProcess(cmd, 0, json.dumps(out), "")
+
+        orig, subprocess.run = subprocess.run, fake_run
+        try:
+            res = P.ClaudeCLI()("claude-opus-5-5", "SYS", "ROW", {"type": "object"}, "high")
+        finally:
+            subprocess.run = orig
+        cmd = seen["cmd"]
+        self.assertEqual(cmd[:2], ["claude", "-p"])
+        self.assertEqual(cmd[cmd.index("--tools") + 1], "")
+        self.assertEqual(cmd[cmd.index("--setting-sources") + 1], "")
+        for flag in ("--system-prompt-file", "--json-schema", "--strict-mcp-config", "--no-session-persistence"):
+            self.assertIn(flag, cmd)
+        self.assertEqual(seen["input"], "ROW")
+        self.assertEqual(json.loads(res["raw_text"]), {"x": 1})
+        self.assertEqual(res["stop_reason"], "end_turn")
 
     def test_gate_rejects_bad_outputs(self):
         client, recs = self.run_all(Path(tempfile.mkdtemp()))
