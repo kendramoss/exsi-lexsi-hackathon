@@ -21,7 +21,7 @@ The initial [model](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.
 - [ ] Make `release/replay_evidence.py` the saved-evidence verification path; publish its lock and custom scorers.
 - [ ] Require a **fresh output root** for every authorized new generation. Never overwrite stored raw artifacts or train/tune on frozen cases.
 - [ ] Include exact offline test commands and counts, environment/backend boundaries, and no-paid-job instructions.
-- [ ] Explain resolution denominators 38/50 versus 27/34 and state that raw-base→merged contract-v2 improvement is unmeasured.
+- [ ] Explain resolution denominators 38/50 versus 27/34 and describe the post-selection raw-base arm without treating it as a candidate.
 
 ## Hugging Face Article
 

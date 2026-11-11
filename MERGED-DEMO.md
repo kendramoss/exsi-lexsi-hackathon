@@ -20,7 +20,7 @@ Use `scoreboards.semantic_frozen_test` and `scoreboards.v8_targeted_frozen_test`
 | Targeted frozen | Task success | 91.48% | **93.70%** |
 | Targeted frozen | All-five case success | 74.07% | **79.63%** |
 
-Semantic has 48 cases / 240 rows per arm. Targeted has 54 cases / 270 rows per arm. Selection was dev-only; frozen results were confirmation-only. **No new two-arm merged-confirmation generation occurred before `selection.json` was locked. Earlier v7/v8 frozen runs existed but were not used for merged-model selection.** Display the proxy scope with the scores: **contract-v2 synthetic construction-proxy evaluation; no human or broad natural-domain validation**. These merged/MPS results use custom EvidenceTune contract-v2 scorers, not AuditKIT. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured.
+Semantic has 48 cases / 240 rows per arm. Targeted has 54 cases / 270 rows per arm. Selection was dev-only; frozen results were confirmation-only. **No new two-arm merged-confirmation generation occurred before `selection.json` was locked. Earlier v7/v8 frozen runs existed but were not used for merged-model selection.** Display the proxy scope with the scores: **contract-v2 synthetic construction-proxy evaluation; no human or broad natural-domain validation**. These merged/MPS results use custom EvidenceTune contract-v2 scorers, not AuditKIT. A post-selection raw-base arm scored 62/240 semantic and 65/270 targeted, with 0/48 and 0/54 all-five successes; see `BASE-EVALUATION.md`.
 
 Dev selection metrics are under `selection.dev_arms`; these are not frozen metrics. Keep their labels distinct if shown.
 
