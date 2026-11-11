@@ -16,11 +16,9 @@ Guide: [`docs/annotation-guide.md`](../docs/annotation-guide.md).
 
 All 360 cases were labelled blind by Claude Fable 5.2 and Claude Opus 5.5 (local Claude Code CLI). Both agree with the author key on every evidence, answerability and action label; see [`teacher/template-benchmark/REPORT.md`](teacher/template-benchmark/REPORT.md). These are model labels: the human double labelling below is still what #7 asked for.
 
-## Test-split double labelling (to do)
+## Test-split double labelling (not done, by decision)
 
-1. Annotator A fills `sheets/test_annotator_A.csv`, annotator B fills `sheets/test_annotator_B.csv`, independently and without seeing model outputs or each other's sheet. Rows use an `item_id` instead of `case_id`, so the condition name is not printed on the sheet. The ID is a hash of the guessable `case_id`, and the repo holds the answer key, so blinding depends on process: **give each annotator only their CSV and the guide, not repo access.**
-2. Agreement: `python scripts/annotation_agreement.py annotation/sheets/test_annotator_A.csv annotation/sheets/test_annotator_B.csv --out annotation/test_agreement`
-3. Adjudicate each row of `annotation/test_agreement_disagreements.csv`, fix `data/families/` if the author key is wrong, add exclusions to `data/benchmark/exclusions.json`, and rebuild.
+On 11 Nov 2026 the team chose teacher labels over human double labelling (see [`teacher/README.md`](teacher/README.md#validation-decision-11-nov-2026)). The blank sheets in `sheets/` and `scripts/annotation_agreement.py` remain available if human labels are wanted later.
 
 ## Blind LLM QA pass (done, not a substitute for the above)
 
