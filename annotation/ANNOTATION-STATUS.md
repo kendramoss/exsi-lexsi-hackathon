@@ -33,3 +33,5 @@ See `ANNOTATION-GUIDE.md` for exact commands and validation rules.
 ## 11 Nov 2026 — teacher labels for every kit
 
 All kits (pilot 40, natural 48, Arabic 20) and the template benchmark (360) were labelled blind by Claude Fable 5.2 and Claude Opus 5.5 through the local Claude Code CLI, with judge adjudication of disagreements. Results and caveats: [`teacher/README.md`](teacher/README.md). These are model labels (`human_attestation: false`); the human steps listed above (two blind human exports, agreement, human adjudication) have not been done, and the pipeline's blind human audit (`teacher/run.py audit-sample`) is the cheapest way to put an error rate on the teacher labels.
+
+**Decision, 11 Nov 2026:** the team chose not to run human annotation, agreement or adjudication for the pilot, natural or Arabic kits. Teacher labels with reported teacher agreement are the final labels; they must not be described as human-validated. The pilot's one unresolved row (`row_4d56d6c8143c840c`) is excluded. See [`teacher/README.md`](teacher/README.md#validation-decision-11-nov-2026).

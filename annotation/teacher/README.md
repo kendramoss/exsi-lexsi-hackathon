@@ -24,32 +24,29 @@ The natural and Arabic kits are frozen evaluation sets ("evaluation only … no 
 
 ## Human sign-off (11 Nov 2026)
 
-The team reviewed all teacher labels and approved them. This was a **review with the labels visible**, not blind relabelling, so it is recorded as sign-off, not as inter-annotator agreement or as the blind audit below. The one pilot row with no teacher label (`row_4d56d6c8143c840c`, tier `needs_human`) still has no label: the teachers and the judge split on whether excerpt 1's written-approval exception means the Receiving Party *may* share with third parties.
+The team reviewed all teacher labels and approved them. This was a **review with the labels visible**, not blind relabelling, so it is recorded as sign-off, not as inter-annotator agreement or accuracy. On the one pilot row with no teacher label (`row_4d56d6c8143c840c`), the teachers and the judge split on whether excerpt 1's written-approval exception means the Receiving Party *may* share with third parties.
 
-## Blind audit of the pilot (ready, not yet done)
+## Validation decision (11 Nov 2026)
 
-[`pilot/audit/annotate.html`](pilot/audit/annotate.html) is an offline audit kit for **31 pilot rows**: all 15 judge-adjudicated rows, the needs-human row, and 15 seeded consensus rows (5 low-confidence). It shows the rows only, with no teacher labels, tiers or rationales. It was built by `teacher/run.py audit-sample` (seed `teacher-audit-v1`).
+The team decided **not to run a blind human audit**. The labels are teacher-model labels, and their quality is reported as teacher agreement (the tables above), not as accuracy. The one pilot row with no teacher label, `row_4d56d6c8143c840c`, is **excluded** from the pilot labels for the same reason.
 
-1. Open `annotate.html` in a browser. Each auditor picks assignment A or B (two auditors give agreement as well; one is enough for an error rate). Don't look at `pilot/labels.jsonl` first.
-2. Label all 31 rows, tick the attestation, and export the JSON.
-3. Score it against the teacher labels, then regenerate the report:
+This also amends the "done" conditions of #25 and #23, which asked for human (and, for #23, native-Arabic) annotation and adjudication.
+
+### How to describe the labels
+
+| OK to say | Not supported |
+|---|---|
+| "Labelled by two frontier teacher models, Claude Fable 5.2 and Claude Opus 5.5, with disagreements adjudicated by a judge model" | "Human-validated", "human-annotated", "expert-labelled" |
+| "Teacher agreement: κ ≥ 0.90 on every field (natural set); 60% full-row agreement (pilot)" | Any accuracy figure for the teacher labels |
+| "Arabic rows: semantic labels from teachers; language quality not reviewed by native speakers" | Any claim about Arabic language quality or native-speaker review |
+| "The merged model was trained on ContractNLI-derived data with human expert source labels" | "The merged model was trained on teacher-distilled labels" |
+
+### If you change your mind
+
+The blind audit is still ready to run. [`pilot/audit/annotate.html`](pilot/audit/annotate.html) is an offline kit for 31 pilot rows (every judge-adjudicated row, the excluded row, and 15 seeded consensus rows), with no teacher labels shown. After one person labels the rows and exports the JSON, score it:
 
 ```bash
 python teacher/run.py audit-score annotation/pilot --out teacher/runs/pilot --human path/to/audit_export.json
 ```
 
-```bash
-python teacher/run.py report annotation/pilot --out teacher/runs/pilot
-```
-
-`teacher/runs/pilot` is rebuilt by running `label` and `judge` on the pilot, or by copying `pilot/raw_labels.jsonl` and `pilot/judgements.jsonl` from this folder into it. The audit's labels also settle `row_4d56d6c8143c840c`.
-
-## What would make these "validated"
-
-Teacher agreement shows the labels are consistent, not that they are right. The pipeline's blind human audit puts a number on that: every adjudicated and needs-human row plus a seeded sample of consensus rows.
-
-```bash
-python teacher/run.py audit-sample annotation/pilot --out teacher/runs/pilot --n 15
-```
-
-Until that audit is done, describe these as teacher-labelled with teacher agreement reported, not as human-validated.
+Rebuild `teacher/runs/pilot` first by copying `pilot/raw_labels.jsonl` and `pilot/judgements.jsonl` from this folder into it.
