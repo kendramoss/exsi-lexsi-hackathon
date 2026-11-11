@@ -5,7 +5,7 @@ answer, feedback; opaque item_id; no condition, no labels) plus docs/annotation-
 fills the sheet columns. Results are written as filled sheets, so scripts/annotation_agreement.py
 can compare each teacher with the author key and with the other teacher.
 
-  python teacher/label_template.py --out annotation/teacher-v1 [--splits train dev test] [--workers 8]
+  python teacher/label_template.py --out annotation/teacher/template-benchmark [--splits train dev test] [--workers 8]
 
 Writes <out>/<teacher>.csv and <out>/raw_<teacher>.jsonl (resumable), then <out>/review.json and
 <out>/REPORT.md: per-field agreement, and every case where both teachers disagree with the

@@ -98,7 +98,13 @@ def main(argv=None) -> int:
     runner = P.ClaudeCLI(a.claude_bin)
 
     if a.command == "label":
-        done = {r["key"] for r in read_jsonl(out / "raw_labels.jsonl")}
+        # Transient failures (the call or the CLI itself failed) are dropped and retried; contract
+        # failures and refusals are kept: they are real outcomes and count in the report.
+        transient = ("call failed", "cli: error")
+        kept = [r for r in read_jsonl(out / "raw_labels.jsonl") if r.get("invalid_reason") not in transient]
+        if (out / "raw_labels.jsonl").exists():
+            (out / "raw_labels.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in kept), encoding="utf-8")
+        done = {r["key"] for r in kept}
         n = append_jsonl(out / "raw_labels.jsonl",
                          P.label_rows(kit, runner, a.teachers, a.samples, a.effort, done, a.workers, a.limit))
         print(f"{n} new label record(s) in {out / 'raw_labels.jsonl'}")

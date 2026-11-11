@@ -92,7 +92,7 @@ Cost (measured, Nov 2026): about $0.07 per Opus label and $0.13 per Fable label,
 The template benchmark (`data/benchmark`, a different label format) has its own blind labeller:
 
 ```bash
-python teacher/label_template.py --out annotation/teacher-v1
+python teacher/label_template.py --out annotation/teacher/template-benchmark
 ```
 
 ## Outputs (in `--out`)
