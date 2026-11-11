@@ -170,6 +170,23 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(must <= set(a))
         self.assertEqual(len(set(a) - must), 5)
 
+    def test_audit_kit_is_blind_and_valid(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.run_all(tmp)
+        rows, *_ = R.build(self.kit, tmp, P.DEFAULT_TEACHERS)
+        ids = P.audit_sample(rows, 5, "s1")
+        n = R.write_audit_kit(self.kit, ids, "s1", tmp / "audit")
+        self.assertEqual(n, len(ids))
+        names = sorted(p.name for p in (tmp / "audit").iterdir())
+        self.assertEqual(names, ["annotate.html", "assignment_a.json", "assignment_b.json", "items.json", "manifest.json"])
+        items = (tmp / "audit" / "items.json").read_text()
+        for leak in ("statement_truth", "teacher_consensus", "rationale", "acceptable_actions"):
+            self.assertNotIn(leak, items)
+        a = json.loads((tmp / "audit" / "assignment_a.json").read_text())
+        b = json.loads((tmp / "audit" / "assignment_b.json").read_text())
+        self.assertEqual(sorted(a["order"]), sorted(ids))
+        self.assertNotEqual(a["assignment_id"], b["assignment_id"])
+
     def test_audit_score_rejects_model_labels(self):
         tmp = Path(tempfile.mkdtemp())
         self.run_all(tmp)
