@@ -1,0 +1,34 @@
+{
+  "a": "annotation/teacher-v1/claude-fable-5-2.csv",
+  "b": "annotation/teacher-v1/claude-opus-5-5.csv",
+  "n_labelled_a": 360,
+  "n_labelled_b": 360,
+  "n_compared": 360,
+  "fields": {
+    "truth_target": {
+      "percent_agreement": 0.847,
+      "cohens_kappa": null
+    },
+    "evidence_sufficiency": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "answerable": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": null
+    },
+    "acceptable_actions": {
+      "percent_agreement": 1.0,
+      "cohens_kappa": 1.0
+    }
+  },
+  "status": "computed",
+  "n_field_scored": 360,
+  "n_exclusion_only": 0,
+  "all_fields_agree": 0.847,
+  "kappa_note": "null kappa: undefined because both sides used a single label for that field",
+  "exclusion_flags": {
+    "a": 0,
+    "b": 0
+  }
+}

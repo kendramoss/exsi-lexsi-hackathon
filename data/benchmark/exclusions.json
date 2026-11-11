@@ -1,10 +1,28 @@
 {
   "excluded": [],
   "fixed_before_release": [
-    {"case_ids": ["doc-location-01__unsupported_low_overlap", "doc-quantity-01__unsupported_low_overlap", "doc-quantity-02__unsupported_low_overlap", "doc-quantity-03__unsupported_low_overlap", "doc-quantity-04__unsupported_low_overlap", "doc-quantity-05__unsupported_low_overlap", "tab-percent-change-04__unsupported_low_overlap"],
-     "found_by": "blind LLM QA pass (6 cases) plus a pattern search (doc-location-01)",
-     "problem": "feedback admitted its own misreading in the first person (\"I took the spur to be...\"), giving the label away",
-     "fix": "reworded as a confident wrong claim using the same words; build_cases.py now rejects first-person misreading admissions"}
+    {
+      "case_ids": [
+        "doc-location-01__unsupported_low_overlap",
+        "doc-quantity-01__unsupported_low_overlap",
+        "doc-quantity-02__unsupported_low_overlap",
+        "doc-quantity-03__unsupported_low_overlap",
+        "doc-quantity-04__unsupported_low_overlap",
+        "doc-quantity-05__unsupported_low_overlap",
+        "tab-percent-change-04__unsupported_low_overlap"
+      ],
+      "found_by": "blind LLM QA pass (6 cases) plus a pattern search (doc-location-01)",
+      "problem": "feedback admitted its own misreading in the first person (\"I took the spur to be...\"), giving the label away",
+      "fix": "reworded as a confident wrong claim using the same words; build_cases.py now rejects first-person misreading admissions"
+    },
+    {
+      "case_ids": [
+        "doc-cause-reason-03__partial_evidence"
+      ],
+      "found_by": "teacher labelling (claude-opus-5-5 flagged it; teacher/label_template.py)",
+      "problem": "the outside claim (picker shortage caused the loss) was refuted by S3 (every fruiting tree was harvested on time), so the case was contradicted, not insufficient",
+      "fix": "the outside source now reports a later correction to the cooperative's report, which the context cannot rule out; both teachers then labelled it insufficient"
+    }
   ],
   "note": "Test-split exclusions from the two human annotators will be added here after adjudication."
 }
