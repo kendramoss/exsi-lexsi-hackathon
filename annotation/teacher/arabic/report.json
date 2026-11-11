@@ -1,0 +1,47 @@
+{
+  "dataset_id": "evtune-issue8-arabic-native-review-v1",
+  "evaluation_only": true,
+  "rows": 20,
+  "teachers": [
+    "claude-fable-5-2",
+    "claude-opus-5-5"
+  ],
+  "rows_with_all_teachers": 20,
+  "fields": {
+    "statement_truth": {
+      "agreement": 0.9,
+      "cohens_kappa": 0.848
+    },
+    "requested_target": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "cited_excerpt": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "citation_status": {
+      "agreement": 0.95,
+      "cohens_kappa": 0.906
+    },
+    "answerability": {
+      "agreement": 0.9,
+      "cohens_kappa": 0.765
+    },
+    "acceptable_actions": {
+      "agreement": 0.75,
+      "cohens_kappa": 0.635
+    }
+  },
+  "all_fields_agreement": 0.7,
+  "self_consistency": {
+    "claude-fable-5-2": 0.975,
+    "claude-opus-5-5": 0.9
+  },
+  "invalid_samples": {},
+  "tiers": {
+    "teacher_consensus": 14,
+    "teacher_adjudicated": 6
+  },
+  "low_confidence_rows": 7
+}

@@ -12,6 +12,10 @@ Guide: [`docs/annotation-guide.md`](../docs/annotation-guide.md).
 | dev (60 cases) | author | single-labelled, as #7 allows |
 | test (120 cases) | author | **needs two human annotators** (blind, then adjudication) |
 
+## Teacher labels (done, 11 Nov 2026)
+
+All 360 cases were labelled blind by Claude Fable 5.2 and Claude Opus 5.5 (local Claude Code CLI). Both agree with the author key on every evidence, answerability and action label; see [`teacher/template-benchmark/REPORT.md`](teacher/template-benchmark/REPORT.md). These are model labels: the human double labelling below is still what #7 asked for.
+
 ## Test-split double labelling (to do)
 
 1. Annotator A fills `sheets/test_annotator_A.csv`, annotator B fills `sheets/test_annotator_B.csv`, independently and without seeing model outputs or each other's sheet. Rows use an `item_id` instead of `case_id`, so the condition name is not printed on the sheet. The ID is a hash of the guessable `case_id`, and the repo holds the answer key, so blinding depends on process: **give each annotator only their CSV and the guide, not repo access.**

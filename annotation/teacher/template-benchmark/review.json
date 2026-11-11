@@ -1,0 +1,31 @@
+{
+  "cases": 360,
+  "labelled_by_both": 360,
+  "teachers": [
+    "claude-fable-5-2",
+    "claude-opus-5-5"
+  ],
+  "agreement": {
+    "truth_target": {
+      "teacher_vs_teacher": 0.989,
+      "claude-fable-5-2_vs_author": 1.0,
+      "claude-opus-5-5_vs_author": 1.0
+    },
+    "evidence_sufficiency": {
+      "teacher_vs_teacher": 1.0,
+      "claude-fable-5-2_vs_author": 1.0,
+      "claude-opus-5-5_vs_author": 1.0
+    },
+    "answerable": {
+      "teacher_vs_teacher": 1.0,
+      "claude-fable-5-2_vs_author": 1.0,
+      "claude-opus-5-5_vs_author": 1.0
+    },
+    "acceptable_actions": {
+      "teacher_vs_teacher": 1.0,
+      "claude-fable-5-2_vs_author": 1.0,
+      "claude-opus-5-5_vs_author": 1.0
+    }
+  },
+  "flagged": []
+}

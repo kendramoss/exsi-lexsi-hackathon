@@ -1,0 +1,47 @@
+{
+  "dataset_id": "evtune-natural-dev-frozen-evaluation-v1",
+  "evaluation_only": true,
+  "rows": 48,
+  "teachers": [
+    "claude-fable-5-2",
+    "claude-opus-5-5"
+  ],
+  "rows_with_all_teachers": 48,
+  "fields": {
+    "statement_truth": {
+      "agreement": 0.979,
+      "cohens_kappa": 0.967
+    },
+    "requested_target": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "cited_excerpt": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "citation_status": {
+      "agreement": 0.979,
+      "cohens_kappa": 0.963
+    },
+    "answerability": {
+      "agreement": 0.979,
+      "cohens_kappa": 0.939
+    },
+    "acceptable_actions": {
+      "agreement": 0.938,
+      "cohens_kappa": 0.903
+    }
+  },
+  "all_fields_agreement": 0.938,
+  "self_consistency": {
+    "claude-fable-5-2": 0.938,
+    "claude-opus-5-5": 0.906
+  },
+  "invalid_samples": {},
+  "tiers": {
+    "teacher_consensus": 45,
+    "teacher_adjudicated": 3
+  },
+  "low_confidence_rows": 11
+}

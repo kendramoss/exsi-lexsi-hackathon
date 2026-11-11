@@ -29,3 +29,7 @@ See `ANNOTATION-GUIDE.md` for exact commands and validation rules.
 ## 7 Nov 2026 — first custom human-attested export received
 
 `pilot/human_anas.json` and `pilot/assignment_ai_reference.json` contain 40 unique rows and pass `validate_export`: 20 YES / 16 NO / 4 UNDETERMINED truth; 11 SUFFICIENT, 18 INSUFFICIENT, 10 ABSENT, 1 CONTRADICTED; 11 UPDATE-only, 18 RETAIN+CLARIFY, 11 RETAIN-only. The export uses custom assignment `ai-reference`, not assignment A or B. A second independent human export is still required before agreement/adjudication can start.
+
+## 11 Nov 2026 — teacher labels for every kit
+
+All kits (pilot 40, natural 48, Arabic 20) and the template benchmark (360) were labelled blind by Claude Fable 5.2 and Claude Opus 5.5 through the local Claude Code CLI, with judge adjudication of disagreements. Results and caveats: [`teacher/README.md`](teacher/README.md). These are model labels (`human_attestation: false`); the human steps listed above (two blind human exports, agreement, human adjudication) have not been done, and the pipeline's blind human audit (`teacher/run.py audit-sample`) is the cheapest way to put an error rate on the teacher labels.

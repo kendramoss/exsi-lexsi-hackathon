@@ -1,0 +1,48 @@
+{
+  "dataset_id": "evtune-nonfresh-pilot-v2",
+  "evaluation_only": false,
+  "rows": 40,
+  "teachers": [
+    "claude-fable-5-2",
+    "claude-opus-5-5"
+  ],
+  "rows_with_all_teachers": 40,
+  "fields": {
+    "statement_truth": {
+      "agreement": 0.85,
+      "cohens_kappa": 0.745
+    },
+    "requested_target": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "cited_excerpt": {
+      "agreement": 1.0,
+      "cohens_kappa": 1.0
+    },
+    "citation_status": {
+      "agreement": 0.975,
+      "cohens_kappa": 0.962
+    },
+    "answerability": {
+      "agreement": 0.875,
+      "cohens_kappa": 0.49
+    },
+    "acceptable_actions": {
+      "agreement": 0.7,
+      "cohens_kappa": 0.571
+    }
+  },
+  "all_fields_agreement": 0.6,
+  "self_consistency": {
+    "claude-fable-5-2": 0.963,
+    "claude-opus-5-5": 0.9
+  },
+  "invalid_samples": {},
+  "tiers": {
+    "teacher_consensus": 24,
+    "teacher_adjudicated": 15,
+    "needs_human": 1
+  },
+  "low_confidence_rows": 5
+}

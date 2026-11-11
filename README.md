@@ -107,6 +107,8 @@ For a deeper check, if you're comfortable with Python and a terminal:
 
 ## About the project
 
+**Teacher models and distillation.** EvidenceTune distills the evidence judgement of frontier teacher models into Tiny Aya. [`teacher/`](teacher/README.md) labels blind rows with Claude Fable 5.2 and Claude Opus 5.5 through a local headless Claude Code CLI (no API key), keeps only labels that pass the task contract, compares the two teachers, sends disagreements to a judge model, and measures the result against a blind human audit sample. Provenance stays truthful: teacher labels carry `label_origin: teacher_*` and `human_attestation: false`. The merged model's training data comes from ContractNLI's human expert labels via deterministic scripts, not from teachers; the [teacher README](teacher/README.md#what-is-and-isnt-teacher-labelled-today) lists which data is teacher-labelled.
+
 ### Current merged-model submission
 
 **Selected release (10 Nov 2026): `merge_alpha_0.75`**, a CPU-only interpolation of **75% v7 semantic-contrast + 25% v8 targeted/two-turn LoRA weights**. The merge performed no additional training.
