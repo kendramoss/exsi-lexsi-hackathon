@@ -1,0 +1,24 @@
+{
+  "kind": "blind human audit of teacher labels",
+  "source_dataset_id": "evtune-nonfresh-pilot-v2",
+  "dataset_id": "evtune-nonfresh-pilot-v2-teacher-audit",
+  "rows": 31,
+  "seed": "teacher-audit-v1",
+  "pipeline": "teacher-v1",
+  "selection": "every judge-adjudicated and needs-human row plus a seeded sample of consensus rows",
+  "blinding": "items only: no teacher labels, tiers or rationales",
+  "files": {
+    "items.json": {
+      "sha256": "ea7c109b994b408bbaa65bac40fc87ba1f7d264296fe375221f18b05d2f3dd0f"
+    },
+    "assignment_a.json": {
+      "sha256": "4d4244e5122224559ae3c1bb655215020eeb145a049c7c80ff6e46bd0ab92364"
+    },
+    "assignment_b.json": {
+      "sha256": "098ee70c9460e6d5d35afc3ee6a84df3a1693d6041075c84269dc9edf14c9011"
+    },
+    "annotate.html": {
+      "sha256": "e1b8abf58609802d41f88ebad42bdc083ceed73758f272d4c027137b83d2b504"
+    }
+  }
+}

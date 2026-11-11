@@ -52,6 +52,35 @@ def build(kit, out: Path, teachers):
     return rows, conflicts, by_row, invalid
 
 
+def write_audit_kit(kit, ids: list[str], seed: str, audit_dir: Path) -> int:
+    """A blind offline audit kit for the sampled rows: items, one assignment, the kit's own
+    annotate.html and a manifest. It holds no teacher labels, tiers or rationales."""
+    import random
+    sys.path.insert(0, str(P.ROOT / "annotation"))
+    import build_kit
+    from annotation_lib import dataset_digest
+    wanted = set(ids)
+    items = [it for it in kit.items if it["row_id"] in wanted]
+    doc = {"schema_version": kit.items_doc["schema_version"], "dataset_id": f"{kit.dataset_id}-teacher-audit",
+           "dataset_sha256": dataset_digest(items), "fresh": kit.items_doc["fresh"], "items": items}
+    assignments = []
+    for letter in ("a", "b"):  # two independent auditors, each with their own row order
+        order = [it["row_id"] for it in items]
+        random.Random(f"{seed}-order-{letter}").shuffle(order)
+        asg = {k: doc[k] for k in ("schema_version", "dataset_id", "dataset_sha256", "fresh")}
+        asg.update(assignment_id=f"assignment-{letter}", annotator_id=f"auditor-{letter}", order=order)
+        assignments.append(asg)
+    manifest = {"kind": "blind human audit of teacher labels", "source_dataset_id": kit.dataset_id,
+                "dataset_id": doc["dataset_id"], "rows": len(items), "seed": seed, "pipeline": P.PIPELINE_VERSION,
+                "selection": "every judge-adjudicated and needs-human row plus a seeded sample of consensus rows",
+                "blinding": "items only: no teacher labels, tiers or rationales"}
+    artifacts = build_kit.make_artifacts(doc, assignments, manifest)
+    audit_dir.mkdir(parents=True, exist_ok=True)
+    for name, text in artifacts.items():
+        (audit_dir / name).write_text(text, encoding="utf-8")
+    return len(items)
+
+
 def report_md(rep: dict) -> str:
     L = [f"# Teacher-label report: `{rep['dataset_id']}`", "",
          f"Labels by {', '.join(f'`{t}`' for t in rep['teachers'])} (pipeline `{P.PIPELINE_VERSION}`). "
@@ -92,6 +121,7 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=15, help="audit-sample: consensus rows to sample")
     ap.add_argument("--seed", default="teacher-audit-v1")
     ap.add_argument("--human", type=Path, help="audit-score: a kit export JSON with human annotations")
+    ap.add_argument("--kit-out", type=Path, help="audit-sample: where to write the blind audit kit (default OUT/audit)")
     a = ap.parse_args(argv)
     kit = P.Kit.load(a.kit, a.guide)
     out = a.out
@@ -135,12 +165,9 @@ def main(argv=None) -> int:
 
     if a.command == "audit-sample":
         ids = P.audit_sample(rows, a.n, a.seed)
-        items = [it for it in kit.items if it["row_id"] in set(ids)]
-        doc = {k: v for k, v in kit.items_doc.items() if k != "items"}
-        doc.update(items=items, audit_of=P.PIPELINE_VERSION, audit_seed=a.seed,
-                   note="Blind audit rows: label without seeing teacher labels.")
-        write_json(out / "audit_items.json", doc)
-        print(f"{len(items)} audit row(s) -> {out / 'audit_items.json'}")
+        audit_dir = a.kit_out or (out / "audit")
+        n = write_audit_kit(kit, ids, a.seed, audit_dir)
+        print(f"{n} audit row(s) -> {audit_dir}/annotate.html (blind: items only, no teacher labels)")
         return 0
 
     if a.command == "audit-score":

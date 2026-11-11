@@ -22,6 +22,28 @@ Labelling ran 1,177 teacher and judge calls (including retries and the re-label 
 
 The natural and Arabic kits are frozen evaluation sets ("evaluation only … no publication of case-level content") and this repository is public. Their per-row teacher labels are effectively answer keys, so they are kept out of git and shared privately. Their training export is refused by the pipeline in any case.
 
+## Human sign-off (11 Nov 2026)
+
+The team reviewed all teacher labels and approved them. This was a **review with the labels visible**, not blind relabelling, so it is recorded as sign-off, not as inter-annotator agreement or as the blind audit below. The one pilot row with no teacher label (`row_4d56d6c8143c840c`, tier `needs_human`) still has no label: the teachers and the judge split on whether excerpt 1's written-approval exception means the Receiving Party *may* share with third parties.
+
+## Blind audit of the pilot (ready, not yet done)
+
+[`pilot/audit/annotate.html`](pilot/audit/annotate.html) is an offline audit kit for **31 pilot rows**: all 15 judge-adjudicated rows, the needs-human row, and 15 seeded consensus rows (5 low-confidence). It shows the rows only, with no teacher labels, tiers or rationales. It was built by `teacher/run.py audit-sample` (seed `teacher-audit-v1`).
+
+1. Open `annotate.html` in a browser. Each auditor picks assignment A or B (two auditors give agreement as well; one is enough for an error rate). Don't look at `pilot/labels.jsonl` first.
+2. Label all 31 rows, tick the attestation, and export the JSON.
+3. Score it against the teacher labels, then regenerate the report:
+
+```bash
+python teacher/run.py audit-score annotation/pilot --out teacher/runs/pilot --human path/to/audit_export.json
+```
+
+```bash
+python teacher/run.py report annotation/pilot --out teacher/runs/pilot
+```
+
+`teacher/runs/pilot` is rebuilt by running `label` and `judge` on the pilot, or by copying `pilot/raw_labels.jsonl` and `pilot/judgements.jsonl` from this folder into it. The audit's labels also settle `row_4d56d6c8143c840c`.
+
 ## What would make these "validated"
 
 Teacher agreement shows the labels are consistent, not that they are right. The pipeline's blind human audit puts a number on that: every adjudicated and needs-human row plus a seeded sample of consensus rows.
