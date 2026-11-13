@@ -28,7 +28,10 @@ Discover verified product defects and useful small features, implement isolated 
 - Discovery workflow `wf_f4901057-d0d`: complete, nine independently reproduced medium-priority findings.
 - Fix/review workflow `wf_110358ab-c72`: stopped after overlapping execution was detected; source changes and tests preserved read-only for recovery.
 - Concurrent narrow discovery `wf_fb383edc-7ca`: complete; independently reproduced two export integrity defects.
-- Replacement completion/review workflow `wf_6e8010c5-b79`: running with one writer per fresh isolated worktree (demo, offline verification, evidence integrity, export safety). No direct continuation messages to workflow children.
+- Replacement completion/review workflow `wf_6e8010c5-b79`: offline verification, evidence integrity and export fixes passed independent review and were integrated. Demo completion hit a provider 429; work was preserved.
+- Demo finish/review workflow `wf_f0404fa7-229`: complete and approved; three demo fixes integrated.
+- Post-fix discovery `wf_5f3f3567-3dd`: demo pass was clear; static review found template-label retry loss. Coordinator reproduced four failing assertions with fake runners, fixed the completion filter, and passed all 22 teacher tests.
+- Final independent sweeps `wf_8721166c-db9`: running sequentially to check the integrated state; stop active work if both return no actionable issues.
 - Integration branch: `worktree-evidencetune-product-loop`.
 - Existing annotated-training, diverse-dialogue and inference-control worktrees are outside this cycle's edit scope.
 
@@ -36,19 +39,28 @@ Discover verified product defects and useful small features, implement isolated 
 
 | ID | Defect | State |
 |---|---|---|
-| demo-mobile-evidence-clipped | Mobile reduced-motion conversation clips question/source evidence | Fix/review running |
-| demo-space-key-intercepted | Global pager consumes Space on native buttons | Fix/review running |
-| demo-mock-run-mislabeled | Mock route displays historical real-run claims and counts | Fix/review running |
-| repro-1 | Completed-run validator accepts empty/incomplete/duplicate records | Fix/review running |
-| repro-2 | Offline dependency set omits PyYAML, NumPy and safetensors | Fix/review running |
-| repro-3 | Pure demo-verifier tests unnecessarily require author-specific raw evidence | Fix/review running |
-| EVIDENCE-1 | Saved judge letters can point at different labels after a teacher retry | Fix/review running |
-| EVIDENCE-2 | Empty required source tree passes staging without its advertised data | Fix/review running |
-| EVIDENCE-3 | Optional audit importer accepts known model exports and mismatched/incomplete exports as human | Fix/review running |
-| export-partial-overwrite | Failed external-input export overwrites messages but leaves stale manifest/checksums | Fix/review running |
-| export-duplicate-identities | Export verifier silently collapses conflicting duplicate IDs | Fix/review running |
+| demo-mobile-evidence-clipped | Mobile reduced-motion conversation clips question/source evidence | Fixed; independently reviewed |
+| demo-space-key-intercepted | Global pager consumes Space on native buttons | Fixed; independently reviewed |
+| demo-mock-run-mislabeled | Mock route displays historical real-run claims and counts | Fixed; independently reviewed |
+| repro-1 | Completed-run validator accepts empty/incomplete/duplicate records | Fixed; independently reviewed |
+| repro-2 | Offline dependency set omits PyYAML, NumPy and safetensors | Fixed; independently reviewed |
+| repro-3 | Pure demo-verifier tests unnecessarily require author-specific raw evidence | Fixed; independently reviewed |
+| EVIDENCE-1 | Saved judge letters can point at different labels after a teacher retry | Fixed; independently reviewed |
+| EVIDENCE-2 | Empty required source tree passes staging without its advertised data | Fixed; independently reviewed |
+| EVIDENCE-3 | Optional audit importer accepts known model exports and mismatched/incomplete exports as human | Fixed; independently reviewed |
+| export-partial-overwrite | Failed external-input export overwrites messages but leaves stale manifest/checksums | Fixed; independently reviewed |
+| export-duplicate-identities | Export verifier silently collapses conflicting duplicate IDs | Fixed; independently reviewed |
+| template-failed-resume | Template teacher labeller treats failed/refused/truncated labels as finished and silently never retries them | Fixed; independent review pending |
 
 These are code/product correctness findings, not claims that existing recorded model metrics or labels have been changed. No human audit is being requested or performed.
+
+## Integrated verification checkpoint
+
+Local integration commits: `143a567` (offline verification), `4079087` (teacher/staging integrity), `a951580` (export safety), `adbdf20` (demo).
+
+Fresh coordinator verification: 35 scripts tests, 19 teacher tests using fake clients, 14 staging tests including complete bundle/hash/replay checks, 13 release/replay tests, 6 demo Python tests with explicit raw-evidence mode, and 4 Node mapping tests: **91 tests passed**. In addition, **9 real-Chrome regression groups passed** for keyboard, mobile visibility, route provenance, and offline requests. Default demo mode runs its four pure tests and explicitly skips only the two evidence integrations; explicit evidence mode ran all six successfully. No teacher model or inference was called.
+
+The reviewers additionally checked that all 16 saved pilot judgments remain reusable and all 39 saved label objects are unchanged. Clean dependency installation/minimum-version resolution, real human auditing, non-Chrome browsers, and live model performance were not tested.
 
 ### Coordination incident
 
