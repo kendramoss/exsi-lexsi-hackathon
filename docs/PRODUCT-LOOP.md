@@ -25,7 +25,24 @@ Discover verified product defects and useful small features, implement isolated 
 
 ## Current cycle
 
-- Discovery workflow: `wf_f4901057-d0d`.
-- Status: running; no findings or product-fix completion claims yet.
+- Discovery workflow `wf_f4901057-d0d`: complete, nine independently reproduced medium-priority findings.
+- Fix/review workflow `wf_110358ab-c72`: running in three non-overlapping isolated worktrees.
+- Concurrent narrow discovery `wf_fb383edc-7ca`: inspecting only untouched import/export scripts and schemas; no duplicate audit of active fix lanes.
 - Integration branch: `worktree-evidencetune-product-loop`.
 - Existing annotated-training, diverse-dialogue and inference-control worktrees are outside this cycle's edit scope.
+
+### Verified findings queued for fixes
+
+| ID | Defect | State |
+|---|---|---|
+| demo-mobile-evidence-clipped | Mobile reduced-motion conversation clips question/source evidence | Fix/review running |
+| demo-space-key-intercepted | Global pager consumes Space on native buttons | Fix/review running |
+| demo-mock-run-mislabeled | Mock route displays historical real-run claims and counts | Fix/review running |
+| repro-1 | Completed-run validator accepts empty/incomplete/duplicate records | Fix/review running |
+| repro-2 | Offline dependency set omits PyYAML, NumPy and safetensors | Fix/review running |
+| repro-3 | Pure demo-verifier tests unnecessarily require author-specific raw evidence | Fix/review running |
+| EVIDENCE-1 | Saved judge letters can point at different labels after a teacher retry | Fix/review running |
+| EVIDENCE-2 | Empty required source tree passes staging without its advertised data | Fix/review running |
+| EVIDENCE-3 | Optional audit importer accepts known model exports and mismatched/incomplete exports as human | Fix/review running |
+
+These are code/product correctness findings, not claims that existing recorded model metrics or labels have been changed. No human audit is being requested or performed.
