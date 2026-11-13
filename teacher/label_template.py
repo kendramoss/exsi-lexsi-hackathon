@@ -88,7 +88,8 @@ def main(argv=None) -> int:
 
     for t in a.teachers:
         raw_path = a.out / f"raw_{t}.jsonl"
-        done = {json.loads(l)["case_id"] for l in raw_path.read_text().splitlines()} if raw_path.exists() else set()
+        records = [json.loads(line) for line in raw_path.read_text(encoding="utf-8").splitlines()] if raw_path.exists() else []
+        done = {record["case_id"] for record in records if record.get("label")}
         todo = [c for c in cases if c["case_id"] not in done]
         if a.report_only or not todo:
             continue
