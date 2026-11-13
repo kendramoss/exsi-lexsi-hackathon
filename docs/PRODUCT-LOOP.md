@@ -31,7 +31,7 @@ Discover verified product defects and useful small features, implement isolated 
 - Replacement completion/review workflow `wf_6e8010c5-b79`: offline verification, evidence integrity and export fixes passed independent review and were integrated. Demo completion hit a provider 429; work was preserved.
 - Demo finish/review workflow `wf_f0404fa7-229`: complete and approved; three demo fixes integrated.
 - Post-fix discovery `wf_5f3f3567-3dd`: demo pass was clear; static review found template-label retry loss. Coordinator reproduced four failing assertions with fake runners, fixed the completion filter, and passed all 22 teacher tests.
-- Final independent sweeps `wf_8721166c-db9`: running sequentially to check the integrated state; stop active work if both return no actionable issues.
+- Final independent sweeps `wf_8721166c-db9`: complete; two bounded independent passes found no further release-blocking actionable defects. Active discovery/fix execution is complete, rather than repeatedly scanning unchanged code.
 - Integration branch: `worktree-evidencetune-product-loop`.
 - Existing annotated-training, diverse-dialogue and inference-control worktrees are outside this cycle's edit scope.
 
@@ -50,7 +50,7 @@ Discover verified product defects and useful small features, implement isolated 
 | EVIDENCE-3 | Optional audit importer accepts known model exports and mismatched/incomplete exports as human | Fixed; independently reviewed |
 | export-partial-overwrite | Failed external-input export overwrites messages but leaves stale manifest/checksums | Fixed; independently reviewed |
 | export-duplicate-identities | Export verifier silently collapses conflicting duplicate IDs | Fixed; independently reviewed |
-| template-failed-resume | Template teacher labeller treats failed/refused/truncated labels as finished and silently never retries them | Fixed; independent review pending |
+| template-failed-resume | Template teacher labeller treats failed/refused/truncated labels as finished and silently never retries them | Fixed; independently reviewed |
 
 These are code/product correctness findings, not claims that existing recorded model metrics or labels have been changed. No human audit is being requested or performed.
 
@@ -60,7 +60,11 @@ Local integration commits: `143a567` (offline verification), `4079087` (teacher/
 
 Fresh coordinator verification: 35 scripts tests, 19 teacher tests using fake clients, 14 staging tests including complete bundle/hash/replay checks, 13 release/replay tests, 6 demo Python tests with explicit raw-evidence mode, and 4 Node mapping tests: **91 tests passed**. In addition, **9 real-Chrome regression groups passed** for keyboard, mobile visibility, route provenance, and offline requests. Default demo mode runs its four pure tests and explicitly skips only the two evidence integrations; explicit evidence mode ran all six successfully. No teacher model or inference was called.
 
+The additional template-resume fix `b6312a5` passed three new offline tests and all 22 teacher tests. Across the integrated scope this totals **94 distinct passing tests**, plus the 9 Chrome regression groups. Two final independent sweeps approved the scope without further blocking findings.
+
 The reviewers additionally checked that all 16 saved pilot judgments remain reusable and all 39 saved label objects are unchanged. Clean dependency installation/minimum-version resolution, real human auditing, non-Chrome browsers, and live model performance were not tested.
+
+Known non-blocking backlog: `demo/tests/check-merged-page.mjs` is a legacy browser script with an obsolete badge expectation for the current historical default route. It is not used by the verified historical-page regression suite and was already stale at baseline; it was not represented as passing. The current merged payload mapping and hash/regeneration checks did pass. This pass does not claim all repository tests work without their documented external evidence roots.
 
 ### Coordination incident
 
