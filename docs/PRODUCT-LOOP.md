@@ -26,8 +26,9 @@ Discover verified product defects and useful small features, implement isolated 
 ## Current cycle
 
 - Discovery workflow `wf_f4901057-d0d`: complete, nine independently reproduced medium-priority findings.
-- Fix/review workflow `wf_110358ab-c72`: running in three non-overlapping isolated worktrees.
-- Concurrent narrow discovery `wf_fb383edc-7ca`: inspecting only untouched import/export scripts and schemas; no duplicate audit of active fix lanes.
+- Fix/review workflow `wf_110358ab-c72`: stopped after overlapping execution was detected; source changes and tests preserved read-only for recovery.
+- Concurrent narrow discovery `wf_fb383edc-7ca`: complete; independently reproduced two export integrity defects.
+- Replacement completion/review workflow `wf_6e8010c5-b79`: running with one writer per fresh isolated worktree (demo, offline verification, evidence integrity, export safety). No direct continuation messages to workflow children.
 - Integration branch: `worktree-evidencetune-product-loop`.
 - Existing annotated-training, diverse-dialogue and inference-control worktrees are outside this cycle's edit scope.
 
@@ -44,5 +45,11 @@ Discover verified product defects and useful small features, implement isolated 
 | EVIDENCE-1 | Saved judge letters can point at different labels after a teacher retry | Fix/review running |
 | EVIDENCE-2 | Empty required source tree passes staging without its advertised data | Fix/review running |
 | EVIDENCE-3 | Optional audit importer accepts known model exports and mismatched/incomplete exports as human | Fix/review running |
+| export-partial-overwrite | Failed external-input export overwrites messages but leaves stale manifest/checksums | Fix/review running |
+| export-duplicate-identities | Export verifier silently collapses conflicting duplicate IDs | Fix/review running |
 
 These are code/product correctness findings, not claims that existing recorded model metrics or labels have been changed. No human audit is being requested or performed.
+
+### Coordination incident
+
+Directly messaging an active workflow child resumed a second execution against the evidence lane's allocated worktree. That duplicate execution was stopped after it reported concurrent source edits; its added regression tests were preserved. Do not send further direct continuation messages to active workflow children. Await the workflow's own completion/review output and inspect the final diff before integration. This incident did not authorize edits to any other session's data, labels, or model artifacts.
