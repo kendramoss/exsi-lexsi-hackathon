@@ -1351,10 +1351,12 @@ body.xf .focusable { transition: none; }
 @media (max-width: 1120px), (max-height: 608px) { #s1 .panel .ch-chat .convo.flow { --cz: 1.2; } }
 @media (max-width: 920px), (max-height: 512px) { #s1 .panel .ch-chat .convo.flow { --cz: 1; } }
 #s1 .panel .ch-chat { padding-inline: clamp(16px, calc(3 * var(--vw)), 40px); }
-/* single column (phones, narrow or short windows): full-width chat, a steady height */
+/* Single column: the whole conversation grows with the page, without an inner scroll or top fade. */
 @media (max-width: 900px), (max-height: 600px) {
-  #s1 .panel .ch-chat { padding: 8px clamp(4px, calc(2 * var(--vw)), 16px); }
-  #s1 .panel .ch-chat .convo.flow { --cz: 1; width: 100%; height: clamp(420px, calc(70 * var(--vh)), 640px); }
+  #s1 .panel .ch-chat { height: auto; padding: 8px clamp(4px, calc(2 * var(--vw)), 16px); }
+  #s1 .panel .ch-chat .convo.flow { --cz: 1; width: 100%; height: auto; justify-content: flex-start;
+    overflow: visible; -webkit-mask-image: none; mask-image: none; }
+  #s1 .convo.flow::before, #s1 .convo.flow::after { content: none; }
 }
 /* side rail narrows on mid-size windows; the chat keeps clear of the page dots on the right edge */
 @media (min-width: 901px) and (min-height: 601px) {

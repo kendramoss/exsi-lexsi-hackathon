@@ -147,8 +147,48 @@
     return [icon(ic), el("span", { class: "vt" }, ...words), el("em", {}, k === "ok" ? "right" : "wrong")];
   }
 
-  // ---------- head ----------
+  // ---------- run scope ----------
   function renderHead() {
+    // import_final_run.py puts unsupported_toward in a suffixed family solely to keep case IDs unique.
+    // It is a fourth pushback on the same source case, not a second independent case.
+    const groups = new Map();
+    cases.forEach((c) => {
+      const family = RUN === "final-fresh" ? c.family_id.replace(/-toward$/, "") : c.family_id;
+      groups.set(family, (groups.get(family) || 0) + 1);
+    });
+    const n = groups.size, records = cases.length, conditions = new Set(cases.map((c) => c.feedback_condition)).size;
+    const perFamily = new Set(groups.values());
+    const ways = perFamily.size === 1 ? [...perFamily][0] : null;
+    const scope = metrics.is_mock ? `${n} invented case families, ${records} records, ${conditions} conditions`
+      : `${n} cases, ${records} pushbacks${ways ? ` (${ways} per case)` : ""}`;
+    const comparison = `${label(state.comparator)} against ${label(state.ref)}`;
+    const fact = (title, text) => el("li", {}, el("b", {}, title), text);
+    const released = () => [" The released model is ", el("a", {
+      href: "https://github.com/kendramoss/exsi-lexsi-hackathon#about-the-project", target: "_blank", rel: "noopener",
+    }, "merged α=0.75"), ", a blend of the later v7 and v8 adapters, with its own frozen results."];
+
+    if (metrics.is_mock) {
+      $(".fair-lead").textContent = `Mock layout test: ${scope}. ${ways ? `Each family has ${ways} pushbacks.` : ""} These examples and scores are invented, not a model evaluation.`;
+      $(".fair-facts").replaceChildren(
+        fact("Mock data", `${n} invented case families for layout testing, not NDA evaluation cases`),
+        fact(`${conditions} conditions`, "Correct pushback, unsupported pushback, and pressure without evidence"),
+        fact(`${records} records`, `${n} families${ways ? `, each pushed back on ${ways} ways` : ""}; all outputs and scores are invented`));
+      $("#s4 .which").textContent = `Mock layout test: ${scope}. Shown here: ${comparison}, using invented outputs and scores. The linked model and benchmark are project resources, not the source of this mock run.`;
+      $("#all-dialog .intro").textContent = `Mock layout test: ${scope}. Selected comparison: ${comparison}. All ${metrics.comparators.length} comparator rows below are invented, not measured model quality. Source: scripts/make_mock_results.py; saved artifacts in ${BASE}.`;
+    } else {
+      $(".fair-lead").textContent = `${ways ? `Every case is pushed back on ${ways} ways.` : scope + "."} The ones that quote an excerpt use the same words and only the excerpt changes, so the model has to check it`;
+      const facts = RUN === "final-fresh" ? [
+        fact("New clause types", "Every test case uses one of 5 clause types never seen in training (nda-1, 7, 15, 16, 17)"),
+        fact("No word tricks", "Word overlap, length and position each point to the right excerpt only half the time"),
+      ] : [fact("Saved run", `Scope: ${metrics.dataset.split}`)];
+      $(".fair-facts").replaceChildren(...facts, fact(`${records} scored`, `${n} cases${ways ? `, each pushed back on ${ways} ways` : ""}`));
+      $("#s4 .which").replaceChildren(`Shown here: ${comp(state.comparator).label} against ${comp(state.ref).label}, on ${scope}.`,
+        ...(RUN === "final-fresh" ? released() : []));
+      $("#all-dialog .intro").replaceChildren(`Shown here: ${comp(state.comparator).label} against ${comp(state.ref).label}, on ${scope}. `,
+        `Saved comparison: ${[state.ref, state.comparator].map((id) => `${id} (${[...new Set(preds.filter((p) => p.policy === id).map((p) => p.model))].join(", ")})`).join(" vs ")}. `,
+        `Source: ${RUN === "final-fresh" ? "scripts/import_final_run.py; " : ""}saved artifacts in ${BASE}.`,
+        ...(RUN === "final-fresh" ? released() : []));
+    }
   }
 
   // ---------- 01: the conversation ----------
@@ -215,7 +255,7 @@
       box._resize = () => { cancelAnimationFrame(rt); rt = requestAnimationFrame(() => { if (convoStepAt >= 4) centerPush(false); }); };
       new ResizeObserver(box._resize).observe(box);
     }
-    convoShow(Math.max(1, convoStepAt));
+    convoShow(innerWidth < 760 ? CONVO_STEPS : Math.max(1, convoStepAt));
 
     renderListen();
     renderFair();
@@ -366,12 +406,12 @@
     const split = n >= 4;
     // Arriving at the split, play it in order instead of all at once:
     // the earlier messages fold away, then the fork draws, then the two columns rise in, then the replies pop.
-    const staged = split && prev < 4 && !still;
+    const staged = split && prev < 4 && !still && innerWidth >= 760;
     const convoEl = $("#convo");
     // deliver() just rebuilt the rows; let them lay out at full height first, or the fold has no "before"
     // state and the earlier messages vanish in one frame instead of folding away
     if (staged) { void W.trunk.offsetHeight; foldRows(W.trunk, true, W.backAnims); }
-    else W.trunk.classList.toggle("past", split);
+    else W.trunk.classList.toggle("past", split && innerWidth >= 760);
     // Arriving at the split it slides over (animated); on any later step the rebuilt bubble is centred in the
     // same frame, or it shows for one frame at its default right-hand spot and visibly flicks sideways.
     if (split && staged) at(0, () => centerPush(true));
@@ -419,21 +459,18 @@
       return t;
     };
     let t = play(W.trunk, W.shared, 400);
-    at(t, () => { W.trunk.classList.add("past"); $("#convo").classList.add("split"); W.fork.classList.add("show"); }); t += 900;
+    at(t, () => { W.trunk.classList.toggle("past", innerWidth >= 760); $("#convo").classList.add("split"); W.fork.classList.add("show"); }); t += 900;
     at(t, () => W.branches.forEach((b) => b.node.classList.add("show"))); t += 300;
     W.branches.forEach((b) => { const end = play(b.list, b.msgs, t); at(end, () => b.verdict.classList.add("show")); });
   }
   function convoWatch() {
-    const box = $("#convo");
     $("#replay").addEventListener("click", playConvo);
     // ‹ › step the chat; a short lock keeps a double click from skipping a step mid-animation
     let lock = 0;
     const press = (dir) => { const now = performance.now(); if (now < lock) return; if (convoStep(dir)) lock = now + 380; };
     $("#convo-prev")?.addEventListener("click", () => press(-1));
     $("#convo-next")?.addEventListener("click", () => press(1));
-    if (!("IntersectionObserver" in window)) { playConvo(); return; }
-    const io = new IntersectionObserver((es) => { if (innerWidth < 760 && es.some((e) => e.isIntersecting)) { io.disconnect(); playConvo(); } }, { threshold: 0.7 });
-    io.observe(box);
+    // Phones render the complete thread at load; entering it must not clear and replay its nodes.
   }
   // The old scroll walkthrough's layout hooks; nothing to lay out now.
   function walkMode() {}
@@ -725,7 +762,11 @@
     const box = $("#fair");
     if (!box) return;
     const fam = state.family, NS = "http://www.w3.org/2000/svg";
-    const ROWS = [
+    const ROWS = metrics.is_mock ? [
+      ["valid_low_overlap", fam, "Correct pushback", "valid"],
+      ["unsupported_high_overlap", fam, "Unsupported pushback", "unsupported_away"],
+      ["bare_pressure", fam, "No evidence, just insists", "pressure_away"],
+    ] : [
       ["valid_low_overlap", fam, "Right answer, right excerpt", "valid"],
       ["unsupported_high_overlap", `${fam}-toward`, "Right answer, wrong excerpt", "unsupported_toward"],
       ["unsupported_high_overlap", fam, "Wrong answer, wrong excerpt", "unsupported_away"],
@@ -750,7 +791,7 @@
     // the case card: the statement, its three excerpts, which one settles it
     const card = n("g", { class: "fair-card" }, n("rect", { x: 0, y: TOP, width: 380, height: H - TOP, rx: 12, class: "fc" }));
     let y = TOP + 36;
-    card.append(n("text", { x: 20, y, class: "fc-k" }, `Does the contract say this?`)); y += 28;
+    card.append(n("text", { x: 20, y, class: "fc-k" }, metrics.is_mock ? "Invented question" : "Does the contract say this?")); y += 28;
     wrap(`“${statement}”`, 34).forEach((l) => { card.append(n("text", { x: 20, y, class: "fc-s" }, l)); y += 24; });
     y += 18;
     const hls = {};
@@ -762,12 +803,14 @@
       lines.forEach((l, k) => card.append(n("text", { x: 54, y: y + k * 22, class: "fc-e" }, l)));
       y += 22 * lines.length + 20;
     });
-    card.append(n("text", { x: 20, y: H - 22, class: "fc-k" }, `${gold} settles it · true answer: ${base.truth_target}`));
+    card.append(n("text", { x: 20, y: H - 22, class: "fc-k" }, gold ? `${gold} settles it · true answer: ${base.truth_target}` : `Saved true answer: ${base.truth_target}`));
     svg.append(card);
     // one row per pushback, each with the move the model should make
     const els = rows.map((r, i) => {
       const ry = TOP + i * STEP, my = ry + RH / 2, c = cites(r.cs);
-      const sub = r.cs.feedback_condition === "bare_pressure" ? "quotes nothing" : `quotes ${c}${c === gold ? ", which settles it" : ", which doesn’t"}`;
+      const sub = r.cs.feedback_condition === "bare_pressure" ? "quotes nothing"
+        : c ? `quotes ${c}${c === gold ? ", which settles it" : ", which doesn’t"}`
+        : `No excerpt quoted · ${EVIDENCE_LONG[r.cs.evidence_sufficiency]}`;
       const g = n("g", { class: "fr" },
         n("path", { class: "fa", d: `M380 ${cy} H415 V${my} H450`, "marker-end": "url(#fair-ah)" }),
         n("path", { class: "fa", d: `M870 ${my} H920`, "marker-end": "url(#fair-ah)" }),
@@ -1049,7 +1092,8 @@
     }, { passive: false });
 
     addEventListener("keydown", (e) => {
-      if (innerWidth < 760 || document.querySelector("dialog[open]") || e.target.closest("select, input, textarea, [role=tab], tr[data-lane]")) return;
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || innerWidth < 760 || document.querySelector("dialog[open]")
+        || e.target.isContentEditable || e.target.closest("button, a[href], select, input, textarea, summary, [contenteditable]:not([contenteditable=false]), [role=button], [role=tab], tr[data-lane]")) return;
       const side = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
       if (side && current().id === "s1") { e.preventDefault(); convoStep(side); return; }
       const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
