@@ -64,7 +64,9 @@ The additional template-resume fix `b6312a5` passed three new offline tests and 
 
 The reviewers additionally checked that all 16 saved pilot judgments remain reusable and all 39 saved label objects are unchanged. Clean dependency installation/minimum-version resolution, real human auditing, non-Chrome browsers, and live model performance were not tested.
 
-Known non-blocking backlog: `demo/tests/check-merged-page.mjs` is a legacy browser script with an obsolete badge expectation for the current historical default route. It is not used by the verified historical-page regression suite and was already stale at baseline; it was not represented as passing. The current merged payload mapping and hash/regeneration checks did pass. This pass does not claim all repository tests work without their documented external evidence roots.
+Follow-up work completed on the separate `fix/evidence-and-verification-followups` branch: the stale `demo/tests/check-merged-page.mjs` was replaced with a pinned merged-payload verifier. It explicitly reports merged browser rendering as **SKIP (not passed)** because the shipped frontend remains historical. Strict mode rejects that skip; mutation regressions preserve data/hash/provenance checks. See `docs/demo-test-matrix.md`.
+
+Clean dependency installation was subsequently verified in an isolated local venv without system site packages. The documentation now distinguishes true checkout-only guards from the full staging suite's external raw-evidence prerequisite. See `docs/verification/offline-environment-2026-11-14.json`. Minimum-version/platform coverage remains limited; no claim is made that all integration tests work without their required artifacts.
 
 ### Coordination incident
 
