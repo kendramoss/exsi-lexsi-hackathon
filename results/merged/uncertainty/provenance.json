@@ -1,0 +1,19 @@
+{
+  "analysis_script": "/Users/anasqumhiyeh/Documents/exsi-lexsi-hackathon/.claude/worktrees/wf_66f464c4-f41-1/analysis/paired_uncertainty.py",
+  "analysis_script_sha256": "1d3ea27a0b8795c695ad8931c0e52c7758b52479008b4478a5fb871ce1acaa1f",
+  "evaluation_root": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation",
+  "git_branch": "worktree-wf_66f464c4-f41-1",
+  "git_head": "d06b6ec71b397dd77ddb5f5971c4f9297ed6780f",
+  "input_hashes_sha256": "26529af47de437b550dff1dba6b79c6e4be2bcb173b95168437104b336d59e28",
+  "model_selection_performed": false,
+  "models_generated_or_trained": false,
+  "paired_results_sha256": "e73f5a49653294a5f769c3a74288b83b82d33e67dff09cb0d0fe35527d3e7370",
+  "python": "3.13.9",
+  "python_implementation": "CPython",
+  "raw_inputs_modified": false,
+  "resolution_comparison_performed": false,
+  "schema_version": 1,
+  "test_script": "/Users/anasqumhiyeh/Documents/exsi-lexsi-hackathon/.claude/worktrees/wf_66f464c4-f41-1/analysis/test_paired_uncertainty.py",
+  "test_script_sha256": "da47605bde99ba4b2e2e7370e09e2adde33198894e34e983618d6be107b5de06",
+  "uncertainty_report_sha256": "290e5e7cd97b4718e9ce5dedbe933c81a43ee0438ce1e15b068af692103b4384"
+}

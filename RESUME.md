@@ -31,7 +31,7 @@ Selection was dev-only. Only v7 and alpha=0.75 passed the preregistered retentio
 
 Frozen evaluation was confirmation-only. All 1,020 raw records were independently verified, and 17 merge tests passed on 10 Nov. Selection JSON SHA-256: `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`. Frozen summary SHA-256: `3598cf8cdfa3e0783944e0bbbcd81788ef5f15131ab8e1ee811fc63cc2184d7d`.
 
-Backend boundary: current selection/confirmation comparisons are Apple MPS bf16. Historical v6 Kaggle fp16/RTX/vLLM results remain useful development evidence but are not directly comparable and are not the current model. Resolution is conditional on different CLARIFY follow-up denominators (50 versus 34), not paired identical opportunities. **Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured.**
+Backend boundary: current selection/confirmation comparisons are Apple MPS bf16. Historical v6 Kaggle fp16/RTX/vLLM results remain useful development evidence but are not directly comparable and are not the current model. Resolution is conditional on different CLARIFY follow-up denominators (50 versus 34), not paired identical opportunities. **A post-selection raw-base arm was evaluated on the same suites/backend; see `BASE-EVALUATION.md` and `UNCERTAINTY.md` for exact results and uncertainty.**
 
 **Custom-scorer boundary:** AuditKIT produced source-model evaluations. Merged interpolation and current MPS dev/frozen, Issue10, Arabic, and native-resolution evaluations used custom EvidenceTune contract-v2/native scorers, not AuditKIT. CircuitKIT is historical v6 smoke only.
 

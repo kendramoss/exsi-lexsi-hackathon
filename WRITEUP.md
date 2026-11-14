@@ -17,6 +17,12 @@ Tell Tiny Aya "you're wrong" and the original model changes its answer whether t
 
 All **1,020 frozen raw records** were independently checked and **17 merge tests passed on 10 Nov 2026**. These are **contract-v2 synthetic construction-proxy results**, not human validation or broad natural-domain evidence. They are not directly comparable with the historical v6 Kaggle fp16/RTX/vLLM numbers below.
 
+## Additional baseline and uncertainty
+
+A post-selection raw-base arm was evaluated on the same two suites and Apple MPS bf16 backend. Raw base task success is **62/240 (25.83%) semantic** and **65/270 (24.07%) targeted**, with **0/48** and **0/54** all-five successes. Merged therefore exceeds raw base by **66.67pp semantic** and **69.63pp targeted** task success on these proxy suites. v7 scores 213/240 and 247/270 on the same suites. The raw-base metrics are strict task metrics that include output-format failures (format success 160/240 and 183/270), so they are post-selection descriptive numbers, not general accuracy and not a same-run experiment with the saved arms. Historical Python/Transformers versions for the saved v7 and merged predictions are not pinned, so no retroactive version attribution is made. This is a descriptive baseline, not a candidate arm or a general-capability assessment. Exact raw records and transition counts are in `BASE-EVALUATION.md`.
+
+A deterministic 10,000-replication case-cluster bootstrap gives merged−v7 semantic task success **+3.75pp [95% CI +0.42, +7.50]** and targeted task success **+2.22pp [95% CI −0.74, +5.56]**. Semantic all-five is +12.50pp [+2.08, +25.00], with exact McNemar p=0.0703125; targeted all-five is +5.56pp [−5.56, +16.67], p=0.5078125. Two estimands are involved: row-level task success (inference only through the case-cluster bootstrap, since the five rows of a case are correlated) and case-level all-five success (bootstrap plus exact McNemar). The semantic all-five bootstrap interval also excludes zero, but the exact test (p = 0.0703125, 7 versus 1 discordant cases) is not conclusive; the targeted intervals span zero. No multiplicity correction was applied across the four comparisons, and the outcomes share the same rows. See `UNCERTAINTY.md` for methods and limitations.
+
 The historical v6 foundation remains useful: it improved held-out-document action-routing/behavior consistency from **1/64 to 61/64**, reached **103/119 (86.6%)** on the strict119 post-hoc sensitivity set versus **87/119 (73.1%)** for word overlap, and showed no measured safety-retention regression on its 200-prompt multilingual check. Those results describe original v6, not the merged adapter. Two Lexsi toolkit bugs were found and fixed locally along the way.
 
 ## The problem: sycophantic correction
@@ -68,7 +74,7 @@ The original v1–v6 training and evaluation runs used Hugging Face Jobs. V7/v8 
 | Conditional resolution | 38/50 (76.00%) | **27/34 (79.41%)** | +3.41pp |
 | Final dialogue task accuracy | 81.25% | **83.20%** | +1.95pp |
 
-Only v7 and α=0.75 passed the preregistered retention/resolution gates. Selection used dev only. **No new two-arm merged-confirmation generation occurred before `selection.json` was locked. Earlier v7/v8 frozen runs existed but were not used for merged-model selection.** Selection JSON SHA-256: `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`. The larger resolution evaluation has 32 non-fresh cases; resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34), not identical paired opportunities. The original four-case v8 pilot was not used for selection. **Raw base Tiny Aya was not evaluated on the current contract-v2 suites, so base→merged correction improvement is unmeasured.**
+Only v7 and α=0.75 passed the preregistered retention/resolution gates. Selection used dev only. **No new two-arm merged-confirmation generation occurred before `selection.json` was locked. Earlier v7/v8 frozen runs existed but were not used for merged-model selection.** Selection JSON SHA-256: `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`. The larger resolution evaluation has 32 non-fresh cases; resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34), not identical paired opportunities. The original four-case v8 pilot was not used for selection. The raw-base comparison was added **post-selection** and did not affect model choice.
 
 ### Frozen confirmation only
 
@@ -148,7 +154,7 @@ The 1,000-claim scaling run remains **pending**: it was cancelled at 74% with no
 ## Limitations
 
 - Current contract-v2 results use synthetic construction-proxy labels, not human truth/sufficiency judgments or broad natural-domain validation. Issue #12 labels remain `independent_ai_review` until qualified humans approve them.
-- Raw base Tiny Aya was not evaluated on current contract-v2 suites; base→merged correction improvement is unmeasured. Current resolution rates use different conditional follow-up denominators (38/50 versus 27/34).
+- The raw-base arm was added post-selection and is descriptive only. Current resolution rates use different conditional follow-up denominators (38/50 versus 27/34).
 - AuditKIT produced source-model evaluations; current merged/MPS, Issue10, Arabic, and native-resolution metrics use custom contract-v2/native scorers. CircuitKIT is historical v6 smoke only.
 - Current v7 versus merged comparisons use Apple MPS bf16. Historical v6 uses other backends; do not mix them in one ranking or treat cross-backend deltas as adapter-only effects.
 - Contradiction and Arabic weaknesses remain. The Arabic set is small and provisional; no native-speaker-validated multilingual claim is supported.

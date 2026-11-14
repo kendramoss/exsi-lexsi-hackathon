@@ -26,6 +26,8 @@ def render_model_card(worktree_root: Path, context: str) -> str:
             "](manifest.json)": "](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/manifest.json)",
             "](adapter/merge_provenance.json)": "](merge_provenance.json)",
             "](results/)": "](evidence/)",
+            "`BASE-EVALUATION.md`": "[`BASE-EVALUATION.md`](evidence/raw_base/BASE-EVALUATION.md)",
+            "`UNCERTAINTY.md`": "[`UNCERTAINTY.md`](evidence/uncertainty/UNCERTAINTY.md)",
         }
     else:
         raise ValueError(f"unknown model-card context: {context}")

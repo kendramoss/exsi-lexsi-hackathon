@@ -38,7 +38,7 @@ Selection used **dev only**. Only v7 and alpha=0.75 passed the preregistered sem
 | Semantic all-five-condition case success | 60.42% | **72.92%** | +12.50pp |
 | Targeted all-five-condition case success | 74.07% | **79.63%** | +5.56pp |
 
-Resolution is conditional on CLARIFY episodes; v7 and merged have different follow-up denominators (50 versus 34), so these are not same-denominator paired outcomes. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured.
+Resolution is conditional on CLARIFY episodes; v7 and merged have different follow-up denominators (50 versus 34), so these are not same-denominator paired outcomes. A post-selection raw-base arm scored **25.83% semantic** and **24.07% targeted** on the same suites/backend, with 0/48 and 0/54 all-five successes (v7: 213/240 and 247/270). These strict metrics include format failures, are post-selection and descriptive, and are not same-run with the saved arms (historical software versions unpinned); see `BASE-EVALUATION.md`. Case-cluster bootstrap CIs, discordant counts, and exact tests are in `UNCERTAINTY.md`; the semantic all-five bootstrap CI excludes zero while the exact test (p = 0.0703) is inconclusive, and there is no multiplicity correction.
 
 Semantic evaluation has 48 cases / 240 rows per arm; targeted has 54 cases / 270 rows per arm. All 1,020 frozen raw records were independently checked, and 17 original merge tests passed on 10 Nov 2026. Selection SHA-256: `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`; frozen summary SHA-256: `3598cf8cdfa3e0783944e0bbbcd81788ef5f15131ab8e1ee811fc63cc2184d7d`.
 
@@ -62,7 +62,7 @@ Strict119 is a **post-hoc historical-use sensitivity analysis**, not a newly ind
 
 - Current headline results are **contract-v2 synthetic construction-proxy evaluations**, not human validation or broad natural-domain evidence.
 - Current comparisons use **Apple MPS bf16**. Historical Kaggle fp16/RTX/vLLM results are not directly comparable.
-- Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured. Resolution rates 38/50 and 27/34 have different conditional denominators.
+- The raw-base arm was added **post-selection** and is descriptive only. Resolution rates 38/50 and 27/34 have different conditional denominators.
 - AuditKIT produced source-model evaluations; current merged/MPS, Issue10, Arabic, and native-resolution metrics use custom scorers. CircuitKIT is historical v6 smoke only.
 - **Contradiction remains weaker:** in the authored synthetic check, merged contradiction task success is **87.2%**, versus **96.8%** for entailment.
 - **Arabic remains unresolved:** v7 and merged both score **62/80** on the small provisional proxy; merged all-five success is **4/16** versus v7 **5/16**, and solo accuracy is **4/16**. No native-speaker-validated improvement claim is made.

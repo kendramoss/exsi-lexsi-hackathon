@@ -1,0 +1,42 @@
+{
+  "active_runner_wall_seconds": 1067.1109187602997,
+  "batch_generation_seconds_by_view": {
+    "semantic_frozen_test": 466.492,
+    "v8_targeted_frozen_test": 575.698
+  },
+  "batch_generation_seconds_total": 1042.19,
+  "elapsed_including_pause_seconds": 9538.439174,
+  "final_process_generation_seconds": 693.4205207499999,
+  "final_process_views": {
+    "semantic_frozen_test": {
+      "seconds": 117.16701074999946
+    },
+    "v8_targeted_frozen_test": {
+      "seconds": 576.2534255
+    }
+  },
+  "generation_batch_events": {
+    "semantic_frozen_test": 30,
+    "v8_targeted_frozen_test": 34
+  },
+  "new_semantic_batches_after_resume": 7,
+  "new_targeted_batches_after_resume": 34,
+  "resumed": true,
+  "reused_completed_semantic_batches": 23,
+  "runs": [
+    {
+      "active_wall_seconds": 361.89813351631165,
+      "finished_at_utc": "2026-11-10T16:51:17.878011+00:00",
+      "generation_batch_events": 23,
+      "log": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation.log",
+      "started_at_utc": "2026-11-10T16:45:15.979878+00:00"
+    },
+    {
+      "active_wall_seconds": 705.212785243988,
+      "finished_at_utc": "2026-11-10T19:24:14.419052+00:00",
+      "generation_batch_events": 41,
+      "log": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation-resume.log",
+      "started_at_utc": "2026-11-10T19:12:29.206267+00:00"
+    }
+  ]
+}
