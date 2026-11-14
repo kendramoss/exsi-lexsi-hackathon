@@ -39,6 +39,14 @@ def load():
 
 def leakage(data):
     out, fails = {}, []
+    # case_id is the logical key everywhere downstream: a repeat inside or across splits is not a distinct case.
+    where = defaultdict(lambda: defaultdict(int))
+    for s, cases in data.items():
+        for c in cases:
+            where[c["case_id"]][s] += 1
+    dups = [{"case_id": k, "splits": dict(v)} for k, v in sorted(where.items()) if sum(v.values()) > 1]
+    out["duplicate_case_ids"] = dups
+    fails += [f"duplicate case_id {d['case_id']} in " + ", ".join(f"{s} x{n}" for s, n in d["splits"].items()) for d in dups]
     for key in ("source_id", "template_id"):
         seen = defaultdict(set)
         for s, cases in data.items():

@@ -4,7 +4,7 @@ Source: https://huggingface.co/datasets/Mizore66/evidencetune-bench (eval/ + fin
 written up in Mizore66/evidencetune results/FINAL-RESULTS.md: Tiny Aya Global + LoRA, v5 (contracts-only
 training, shown as "Plain training") and v6 (+ VitaminC, shown as "With EvidenceTune"), scored by AuditKIT.
 
-Only the 136 "fresh" cases (never used for any decision) are imported, as the write-up's primary result.
+Only the 136 "fresh" cases (the label file's fresh flag; a historical label, not a claim about earlier use) are imported, as the write-up's primary result.
 Each case has five rows; the four with feedback become demo cases:
   valid              -> valid_low_overlap         (correct pushback; should update)
   unsupported_away   -> unsupported_high_overlap  (pushes away from the truth, cites a distractor)
@@ -18,6 +18,8 @@ Usage:
   python scripts/import_final_run.py                 # downloads from Hugging Face
   python scripts/import_final_run.py --src DIR       # DIR holds final_labels.json, final_source.jsonl,
                                                      # final_contracts_only.json, final_vitaminc.json
+Predictions are joined to source rows by position, so the importer first checks each file has one prediction per
+source row and that each prediction's prompt contains its row's input; otherwise it exits before writing anything.
 Writes demo/data/results/final-fresh/{cases.jsonl,predictions.jsonl,metrics.json}.
 """
 
@@ -70,6 +72,22 @@ def load(src):
     return labels, source, runs
 
 
+def check_alignment(source, runs):
+    """Fail before any write unless every policy file lines up row for row with the source."""
+    for _, f, _, _ in POLICIES:
+        preds = runs[f].get("predictions") if isinstance(runs[f], dict) else None
+        if not isinstance(preds, list):
+            sys.exit(f"{f}: no 'predictions' list")
+        if len(preds) != len(source):
+            sys.exit(f"{f}: {len(preds)} predictions but final_source.jsonl has {len(source)} rows")
+        for i, (pred, s) in enumerate(zip(preds, source)):
+            prompt = pred.get("prompt") if isinstance(pred, dict) else None
+            if not isinstance(prompt, str):
+                sys.exit(f"{f}: prediction at index {i} has no string 'prompt' to match against source row {i}")
+            if s["input"] not in prompt:
+                sys.exit(f"{f}: prediction at index {i} does not contain the input of final_source.jsonl row {i}; predictions are misaligned")
+
+
 def parse_input(text):
     """Split one source row into statement, excerpts, prior answer and the user's pushback."""
     statement = re.search(r"Policy statement:\s*(.+)", text).group(1).strip()
@@ -117,6 +135,7 @@ def main():
     ap.add_argument("--src", help="folder with the four files (default: download)")
     args = ap.parse_args()
     labels, source, runs = load(args.src)
+    check_alignment(source, runs)
 
     rows = []  # (label, source row, index)
     for i, s in enumerate(source):
@@ -128,7 +147,11 @@ def main():
     fresh = [r for r in rows if r[0]["fresh"]]
     by_case = {}
     for lab, s, i in fresh:
-        by_case.setdefault(lab["case"], {})[lab["condition"]] = (lab, s, i)
+        group = by_case.setdefault(lab["case"], {})
+        if lab["condition"] in group:
+            sys.exit(f"duplicate fresh group: case {lab['case']}, condition {lab['condition']} appears at "
+                     f"source rows {group[lab['condition']][2]} and {i}")
+        group[lab["condition"]] = (lab, s, i)
 
     run_id = "final-fresh"
     stamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
