@@ -97,7 +97,12 @@ def check_text_rules():
     for p in PHRASE_REQUIRED:
         if p not in blob:
             errors.append(f"required phrase missing: {p!r}")
-    narr = " ".join(s["narration"] for s in load_scenes()["scenes"]).lower()
+    scenes = load_scenes()["scenes"]
+    script = (HERE / "script.md").read_text(encoding="utf-8")
+    for scene in scenes:
+        if scene["narration"] not in script:
+            errors.append(f"{scene['id']}: spoken script differs from scene narration")
+    narr = " ".join(scene["narration"] for scene in scenes).lower()
     for bad in ["human-validated", "outperforms", "state of the art", "generaliz"]:
         if bad in narr:
             errors.append(f"overclaim in narration: {bad!r}")
@@ -107,8 +112,8 @@ def check_text_rules():
 def check_numbers():
     errors = []
     base = ROOT / "demo/data/results/final-fresh"
-    cases = [json.loads(l) for l in (base / "cases.jsonl").open()]
-    preds = [json.loads(l) for l in (base / "predictions.jsonl").open()]
+    cases = [json.loads(line) for line in (base / "cases.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
+    preds = [json.loads(line) for line in (base / "predictions.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(cases) != 544 or len({c["family_id"].replace("-toward", "") for c in cases}) != 136:
         errors.append("final-fresh is not 544 pushbacks / 136 cases")
     n = {}

@@ -31,7 +31,7 @@ Scope card, on screen for the whole of S5 at readable size:
 5. S1 (0:00): stay on screen 1. Hold 7 s.
 6. S2 (0:07): click tab **02 The result**. Let the gauges settle, point at 80/272 and 208/272. Hold to 0:21.
 7. S3 (0:21): click tab **03 Watch it**. The chat plays itself; press the right arrow to reach "The two AIs split". Hold to 0:31.
-8. S4 (0:31): switch to the HF tab. Show the semantic and targeted scoreboards. Hold to 0:47.
+8. S4 (0:31): switch to the HF tab. Show the semantic and targeted scoreboards. Keep the recorded-replay, synthetic-proxy and same-local-backend overlay readable for the entire scene, through 0:47.
 9. S5 (0:47): back to the local tab, click tab **06 See the work**. Add the scope card overlay. Hold to 1:00.
 10. Stop. Confirm duration is about 60 s, then add [`captions.srt`](captions.srt).
 

@@ -5,8 +5,8 @@ Paths are relative to the repository root. Rows marked "recomputed" are recomput
 | Spoken or shown claim | Value | Source | Verified |
 |---|---|---|---|
 | Historical comparison is plain training (v5, contracts only) vs EvidenceTune v6 | 136 cases, 544 pushbacks, `final-fresh` | `DEMO.md`, `docs/demo-flow.md`, `demo/data/results/final-fresh/metrics.json` | recomputed (544 case rows, 136 families) |
-| Plain training asks for the source on wrong quotes | 80 / 272 | `demo/data/results/final-fresh/predictions.jsonl`, policy `ordinary_sft`, condition `unsupported_high_overlap`, action `clarify` | recomputed |
-| EvidenceTune v6 asks for the source on wrong quotes | 208 / 272 | same file, policy `safetune` | recomputed |
+| Plain training asks for the source on unsupported citations | 80 / 272 | `demo/data/results/final-fresh/predictions.jsonl`, policy `ordinary_sft`, condition `unsupported_high_overlap`, action `clarify` | recomputed |
+| EvidenceTune v6 asks for the source on unsupported citations | 208 / 272 | same file, policy `safetune` | recomputed |
 | Chosen chat example (excerpt 3 about returning copies): plain training switches, EvidenceTune asks | family `c004`: `ordinary_sft` update, `safetune` clarify | `final-fresh` cases and predictions | recomputed |
 | Merged alpha=0.75 semantic task success | 222/240 = 92.5% | `demo_merged_data.json` `scoreboards.semantic_frozen_test`; `MERGED-DEMO.md`; `README.md` | recomputed |
 | Merged alpha=0.75 targeted task success | 253/270 = 93.70% | `scoreboards.v8_targeted_frozen_test` | recomputed |
@@ -15,6 +15,8 @@ Paths are relative to the repository root. Rows marked "recomputed" are recomput
 | Proxy scope, recorded only | contract-v2 synthetic construction-proxy; `recorded_only: true` | `demo_merged_data.json`; `MERGED-DEMO.md` | recomputed |
 | Teacher labels, no human audit, by team decision | description | `README.md` teacher paragraph; `docs/HANDOVER-TRAINING.md` | read |
 | Local page does not show merged outputs | page says the merged model has "its own frozen results" | `demo/index.html`, `demo/README.md` | read |
+
+Selection qualifier: **frozen test, confirmation only; dev-only selection**. Earlier v7/v8 frozen runs already existed but were not used for merged-model selection. The opening narration describes the training objective, not perfect adherence: measured task success is below 100%. In the chosen S3 example, EvidenceTune **asks for the source** rather than accepting the unsupported correction; the script, captions and source table use the same action description.
 
 ## Not narrated: post-selection descriptive evidence, not yet merged to main
 

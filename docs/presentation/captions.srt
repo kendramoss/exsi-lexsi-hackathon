@@ -1,10 +1,10 @@
 1
 00:00:00,000 --> 00:00:03,000
-AI models give in when you argue.
+Models can give in when challenged.
 
 2
 00:00:03,000 --> 00:00:07,000
-EvidenceTune changes its answer only when the quoted evidence supports it.
+EvidenceTune trains a small model to accept evidence-backed corrections, not pressure.
 
 3
 00:00:07,000 --> 00:00:12,000
@@ -12,31 +12,31 @@ First, a historical comparison: plain training against EvidenceTune version six.
 
 4
 00:00:12,000 --> 00:00:19,000
-Shown a wrong quote, plain training asked for the source 80 times out of 272.
+Shown an unsupported quote, plain training asked for the source 80 times out of 272.
 
 5
 00:00:19,000 --> 00:00:21,000
 EvidenceTune asked 208 times.
 
 6
-00:00:21,000 --> 00:00:28,000
+00:00:21,000 --> 00:00:26,000
 In this chosen example, the quote is about returning copies, not rights.
 
 7
-00:00:28,000 --> 00:00:30,000
+00:00:26,000 --> 00:00:28,000
 Plain training switches.
 
 8
-00:00:30,000 --> 00:00:31,000
-EvidenceTune holds.
+00:00:28,000 --> 00:00:31,000
+EvidenceTune asks for the source.
 
 9
-00:00:31,000 --> 00:00:36,000
-The released model is a later merge, alpha point seven five.
+00:00:31,000 --> 00:00:37,000
+The released alpha point seven five merge, on the same local backend,
 
 10
-00:00:36,000 --> 00:00:47,000
-On frozen proxy tests, recorded, it passes 222 of 240 semantic rows and 253 of 270 targeted rows, against 213 and 247 for version seven.
+00:00:37,000 --> 00:00:47,000
+passes 222 of 240 semantic rows and 253 of 270 targeted rows, versus version seven’s 213 and 247: recorded proxy confirmations.
 
 11
 00:00:47,000 --> 00:00:50,000

@@ -9,7 +9,7 @@
       "screen": "Local runtime, screen 1 Why (#top)",
       "capture": "local runtime: demo/ served over http, ?run=final-fresh",
       "still": "01-top.png",
-      "narration": "AI models give in when you argue. EvidenceTune changes its answer only when the quoted evidence supports it.",
+      "narration": "Models can give in when challenged. EvidenceTune trains a small model to accept evidence-backed corrections, not pressure.",
       "sources": ["demo/index.html", "docs/demo-flow.md"]
     },
     {
@@ -17,7 +17,7 @@
       "screen": "Local runtime, screen 2 The result (#glance)",
       "capture": "local runtime: historical v5 vs v6 (final-fresh)",
       "still": "02-glance.png",
-      "narration": "First, a historical comparison: plain training against EvidenceTune version six. Shown a wrong quote, plain training asked for the source 80 times out of 272. EvidenceTune asked 208 times.",
+      "narration": "First, a historical comparison: plain training against EvidenceTune version six. Shown an unsupported quote, plain training asked for the source 80 times out of 272. EvidenceTune asked 208 times.",
       "sources": ["demo/data/results/final-fresh/predictions.jsonl", "demo/README.md", "DEMO.md"]
     },
     {
@@ -25,7 +25,7 @@
       "screen": "Local runtime, screen 3 Watch it (#s1), final step",
       "capture": "local runtime: one chosen recorded example",
       "still": "03-s1.png",
-      "narration": "In this chosen example, the quote is about returning copies, not rights. Plain training switches. EvidenceTune holds.",
+      "narration": "In this chosen example, the quote is about returning copies, not rights. Plain training switches. EvidenceTune asks for the source.",
       "sources": ["demo/data/results/final-fresh/cases.jsonl", "docs/demo-flow.md"]
     },
     {
@@ -33,7 +33,7 @@
       "screen": "Standalone recorded merged demo on Hugging Face, not the local runtime",
       "capture": "manual: standalone HF recorded demo URL in MERGED-DEMO.md (not opened by this kit)",
       "still": null,
-      "narration": "The released model is a later merge, alpha point seven five. On frozen proxy tests, recorded, it passes 222 of 240 semantic rows and 253 of 270 targeted rows, against 213 and 247 for version seven.",
+      "narration": "The released alpha point seven five merge, on the same local backend, passes 222 of 240 semantic rows and 253 of 270 targeted rows, versus version seven’s 213 and 247: recorded proxy confirmations.",
       "sources": ["MERGED-DEMO.md", "demo_merged_data.json", "README.md"]
     },
     {
