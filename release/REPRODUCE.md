@@ -108,6 +108,6 @@ This separate ignored tree includes source/label packs, curated training inputs,
 
 ## Evidence and license boundaries
 
-All contract-v2 labels are synthetic/proxy. AI review is not human validation; Issue #12 remains `independent_ai_review`. DPO and natural SciFact training are rejected. Contradiction and Arabic weaknesses remain. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured. Resolution rates 38/50 and 27/34 are conditional on different CLARIFY follow-up denominators.
+All contract-v2 labels are synthetic/proxy. AI review is not human validation; Issue #12 remains `independent_ai_review`. DPO and natural SciFact training are rejected. Contradiction and Arabic weaknesses remain. A post-selection raw-base arm was evaluated on the same suites/backend; it is descriptive only. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`. Resolution rates 38/50 and 27/34 are conditional on different CLARIFY follow-up denominators.
 
 Original EvidenceTune code is MIT licensed. The adapter is CC BY-NC 4.0. Dataset licenses and Lexsi LSAL notices remain separate; see `LICENSE-DECISION.md` and `NOTICE.md`.

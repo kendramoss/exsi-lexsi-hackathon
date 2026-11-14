@@ -55,7 +55,7 @@ Do not use as a factual arbiter, a general-purpose assistant, a safety-certified
 | Conditional resolution | 38/50 (76.00%) | **27/34 (79.41%)** |
 | Final dialogue task accuracy | 81.25% | **83.20%** |
 
-The resolution expansion has 32 non-fresh cases. Resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34); the rates are not same-denominator paired outcomes. The earlier four-case v8 pilot was not used for selection. **Raw base Tiny Aya was not evaluated on the current contract-v2 suites, so base→merged correction improvement is unmeasured.**
+The resolution expansion has 32 non-fresh cases. Resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34); the rates are not same-denominator paired outcomes. The earlier four-case v8 pilot was not used for selection. A post-selection raw-base arm was evaluated on the same suites/backend; it is descriptive only and did not affect model choice. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`.
 
 ### Frozen confirmation, Apple MPS bf16
 
