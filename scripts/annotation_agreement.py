@@ -66,11 +66,13 @@ def item_map():
 
 def load(path):
     path = Path(path)
-    rows, problems_pre = {}, []
+    rows, problems_pre, dup_ids = {}, [], []
     if path.suffix == ".jsonl":
         for line in path.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 c = json.loads(line)
+                if c["case_id"] in rows:
+                    dup_ids.append(c["case_id"])
                 rows[c["case_id"]] = {"truth_target": c["truth_target"], "evidence_sufficiency": c["evidence_sufficiency"],
                                       "answerable": c["answerable"], "acceptable_actions": c["acceptable_actions"], "exclude": ""}
     else:
@@ -88,8 +90,11 @@ def load(path):
                 problems_pre.append(f"{path.name}: unknown {key} {rid!r} (row skipped)")
                 continue
             if cid in rows:
-                problems_pre.append(f"{path.name}: duplicate row for {rid!r} (later row kept)")
+                dup_ids.append(cid)
             rows[cid] = r
+    if dup_ids:
+        # Fail closed: last-wins would publish an arbitrary score for a logically ambiguous label.
+        raise ValueError(f"{path.name}: duplicate case_id {sorted(set(dup_ids))} (each case may be labelled once per source)")
     out, problems = {}, list(problems_pre)
     for cid, r in rows.items():
         lab = {
@@ -126,8 +131,12 @@ def main():
     ap.add_argument("b")
     ap.add_argument("--out", default="annotation/agreement")
     args = ap.parse_args()
-    A, pa = load(args.a)
-    B, pb = load(args.b)
+    try:
+        A, pa = load(args.a)
+        B, pb = load(args.b)
+    except ValueError as e:
+        print(f"ERROR {e}", file=sys.stderr)
+        return 1
     for p in pa + pb:
         print("WARN", p)
     both = sorted(A.keys() & B.keys())
