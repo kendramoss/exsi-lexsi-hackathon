@@ -358,6 +358,12 @@ def build_staging(worktree_root: Path, raw_root: Path, output: Path) -> dict[str
         add_tree("raw", source, destination, required=required)
     add("worktree", "public_staging/DATASET-CARD.md", "dataset_collection/README.md")
 
+    # The model card links the later post-selection reports. Their complete raw
+    # records are published by build_additive_upload.py, not copied from the
+    # historical raw-project tree used by this builder.
+    add("worktree", "BASE-EVALUATION.md", "model_collection/evidence/raw_base/BASE-EVALUATION.md")
+    add("worktree", "UNCERTAINTY.md", "model_collection/evidence/uncertainty/UNCERTAINTY.md")
+
     # Saved raw model evidence, same-run summaries, plans, and native-resolution records.
     add_tree("raw", "merge_eval/local_results", "model_collection/evidence/merged/local_results")
     add_tree("raw", "results/v7/evtune-next-output/evaluation", "model_collection/evidence/source_models/v7/evaluation")
