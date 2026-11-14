@@ -137,11 +137,16 @@ Selection used **dev data only**; the frozen suite was confirmation-only and did
 
 Semantic evaluation contains 48 cases / 240 rows per arm; targeted evaluation contains 54 cases / 270 rows per arm. All 1,020 frozen raw records were independently checked. These are **contract-v2 synthetic construction-proxy results**, not human validation or broad natural-domain evidence.
 
+A post-selection raw-base arm was also evaluated on the same suites and backend. Raw base task success is **62/240 (25.83%) semantic** and **65/270 (24.07%) targeted**, versus merged **222/240 (92.50%)** and **253/270 (93.70%)**. Raw base has **0/48** and **0/54** all-five successes; v7 scores 213/240 and 247/270 on the same suites. These strict task metrics count output-format failures (raw base format success is 160/240 and 183/270), so they measure following this task contract, not general model accuracy. The arm was run after model selection on the already-frozen suites and is a descriptive comparison, not a same-run experiment: the saved v7 and merged predictions were not regenerated, and their historical Python/Transformers versions are not pinned, so no version-level attribution of the differences is made. See [raw-base evaluation](BASE-EVALUATION.md) for exact records and limitations.
+
+The [paired uncertainty analysis](UNCERTAINTY.md) uses 10,000 deterministic case-cluster bootstrap replications. Merged−v7 semantic task success is **+3.75pp [95% CI +0.42, +7.50]**; targeted task success is **+2.22pp [−0.74, +5.56]**. Case-level all-five differences are **+12.50pp [+2.08, +25.00]** semantic and **+5.56pp [−5.56, +16.67]** targeted. The task-success and all-five outcomes are different estimands (row-level versus case-level) derived from the same correlated rows, and no multiplicity correction is applied. The semantic all-five bootstrap interval also excludes zero, but the exact McNemar test on discordant cases is not conclusive (p = 0.0703125; targeted p = 0.5078125). Treat the semantic differences as suggestive and the targeted differences as not established.
+
 #### Evidence and reproducibility
 
 - [Submission draft](SUBMISSION-DRAFT.md) and [full write-up](WRITEUP.md) document selection, results, negative results, and claim boundaries.
 - [Release tooling](release/README.md) and [reproduction instructions](release/REPRODUCE.md) cover package verification, saved-record replay, adapter interpolation, and demo regeneration. The supported evidence path is raw-record replay, not a promise to recover missing original selection-code bytes.
 - [Curated merged-model evidence](results/merged/) contains summaries and locked selection/confirmation metadata without raw prediction dumps.
+- [Raw-base evaluation](BASE-EVALUATION.md) and [paired uncertainty analysis](UNCERTAINTY.md) provide the additional baseline, exact denominators, discordant counts, and confidence intervals.
 - [Demo integration contract](MERGED-DEMO.md), [recorded payload](demo_merged_data.json), and [payload builder](demo/build_merged_demo.py) define the current recorded-only comparison. The [historical v6 demo](DEMO.md) is separate and must not be relabelled or mixed into the merged-model scoreboard.
 
 #### Licenses and limitations
@@ -150,7 +155,7 @@ Original EvidenceTune code is [MIT licensed](LICENSE); the merged adapter is [CC
 
 - Current merged/MPS scores use EvidenceTune's custom contract-v2/native scorers, **not AuditKIT**. CircuitKIT evidence is historical v6 compatibility smoke only.
 - Current Apple MPS bf16 results are not directly comparable with historical v6 Kaggle fp16/RTX/vLLM results.
-- Raw base Tiny Aya was not evaluated on the current contract-v2 suites, so base→merged correction improvement is unmeasured. Five rows from one case are correlated, and current resolution rates have different conditional follow-up denominators.
+- The raw-base arm was added **post-selection** and is descriptive, not a new candidate arm. Five rows from one case are correlated, and current resolution rates have different conditional follow-up denominators.
 - Contradiction and Arabic weaknesses remain; the small Arabic proxy is not native-speaker validation. DPO and natural SciFact training were rejected. Historical v6 safety-retention results are not merged-model safety evidence.
 
 ### Project documents

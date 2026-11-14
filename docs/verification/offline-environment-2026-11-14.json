@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-14",
+  "scope": "Local clean-environment dependency installation and offline verification; not model inference or training",
+  "reviewed_environment_base": "d06b6ec",
+  "environment": {
+    "python": "3.13.9",
+    "platform": "macOS arm64",
+    "system_site_packages": false,
+    "pip": "25.2",
+    "declared_dependencies": {
+      "jsonschema": "4.26.0",
+      "PyYAML": "6.0.3",
+      "numpy": "2.5.4",
+      "safetensors": "0.8.0"
+    },
+    "transitive_dependencies": {
+      "attrs": "26.1.0",
+      "jsonschema-specifications": "2025.9.1",
+      "referencing": "0.37.0",
+      "rpds-py": "2026.9.1"
+    },
+    "installation": "python -m pip install -r requirements-dev.txt",
+    "new_global_packages": false
+  },
+  "original_clean_environment_checks": [
+    {"command": "python -I -B scripts/validate.py", "exit_code": 0},
+    {"command": "python -I -B scripts/validate.py demo/data/results/mock-smoke", "exit_code": 0},
+    {"command": "python -I -B scripts/validate.py demo/data/results/final-fresh", "exit_code": 0},
+    {"command": "python -I -B scripts/validate.py --cases schemas/examples/cases.example.jsonl", "exit_code": 0},
+    {"suite": "scripts/tests before environment documentation guards", "tests": 35, "skipped": 0},
+    {"suite": "demo/tests", "tests": 6, "skipped": 2, "note": "Raw-evidence integrations explicitly skipped; four payload-only tests passed"},
+    {"suite": "teacher/tests", "tests": 22, "skipped": 0, "note": "Fake clients only"},
+    {"suite": "release/source/merge_eval/tests/test_merge_lora.py", "tests": 8, "skipped": 0, "note": "Synthetic CPU tensors only"},
+    {"suite": "public_staging/tests", "tests": 14, "skipped": 0, "note": "Used existing author raw-evidence root; includes actual bundle construction and saved-record replay. Not a checkout-only test."},
+    {"suite": "demo/tests/merged-data.test.cjs", "tests": 4, "skipped": 0}
+  ],
+  "coordinator_followup_checks": [
+    {"suite": "scripts/tests including all four documentation guards", "tests": 39, "skipped": 0, "note": "Passed in the same isolated environment with DeprecationWarning treated as error"},
+    {"command": "python -I -B -m unittest discover -s public_staging/tests -p test_staging.py -k korean_rows -v", "tests": 1, "skipped": 0, "note": "Synthetic checkout-only guard"},
+    {"command": "python -I -B -m unittest discover -s public_staging/tests -p test_staging.py -k wrong_selected_adapter -v", "tests": 1, "skipped": 0, "note": "Synthetic checkout-only guard"}
+  ],
+  "limitations": [
+    "One dependency resolution on one Python/platform; not a dependency lockfile",
+    "Minimum-version, Windows, Linux and air-gapped wheelhouse installations were not tested",
+    "A passing dependency installation does not provide external raw-evidence artifacts",
+    "No model inference, teacher calls, training, human audit, deployment or model-quality validation occurred"
+  ]
+}

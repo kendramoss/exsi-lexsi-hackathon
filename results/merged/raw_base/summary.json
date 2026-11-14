@@ -1,0 +1,981 @@
+{
+  "arms": [
+    "raw_base",
+    "baseline_v7",
+    "merge_alpha_0.75"
+  ],
+  "behavior_caveats": [
+    "task_success is strict contract-v2 format plus acceptable action plus post-action working answer.",
+    "action_ok excludes solo rows because solo has no action; all-five uses cases and requires five successful rows.",
+    "whole_window_answer_ok is diagnostic and may be false for a behaviorally successful unsupported_toward CLARIFY or RETAIN.",
+    "Paired deltas are descriptive frozen-suite differences, not causal claims or statistical significance tests.",
+    "All three arms are saved/current local Apple MPS artifacts; no Kaggle metrics are mixed into this summary.",
+    "Scope is only these two current contract-v2 suites, not general, human, or natural-language performance."
+  ],
+  "created_at_utc": "2026-11-10T19:24:27.393298+00:00",
+  "evaluation_kind": "raw_base_post_selection_descriptive_baseline",
+  "evaluation_protocol": "evidencetune.evaluation.v2",
+  "kaggle_results_included": false,
+  "model_reselection_performed": false,
+  "other_frozen_cases_inspected": false,
+  "paired_delta_convention": "other arm minus named base arm; input-aligned rows, case-aligned all-five; no significance testing",
+  "paired_deltas": {
+    "semantic_frozen_test": {
+      "baseline_v7_minus_raw_base": {
+        "action_ok": {
+          "base_only": 7,
+          "base_passed": 85,
+          "base_rate": 0.4427083333333333,
+          "both": 78,
+          "delta": 0.453125,
+          "denominator": 192,
+          "neither": 13,
+          "other_only": 94,
+          "other_passed": 172,
+          "other_rate": 0.8958333333333334
+        },
+        "all_five_task_success": {
+          "base_only": 0,
+          "base_passed": 0,
+          "base_rate": 0.0,
+          "both": 0,
+          "delta": 0.6041666666666666,
+          "denominator": 48,
+          "neither": 19,
+          "other_only": 29,
+          "other_passed": 29,
+          "other_rate": 0.6041666666666666
+        },
+        "answer_ok": {
+          "base_only": 2,
+          "base_passed": 128,
+          "base_rate": 0.5333333333333333,
+          "both": 126,
+          "delta": 0.4166666666666667,
+          "denominator": 240,
+          "neither": 10,
+          "other_only": 102,
+          "other_passed": 228,
+          "other_rate": 0.95
+        },
+        "format_ok": {
+          "base_only": 4,
+          "base_passed": 160,
+          "base_rate": 0.6666666666666666,
+          "both": 156,
+          "delta": 0.3125,
+          "denominator": 240,
+          "neither": 1,
+          "other_only": 79,
+          "other_passed": 235,
+          "other_rate": 0.9791666666666666
+        },
+        "task_success": {
+          "base_only": 3,
+          "base_passed": 62,
+          "base_rate": 0.25833333333333336,
+          "both": 59,
+          "delta": 0.6291666666666667,
+          "denominator": 240,
+          "neither": 24,
+          "other_only": 154,
+          "other_passed": 213,
+          "other_rate": 0.8875
+        },
+        "terminal": {
+          "base_only": 26,
+          "base_passed": 149,
+          "base_rate": 0.6208333333333333,
+          "both": 123,
+          "delta": 0.19166666666666668,
+          "denominator": 240,
+          "neither": 19,
+          "other_only": 72,
+          "other_passed": 195,
+          "other_rate": 0.8125
+        },
+        "whole_window_answer_ok": {
+          "base_only": 29,
+          "base_passed": 95,
+          "base_rate": 0.3958333333333333,
+          "both": 66,
+          "delta": 0.36666666666666664,
+          "denominator": 240,
+          "neither": 28,
+          "other_only": 117,
+          "other_passed": 183,
+          "other_rate": 0.7625
+        }
+      },
+      "merge_alpha_0.75_minus_baseline_v7": {
+        "action_ok": {
+          "base_only": 2,
+          "base_passed": 172,
+          "base_rate": 0.8958333333333334,
+          "both": 170,
+          "delta": 0.046875,
+          "denominator": 192,
+          "neither": 9,
+          "other_only": 11,
+          "other_passed": 181,
+          "other_rate": 0.9427083333333334
+        },
+        "all_five_task_success": {
+          "base_only": 1,
+          "base_passed": 29,
+          "base_rate": 0.6041666666666666,
+          "both": 28,
+          "delta": 0.125,
+          "denominator": 48,
+          "neither": 12,
+          "other_only": 7,
+          "other_passed": 35,
+          "other_rate": 0.7291666666666666
+        },
+        "answer_ok": {
+          "base_only": 3,
+          "base_passed": 228,
+          "base_rate": 0.95,
+          "both": 225,
+          "delta": 0.0,
+          "denominator": 240,
+          "neither": 9,
+          "other_only": 3,
+          "other_passed": 228,
+          "other_rate": 0.95
+        },
+        "format_ok": {
+          "base_only": 3,
+          "base_passed": 235,
+          "base_rate": 0.9791666666666666,
+          "both": 232,
+          "delta": 0.0,
+          "denominator": 240,
+          "neither": 2,
+          "other_only": 3,
+          "other_passed": 235,
+          "other_rate": 0.9791666666666666
+        },
+        "task_success": {
+          "base_only": 2,
+          "base_passed": 213,
+          "base_rate": 0.8875,
+          "both": 211,
+          "delta": 0.0375,
+          "denominator": 240,
+          "neither": 16,
+          "other_only": 11,
+          "other_passed": 222,
+          "other_rate": 0.925
+        },
+        "terminal": {
+          "base_only": 7,
+          "base_passed": 195,
+          "base_rate": 0.8125,
+          "both": 188,
+          "delta": 0.004166666666666667,
+          "denominator": 240,
+          "neither": 37,
+          "other_only": 8,
+          "other_passed": 196,
+          "other_rate": 0.8166666666666667
+        },
+        "whole_window_answer_ok": {
+          "base_only": 6,
+          "base_passed": 183,
+          "base_rate": 0.7625,
+          "both": 177,
+          "delta": -0.004166666666666667,
+          "denominator": 240,
+          "neither": 52,
+          "other_only": 5,
+          "other_passed": 182,
+          "other_rate": 0.7583333333333333
+        }
+      },
+      "merge_alpha_0.75_minus_raw_base": {
+        "action_ok": {
+          "base_only": 5,
+          "base_passed": 85,
+          "base_rate": 0.4427083333333333,
+          "both": 80,
+          "delta": 0.5,
+          "denominator": 192,
+          "neither": 6,
+          "other_only": 101,
+          "other_passed": 181,
+          "other_rate": 0.9427083333333334
+        },
+        "all_five_task_success": {
+          "base_only": 0,
+          "base_passed": 0,
+          "base_rate": 0.0,
+          "both": 0,
+          "delta": 0.7291666666666666,
+          "denominator": 48,
+          "neither": 13,
+          "other_only": 35,
+          "other_passed": 35,
+          "other_rate": 0.7291666666666666
+        },
+        "answer_ok": {
+          "base_only": 4,
+          "base_passed": 128,
+          "base_rate": 0.5333333333333333,
+          "both": 124,
+          "delta": 0.4166666666666667,
+          "denominator": 240,
+          "neither": 8,
+          "other_only": 104,
+          "other_passed": 228,
+          "other_rate": 0.95
+        },
+        "format_ok": {
+          "base_only": 5,
+          "base_passed": 160,
+          "base_rate": 0.6666666666666666,
+          "both": 155,
+          "delta": 0.3125,
+          "denominator": 240,
+          "neither": 0,
+          "other_only": 80,
+          "other_passed": 235,
+          "other_rate": 0.9791666666666666
+        },
+        "task_success": {
+          "base_only": 2,
+          "base_passed": 62,
+          "base_rate": 0.25833333333333336,
+          "both": 60,
+          "delta": 0.6666666666666666,
+          "denominator": 240,
+          "neither": 16,
+          "other_only": 162,
+          "other_passed": 222,
+          "other_rate": 0.925
+        },
+        "terminal": {
+          "base_only": 27,
+          "base_passed": 149,
+          "base_rate": 0.6208333333333333,
+          "both": 122,
+          "delta": 0.19583333333333333,
+          "denominator": 240,
+          "neither": 17,
+          "other_only": 74,
+          "other_passed": 196,
+          "other_rate": 0.8166666666666667
+        },
+        "whole_window_answer_ok": {
+          "base_only": 30,
+          "base_passed": 95,
+          "base_rate": 0.3958333333333333,
+          "both": 65,
+          "delta": 0.3625,
+          "denominator": 240,
+          "neither": 28,
+          "other_only": 117,
+          "other_passed": 182,
+          "other_rate": 0.7583333333333333
+        }
+      }
+    },
+    "v8_targeted_frozen_test": {
+      "baseline_v7_minus_raw_base": {
+        "action_ok": {
+          "base_only": 6,
+          "base_passed": 99,
+          "base_rate": 0.4583333333333333,
+          "both": 93,
+          "delta": 0.4537037037037037,
+          "denominator": 216,
+          "neither": 13,
+          "other_only": 104,
+          "other_passed": 197,
+          "other_rate": 0.9120370370370371
+        },
+        "all_five_task_success": {
+          "base_only": 0,
+          "base_passed": 0,
+          "base_rate": 0.0,
+          "both": 0,
+          "delta": 0.7407407407407407,
+          "denominator": 54,
+          "neither": 14,
+          "other_only": 40,
+          "other_passed": 40,
+          "other_rate": 0.7407407407407407
+        },
+        "answer_ok": {
+          "base_only": 3,
+          "base_passed": 136,
+          "base_rate": 0.5037037037037037,
+          "both": 133,
+          "delta": 0.4666666666666667,
+          "denominator": 270,
+          "neither": 5,
+          "other_only": 129,
+          "other_passed": 262,
+          "other_rate": 0.9703703703703703
+        },
+        "format_ok": {
+          "base_only": 3,
+          "base_passed": 183,
+          "base_rate": 0.6777777777777778,
+          "both": 180,
+          "delta": 0.3074074074074074,
+          "denominator": 270,
+          "neither": 1,
+          "other_only": 86,
+          "other_passed": 266,
+          "other_rate": 0.9851851851851852
+        },
+        "task_success": {
+          "base_only": 3,
+          "base_passed": 65,
+          "base_rate": 0.24074074074074073,
+          "both": 62,
+          "delta": 0.674074074074074,
+          "denominator": 270,
+          "neither": 20,
+          "other_only": 185,
+          "other_passed": 247,
+          "other_rate": 0.9148148148148149
+        },
+        "terminal": {
+          "base_only": 47,
+          "base_passed": 176,
+          "base_rate": 0.6518518518518519,
+          "both": 129,
+          "delta": 0.11481481481481481,
+          "denominator": 270,
+          "neither": 16,
+          "other_only": 78,
+          "other_passed": 207,
+          "other_rate": 0.7666666666666667
+        },
+        "whole_window_answer_ok": {
+          "base_only": 34,
+          "base_passed": 109,
+          "base_rate": 0.40370370370370373,
+          "both": 75,
+          "delta": 0.37777777777777777,
+          "denominator": 270,
+          "neither": 25,
+          "other_only": 136,
+          "other_passed": 211,
+          "other_rate": 0.7814814814814814
+        }
+      },
+      "merge_alpha_0.75_minus_baseline_v7": {
+        "action_ok": {
+          "base_only": 4,
+          "base_passed": 197,
+          "base_rate": 0.9120370370370371,
+          "both": 193,
+          "delta": 0.023148148148148147,
+          "denominator": 216,
+          "neither": 10,
+          "other_only": 9,
+          "other_passed": 202,
+          "other_rate": 0.9351851851851852
+        },
+        "all_five_task_success": {
+          "base_only": 3,
+          "base_passed": 40,
+          "base_rate": 0.7407407407407407,
+          "both": 37,
+          "delta": 0.05555555555555555,
+          "denominator": 54,
+          "neither": 8,
+          "other_only": 6,
+          "other_passed": 43,
+          "other_rate": 0.7962962962962963
+        },
+        "answer_ok": {
+          "base_only": 4,
+          "base_passed": 262,
+          "base_rate": 0.9703703703703703,
+          "both": 258,
+          "delta": 0.003703703703703704,
+          "denominator": 270,
+          "neither": 3,
+          "other_only": 5,
+          "other_passed": 263,
+          "other_rate": 0.9740740740740741
+        },
+        "format_ok": {
+          "base_only": 4,
+          "base_passed": 266,
+          "base_rate": 0.9851851851851852,
+          "both": 262,
+          "delta": 0.0,
+          "denominator": 270,
+          "neither": 0,
+          "other_only": 4,
+          "other_passed": 266,
+          "other_rate": 0.9851851851851852
+        },
+        "task_success": {
+          "base_only": 4,
+          "base_passed": 247,
+          "base_rate": 0.9148148148148149,
+          "both": 243,
+          "delta": 0.022222222222222223,
+          "denominator": 270,
+          "neither": 13,
+          "other_only": 10,
+          "other_passed": 253,
+          "other_rate": 0.937037037037037
+        },
+        "terminal": {
+          "base_only": 6,
+          "base_passed": 207,
+          "base_rate": 0.7666666666666667,
+          "both": 201,
+          "delta": 0.018518518518518517,
+          "denominator": 270,
+          "neither": 52,
+          "other_only": 11,
+          "other_passed": 212,
+          "other_rate": 0.7851851851851852
+        },
+        "whole_window_answer_ok": {
+          "base_only": 4,
+          "base_passed": 211,
+          "base_rate": 0.7814814814814814,
+          "both": 207,
+          "delta": 0.007407407407407408,
+          "denominator": 270,
+          "neither": 53,
+          "other_only": 6,
+          "other_passed": 213,
+          "other_rate": 0.7888888888888889
+        }
+      },
+      "merge_alpha_0.75_minus_raw_base": {
+        "action_ok": {
+          "base_only": 3,
+          "base_passed": 99,
+          "base_rate": 0.4583333333333333,
+          "both": 96,
+          "delta": 0.47685185185185186,
+          "denominator": 216,
+          "neither": 11,
+          "other_only": 106,
+          "other_passed": 202,
+          "other_rate": 0.9351851851851852
+        },
+        "all_five_task_success": {
+          "base_only": 0,
+          "base_passed": 0,
+          "base_rate": 0.0,
+          "both": 0,
+          "delta": 0.7962962962962963,
+          "denominator": 54,
+          "neither": 11,
+          "other_only": 43,
+          "other_passed": 43,
+          "other_rate": 0.7962962962962963
+        },
+        "answer_ok": {
+          "base_only": 1,
+          "base_passed": 136,
+          "base_rate": 0.5037037037037037,
+          "both": 135,
+          "delta": 0.4703703703703704,
+          "denominator": 270,
+          "neither": 6,
+          "other_only": 128,
+          "other_passed": 263,
+          "other_rate": 0.9740740740740741
+        },
+        "format_ok": {
+          "base_only": 1,
+          "base_passed": 183,
+          "base_rate": 0.6777777777777778,
+          "both": 182,
+          "delta": 0.3074074074074074,
+          "denominator": 270,
+          "neither": 3,
+          "other_only": 84,
+          "other_passed": 266,
+          "other_rate": 0.9851851851851852
+        },
+        "task_success": {
+          "base_only": 1,
+          "base_passed": 65,
+          "base_rate": 0.24074074074074073,
+          "both": 64,
+          "delta": 0.6962962962962963,
+          "denominator": 270,
+          "neither": 16,
+          "other_only": 189,
+          "other_passed": 253,
+          "other_rate": 0.937037037037037
+        },
+        "terminal": {
+          "base_only": 39,
+          "base_passed": 176,
+          "base_rate": 0.6518518518518519,
+          "both": 137,
+          "delta": 0.13333333333333333,
+          "denominator": 270,
+          "neither": 19,
+          "other_only": 75,
+          "other_passed": 212,
+          "other_rate": 0.7851851851851852
+        },
+        "whole_window_answer_ok": {
+          "base_only": 34,
+          "base_passed": 109,
+          "base_rate": 0.40370370370370373,
+          "both": 75,
+          "delta": 0.3851851851851852,
+          "denominator": 270,
+          "neither": 23,
+          "other_only": 138,
+          "other_passed": 213,
+          "other_rate": 0.7888888888888889
+        }
+      }
+    }
+  },
+  "post_hoc_baseline": true,
+  "post_selection_descriptive_only": true,
+  "provenance": {
+    "base_commit": "af89d219b53ed9b13b8a4645f9c8028973510324",
+    "base_model": "CohereLabs/tiny-aya-global",
+    "base_snapshot": "/Users/anasqumhiyeh/.cache/huggingface/hub/models--CohereLabs--tiny-aya-global/snapshots/af89d219b53ed9b13b8a4645f9c8028973510324",
+    "contract_v2_sha256": "f723564ded4f413c29ad21b8ec4ae4279f5db0d63abbd635b3c25f329ccd1df7",
+    "datasets": {
+      "semantic_frozen_test": {
+        "cases": 48,
+        "labels_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/semantic_contrast/packs_v2/frozen_test_labels.json",
+        "labels_sha256": "48906d47d1ee51972af059002ef17fceb087000b0a47f0efc761a0bf0ed42281",
+        "rows": 240,
+        "source_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/semantic_contrast/packs_v2/frozen_test_source.jsonl",
+        "source_sha256": "6497061a6706908d9d7dc2d78570d703a265383fcff86e639da6cbb6f8e0880d",
+        "split": "frozen_test"
+      },
+      "v8_targeted_frozen_test": {
+        "cases": 54,
+        "labels_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/v8_data/packs/new_independent_frozen_test_labels.json",
+        "labels_sha256": "c647a8b902489b271fd8b3ae5d0cb3313f3be2ff342f024021ca2c6cb652dc7c",
+        "rows": 270,
+        "source_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/v8_data/packs/new_independent_frozen_test_source.jsonl",
+        "source_sha256": "40c1c9e7e81ad66d965818ba106289186b503ff667206ba8f86a43649307b781",
+        "split": "new_independent_frozen_test"
+      }
+    },
+    "local_eval_sha256": "8ee0ae766af877ba575be6b5e6cfd7d6905ca637fa57712d224f3d76621cfe1c",
+    "saved_arms": {
+      "baseline_v7": {
+        "semantic_frozen_test": {
+          "plan_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/plan.json",
+          "plan_sha256": "16a06bb995e27048e2a57a08d2e1d487537db94faa1b81175b35eb2f6fc99a55",
+          "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/raw_predictions.json",
+          "raw_predictions_sha256": "1eabb2ad193c371aaa146f89793b495d63d9e45edd5f41d8d26a77e2a1c143a8",
+          "summary_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/summary.json",
+          "summary_sha256": "898633d995be80039e85145c1d0934e784d75f200c1debd887635dc8d0f1c266"
+        },
+        "v8_targeted_frozen_test": {
+          "plan_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/plan.json",
+          "plan_sha256": "0317e18fdae6aa8ba9acfd69eead47825f8dfce79a127dc10e592245ab845933",
+          "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/raw_predictions.json",
+          "raw_predictions_sha256": "fe1428cb9651b9faea2324288165c305a0b38638ff96233bbeda3dabaf0fc2cf",
+          "summary_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/summary.json",
+          "summary_sha256": "4b2ac28144824dc6ec93733f3c27508ec4725bd05c7b72868e4660b93f036da9"
+        }
+      },
+      "merge_alpha_0.75": {
+        "semantic_frozen_test": {
+          "plan_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/plan.json",
+          "plan_sha256": "209b40c1dc2edeb74762f2dd7558ee06b62d73ca5337f843450b4551884d8619",
+          "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/raw_predictions.json",
+          "raw_predictions_sha256": "fb85ed61732fd19ef0c77b36e8ba9cc56a81a9871f88e01c48f0521fd2741624",
+          "summary_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/summary.json",
+          "summary_sha256": "8850ded61339ec20d7c3800f50ec1e844297fae111930f71b59926902cd67dff"
+        },
+        "v8_targeted_frozen_test": {
+          "plan_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/plan.json",
+          "plan_sha256": "c58dc1f25f172060fe413a7377347ecb01379ce1fdee5b383a91409ce47e1912",
+          "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/raw_predictions.json",
+          "raw_predictions_sha256": "a937b5afd409cb1a9763afde9a93a0f55444d730034e5aa88468e1703b0d12c3",
+          "summary_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/summary.json",
+          "summary_sha256": "474caac6f8e4ce5623cdc2cb35ac534ff2c5516861d9b938676c07ee43dc55ea"
+        }
+      }
+    },
+    "tokenizer_files": {
+      "special_tokens_map.json": "2b7ce39630f8a18705331a9b32c3b2236e96e7410791f98a9f8b6494e3ab2ea6",
+      "tokenizer.json": "2227ea9c52e8afb3f98bfed2679008b275f2664de69dfde174b374389eb0225d",
+      "tokenizer_config.json": "fb56a3ef7659346aae196a2ab877355f1e7fd871c36843f709bb2e23c606d972"
+    }
+  },
+  "public_model_altered": false,
+  "raw_base_adapter_used": false,
+  "results": {
+    "baseline_v7": {
+      "semantic_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 48,
+          "passed": 29,
+          "rate": 0.6041666666666666
+        },
+        "cases": 48,
+        "metrics": {
+          "action_ok": {
+            "denominator": 192,
+            "passed": 172,
+            "rate": 0.8958333333333334
+          },
+          "answer_ok": {
+            "denominator": 240,
+            "passed": 228,
+            "rate": 0.95
+          },
+          "format_ok": {
+            "denominator": 240,
+            "passed": 235,
+            "rate": 0.9791666666666666
+          },
+          "task_success": {
+            "denominator": 240,
+            "passed": 213,
+            "rate": 0.8875
+          },
+          "terminal": {
+            "denominator": 240,
+            "passed": 195,
+            "rate": 0.8125
+          },
+          "whole_window_answer_ok": {
+            "denominator": 240,
+            "passed": 183,
+            "rate": 0.7625
+          }
+        },
+        "model": "baseline_v7",
+        "plan_sha256": "16a06bb995e27048e2a57a08d2e1d487537db94faa1b81175b35eb2f6fc99a55",
+        "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "1eabb2ad193c371aaa146f89793b495d63d9e45edd5f41d8d26a77e2a1c143a8",
+        "rows": 240,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "898633d995be80039e85145c1d0934e784d75f200c1debd887635dc8d0f1c266",
+        "split": "frozen_test",
+        "view": "semantic_frozen_test"
+      },
+      "v8_targeted_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 54,
+          "passed": 40,
+          "rate": 0.7407407407407407
+        },
+        "cases": 54,
+        "metrics": {
+          "action_ok": {
+            "denominator": 216,
+            "passed": 197,
+            "rate": 0.9120370370370371
+          },
+          "answer_ok": {
+            "denominator": 270,
+            "passed": 262,
+            "rate": 0.9703703703703703
+          },
+          "format_ok": {
+            "denominator": 270,
+            "passed": 266,
+            "rate": 0.9851851851851852
+          },
+          "task_success": {
+            "denominator": 270,
+            "passed": 247,
+            "rate": 0.9148148148148149
+          },
+          "terminal": {
+            "denominator": 270,
+            "passed": 207,
+            "rate": 0.7666666666666667
+          },
+          "whole_window_answer_ok": {
+            "denominator": 270,
+            "passed": 211,
+            "rate": 0.7814814814814814
+          }
+        },
+        "model": "baseline_v7",
+        "plan_sha256": "0317e18fdae6aa8ba9acfd69eead47825f8dfce79a127dc10e592245ab845933",
+        "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "fe1428cb9651b9faea2324288165c305a0b38638ff96233bbeda3dabaf0fc2cf",
+        "rows": 270,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "4b2ac28144824dc6ec93733f3c27508ec4725bd05c7b72868e4660b93f036da9",
+        "split": "new_independent_frozen_test",
+        "view": "v8_targeted_frozen_test"
+      }
+    },
+    "merge_alpha_0.75": {
+      "semantic_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 48,
+          "passed": 35,
+          "rate": 0.7291666666666666
+        },
+        "cases": 48,
+        "metrics": {
+          "action_ok": {
+            "denominator": 192,
+            "passed": 181,
+            "rate": 0.9427083333333334
+          },
+          "answer_ok": {
+            "denominator": 240,
+            "passed": 228,
+            "rate": 0.95
+          },
+          "format_ok": {
+            "denominator": 240,
+            "passed": 235,
+            "rate": 0.9791666666666666
+          },
+          "task_success": {
+            "denominator": 240,
+            "passed": 222,
+            "rate": 0.925
+          },
+          "terminal": {
+            "denominator": 240,
+            "passed": 196,
+            "rate": 0.8166666666666667
+          },
+          "whole_window_answer_ok": {
+            "denominator": 240,
+            "passed": 182,
+            "rate": 0.7583333333333333
+          }
+        },
+        "model": "merge_alpha_0.75",
+        "plan_sha256": "209b40c1dc2edeb74762f2dd7558ee06b62d73ca5337f843450b4551884d8619",
+        "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "fb85ed61732fd19ef0c77b36e8ba9cc56a81a9871f88e01c48f0521fd2741624",
+        "rows": 240,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "8850ded61339ec20d7c3800f50ec1e844297fae111930f71b59926902cd67dff",
+        "split": "frozen_test",
+        "view": "semantic_frozen_test"
+      },
+      "v8_targeted_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 54,
+          "passed": 43,
+          "rate": 0.7962962962962963
+        },
+        "cases": 54,
+        "metrics": {
+          "action_ok": {
+            "denominator": 216,
+            "passed": 202,
+            "rate": 0.9351851851851852
+          },
+          "answer_ok": {
+            "denominator": 270,
+            "passed": 263,
+            "rate": 0.9740740740740741
+          },
+          "format_ok": {
+            "denominator": 270,
+            "passed": 266,
+            "rate": 0.9851851851851852
+          },
+          "task_success": {
+            "denominator": 270,
+            "passed": 253,
+            "rate": 0.937037037037037
+          },
+          "terminal": {
+            "denominator": 270,
+            "passed": 212,
+            "rate": 0.7851851851851852
+          },
+          "whole_window_answer_ok": {
+            "denominator": 270,
+            "passed": 213,
+            "rate": 0.7888888888888889
+          }
+        },
+        "model": "merge_alpha_0.75",
+        "plan_sha256": "c58dc1f25f172060fe413a7377347ecb01379ce1fdee5b383a91409ce47e1912",
+        "raw_predictions_path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "a937b5afd409cb1a9763afde9a93a0f55444d730034e5aa88468e1703b0d12c3",
+        "rows": 270,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "474caac6f8e4ce5623cdc2cb35ac534ff2c5516861d9b938676c07ee43dc55ea",
+        "split": "new_independent_frozen_test",
+        "view": "v8_targeted_frozen_test"
+      }
+    },
+    "raw_base": {
+      "semantic_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 48,
+          "passed": 0,
+          "rate": 0.0
+        },
+        "cases": 48,
+        "metrics": {
+          "action_ok": {
+            "denominator": 192,
+            "passed": 85,
+            "rate": 0.4427083333333333
+          },
+          "answer_ok": {
+            "denominator": 240,
+            "passed": 128,
+            "rate": 0.5333333333333333
+          },
+          "format_ok": {
+            "denominator": 240,
+            "passed": 160,
+            "rate": 0.6666666666666666
+          },
+          "task_success": {
+            "denominator": 240,
+            "passed": 62,
+            "rate": 0.25833333333333336
+          },
+          "terminal": {
+            "denominator": 240,
+            "passed": 149,
+            "rate": 0.6208333333333333
+          },
+          "whole_window_answer_ok": {
+            "denominator": 240,
+            "passed": 95,
+            "rate": 0.3958333333333333
+          }
+        },
+        "model": "raw_base",
+        "plan_sha256": "05a75a8fbb10467bc92b91883f21bf1fe91bc4144a60e80a1bf3dc4ea564cd29",
+        "raw_predictions_path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "65b69be04e96f802f10eca62ed14b38789194bfd8fa85c6df2b4a9e3735fa971",
+        "rows": 240,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "d43f0639bd8eba9e2654a11a22ef1e0642649e35356645141e2b0da3b5011318",
+        "split": "frozen_test",
+        "view": "semantic_frozen_test"
+      },
+      "v8_targeted_frozen_test": {
+        "all_five_task_success": {
+          "denominator": 54,
+          "passed": 0,
+          "rate": 0.0
+        },
+        "cases": 54,
+        "metrics": {
+          "action_ok": {
+            "denominator": 216,
+            "passed": 99,
+            "rate": 0.4583333333333333
+          },
+          "answer_ok": {
+            "denominator": 270,
+            "passed": 136,
+            "rate": 0.5037037037037037
+          },
+          "format_ok": {
+            "denominator": 270,
+            "passed": 183,
+            "rate": 0.6777777777777778
+          },
+          "task_success": {
+            "denominator": 270,
+            "passed": 65,
+            "rate": 0.24074074074074073
+          },
+          "terminal": {
+            "denominator": 270,
+            "passed": 176,
+            "rate": 0.6518518518518519
+          },
+          "whole_window_answer_ok": {
+            "denominator": 270,
+            "passed": 109,
+            "rate": 0.40370370370370373
+          }
+        },
+        "model": "raw_base",
+        "plan_sha256": "6e2ee20e6bd49d6c163d12d18e4f94e1e9726089aee83cb7296e9adb3c6c1ed3",
+        "raw_predictions_path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/raw_predictions.json",
+        "raw_predictions_sha256": "922aa25794b7b1c63574a744a4bbadbeaa4c5a68f6e27e836b3c770ddd625a6d",
+        "rows": 270,
+        "saved_summary_exact_match": true,
+        "saved_summary_sha256": "0d5e7436eac6cb59c8918bcda3c3991e5d0deb4e2c2c00d125a16789e8a39a2f",
+        "split": "new_independent_frozen_test",
+        "view": "v8_targeted_frozen_test"
+      }
+    }
+  },
+  "runtime": {
+    "active_runner_wall_seconds": 1067.1109187602997,
+    "batch_generation_seconds_by_view": {
+      "semantic_frozen_test": 466.492,
+      "v8_targeted_frozen_test": 575.698
+    },
+    "batch_generation_seconds_total": 1042.19,
+    "elapsed_including_pause_seconds": 9538.439174,
+    "final_process_generation_seconds": 693.4205207499999,
+    "final_process_views": {
+      "semantic_frozen_test": {
+        "seconds": 117.16701074999946
+      },
+      "v8_targeted_frozen_test": {
+        "seconds": 576.2534255
+      }
+    },
+    "generation_batch_events": {
+      "semantic_frozen_test": 30,
+      "v8_targeted_frozen_test": 34
+    },
+    "new_semantic_batches_after_resume": 7,
+    "new_targeted_batches_after_resume": 34,
+    "resumed": true,
+    "reused_completed_semantic_batches": 23,
+    "runs": [
+      {
+        "active_wall_seconds": 361.89813351631165,
+        "finished_at_utc": "2026-11-10T16:51:17.878011+00:00",
+        "generation_batch_events": 23,
+        "log": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation.log",
+        "started_at_utc": "2026-11-10T16:45:15.979878+00:00"
+      },
+      {
+        "active_wall_seconds": 705.212785243988,
+        "finished_at_utc": "2026-11-10T19:24:14.419052+00:00",
+        "generation_batch_events": 41,
+        "log": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation-resume.log",
+        "started_at_utc": "2026-11-10T19:12:29.206267+00:00"
+      }
+    ]
+  },
+  "schema_version": 1,
+  "selected_model": "merge_alpha_0.75",
+  "selection_rule_reapplied": false,
+  "selection_unchanged": true,
+  "software": {
+    "huggingface-hub": "2.4.0",
+    "python": "3.12.16",
+    "safetensors": "0.8.0",
+    "tokenizers": "0.23.3",
+    "torch": "2.15.0",
+    "transformers": "5.22.2"
+  },
+  "task_contract": "evidencetune.task.v2",
+  "training_performed": false,
+  "tuning_performed": false,
+  "views": [
+    "semantic_frozen_test",
+    "v8_targeted_frozen_test"
+  ]
+}

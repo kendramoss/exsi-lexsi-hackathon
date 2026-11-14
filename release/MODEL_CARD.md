@@ -55,7 +55,7 @@ Do not use as a factual arbiter, a general-purpose assistant, a safety-certified
 | Conditional resolution | 38/50 (76.00%) | **27/34 (79.41%)** |
 | Final dialogue task accuracy | 81.25% | **83.20%** |
 
-The resolution expansion has 32 non-fresh cases. Resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34); the rates are not same-denominator paired outcomes. The earlier four-case v8 pilot was not used for selection. **Raw base Tiny Aya was not evaluated on the current contract-v2 suites, so base→merged correction improvement is unmeasured.**
+The resolution expansion has 32 non-fresh cases. Resolution is conditional on CLARIFY episodes, so v7 and merged have different follow-up denominators (50 versus 34); the rates are not same-denominator paired outcomes. The earlier four-case v8 pilot was not used for selection. A post-selection raw-base arm was evaluated on the same suites/backend; it is descriptive only and did not affect model choice. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`.
 
 ### Frozen confirmation, Apple MPS bf16
 
@@ -69,6 +69,21 @@ The resolution expansion has 32 non-fresh cases. Resolution is conditional on CL
 Semantic: 48 cases / 240 rows per arm. Targeted: 54 cases / 270 rows per arm. All 1,020 raw records across the two arms were independently checked on 10 Nov 2026. Selection JSON SHA-256 is `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`; frozen summary SHA-256 is `3598cf8cdfa3e0783944e0bbbcd81788ef5f15131ab8e1ee811fc63cc2184d7d`.
 
 These Apple MPS bf16 figures must not be mixed with historical Kaggle fp16, RTX, or vLLM results. Five rows from one case are correlated, not five independent cases.
+
+### Post-selection raw base and paired uncertainty
+
+These were added after the model was selected and did not change the selection. They use the same two frozen suites and the same strict contract-v2 scorer.
+
+| Strict task success | Raw base | v7 | Merged alpha=0.75 |
+|---|---:|---:|---:|
+| Semantic (240 rows) | 62/240 (25.83%) | 213/240 (88.75%) | 222/240 (92.50%) |
+| Targeted (270 rows) | 65/270 (24.07%) | 247/270 (91.48%) | 253/270 (93.70%) |
+| Semantic all-five (48 cases) | 0/48 | 29/48 | 35/48 |
+| Targeted all-five (54 cases) | 0/54 | 40/54 | 43/54 |
+
+The strict metric includes output-format failures (raw base format success is 160/240 and 183/270), so the raw-base numbers describe following this task contract, not general model accuracy. They are post-selection descriptive numbers and not a same-run experiment: the saved v7 and merged predictions were not regenerated, and their historical Python/Transformers versions are not pinned, so no retroactive version attribution is made.
+
+Merged minus v7, 10,000-replication case-cluster bootstrap (seed 20261111): semantic task success +3.75pp [95% CI +0.42, +7.50]; targeted task success +2.22pp [-0.74, +5.56]; semantic all-five +12.50pp [+2.08, +25.00] with exact McNemar p = 0.0703125; targeted all-five +5.56pp [-5.56, +16.67] with p = 0.5078125. Row-level task success and case-level all-five are different estimands over correlated rows, and no multiplicity correction is applied. The semantic all-five bootstrap interval also excludes zero, but the exact test is not conclusive, so the semantic differences are suggestive rather than established and the targeted differences are not established. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`.
 
 ### Follow-up descriptive checks
 

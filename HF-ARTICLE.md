@@ -40,7 +40,9 @@ Resolution is conditional on CLARIFY episodes. The 50 and 34 follow-up denominat
 | Semantic all-five case success | 60.42% | **72.92%** | +12.50pp |
 | Targeted all-five case success | 74.07% | **79.63%** | +5.56pp |
 
-Semantic has 48 cases / 240 rows per arm; targeted has 54 cases / 270 rows per arm. All 1,020 frozen records were checked. Raw base Tiny Aya was **not** evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured. Current results must not be mixed with historical Kaggle fp16/RTX/vLLM numbers.
+Semantic has 48 cases / 240 rows per arm; targeted has 54 cases / 270 rows per arm. All 1,020 frozen records were checked. A post-selection raw-base arm scored **62/240 (25.83%) semantic** and **65/270 (24.07%) targeted**, with 0/48 and 0/54 all-five successes. v7 scores 213/240 and 247/270. These strict task metrics include format failures (raw-base format success 160/240 and 183/270) and are post-selection descriptive numbers, not general accuracy; the saved arms were not regenerated and their historical software versions are not pinned. This is a descriptive baseline, not a candidate arm. See `BASE-EVALUATION.md`. Current results must not be mixed with historical Kaggle fp16/RTX/vLLM numbers.
+
+The paired case-cluster bootstrap gives merged−v7 semantic task success **+3.75pp [95% CI +0.42, +7.50]** and targeted **+2.22pp [−0.74, +5.56]**. Case-level all-five is +12.50pp [+2.08, +25.00] semantic and +5.56pp [−5.56, +16.67] targeted; the semantic bootstrap interval excludes zero but the exact McNemar test (p = 0.0703125) is not conclusive, and there is no multiplicity correction. See `UNCERTAINTY.md`.
 
 ## Reproducing the evidence without hiding source drift
 

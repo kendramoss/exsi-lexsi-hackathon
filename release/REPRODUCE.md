@@ -106,8 +106,20 @@ PYTHONDONTWRITEBYTECODE=1 /Users/anasqumhiyeh/lexsi-koth/tools/evtune-local-venv
 
 This separate ignored tree includes source/label packs, curated training inputs, run plans, raw outputs, scorers, logs, same-run baselines, and immutable source-adapter references. Korean XSTest raw rows, credentials, unresolved/private files, and rejected natural packs are excluded. Running the builder performs no public action. The existing public artifacts are the [model](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75), [dataset/evidence bundle](https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75), and [collection](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08).
 
+## 9. Raw-base and paired-uncertainty evidence (offline, post-selection)
+
+Both analyses read the saved frozen predictions and do not train, tune, reselect, or generate with the public model.
+
+```bash
+PY=/Users/anasqumhiyeh/lexsi-koth/tools/evtune-local-venv/bin/python
+PYTHONDONTWRITEBYTECODE=1 "$PY" -I -m unittest discover -s analysis -p "test_paired_uncertainty.py" -v
+PYTHONDONTWRITEBYTECODE=1 "$PY" -I -m unittest discover -s analysis/raw_base/tests -v
+```
+
+`analysis/paired_uncertainty.py` regenerates `UNCERTAINTY.md` and `results/merged/uncertainty/` byte-for-byte from the saved merged and v7 records (10,000 case-cluster bootstrap replications, seed 20261111). The raw-base predictions (`BASE-EVALUATION.md`) were generated once on local Apple MPS bf16 with an unadapted `CohereLabs/tiny-aya-global` (commit `af89d219b53ed9b13b8a4645f9c8028973510324`); regenerating them requires the cached base model and a fresh output root, and is not part of verification. The raw-base predictions are public additive evidence under `evidence/raw_base/`; the aggregate summary is `results/merged/raw_base/summary.json`. The saved v7 and merged predictions were not regenerated, and their historical Python/Transformers versions are not pinned, so the raw-base comparison is descriptive, not a same-run experiment.
+
 ## Evidence and license boundaries
 
-All contract-v2 labels are synthetic/proxy. AI review is not human validation; Issue #12 remains `independent_ai_review`. DPO and natural SciFact training are rejected. Contradiction and Arabic weaknesses remain. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured. Resolution rates 38/50 and 27/34 are conditional on different CLARIFY follow-up denominators.
+All contract-v2 labels are synthetic/proxy. AI review is not human validation; Issue #12 remains `independent_ai_review`. DPO and natural SciFact training are rejected. Contradiction and Arabic weaknesses remain. A post-selection raw-base arm was evaluated on the same suites/backend; it is descriptive only. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`. Resolution rates 38/50 and 27/34 are conditional on different CLARIFY follow-up denominators.
 
 Original EvidenceTune code is MIT licensed. The adapter is CC BY-NC 4.0. Dataset licenses and Lexsi LSAL notices remain separate; see `LICENSE-DECISION.md` and `NOTICE.md`.

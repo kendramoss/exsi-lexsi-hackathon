@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "bytes": 540028,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/raw_predictions.json",
+      "sha256": "1eabb2ad193c371aaa146f89793b495d63d9e45edd5f41d8d26a77e2a1c143a8"
+    },
+    {
+      "bytes": 6644,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/summary.json",
+      "sha256": "898633d995be80039e85145c1d0934e784d75f200c1debd887635dc8d0f1c266"
+    },
+    {
+      "bytes": 511,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/semantic_frozen_test/plan.json",
+      "sha256": "16a06bb995e27048e2a57a08d2e1d487537db94faa1b81175b35eb2f6fc99a55"
+    },
+    {
+      "bytes": 807099,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/raw_predictions.json",
+      "sha256": "fe1428cb9651b9faea2324288165c305a0b38638ff96233bbeda3dabaf0fc2cf"
+    },
+    {
+      "bytes": 4810,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/summary.json",
+      "sha256": "4b2ac28144824dc6ec93733f3c27508ec4725bd05c7b72868e4660b93f036da9"
+    },
+    {
+      "bytes": 530,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/baseline_v7/v8_targeted_frozen_test/plan.json",
+      "sha256": "0317e18fdae6aa8ba9acfd69eead47825f8dfce79a127dc10e592245ab845933"
+    },
+    {
+      "bytes": 540432,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/raw_predictions.json",
+      "sha256": "fb85ed61732fd19ef0c77b36e8ba9cc56a81a9871f88e01c48f0521fd2741624"
+    },
+    {
+      "bytes": 6547,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/summary.json",
+      "sha256": "8850ded61339ec20d7c3800f50ec1e844297fae111930f71b59926902cd67dff"
+    },
+    {
+      "bytes": 516,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/semantic_frozen_test/plan.json",
+      "sha256": "209b40c1dc2edeb74762f2dd7558ee06b62d73ca5337f843450b4551884d8619"
+    },
+    {
+      "bytes": 807838,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/raw_predictions.json",
+      "sha256": "a937b5afd409cb1a9763afde9a93a0f55444d730034e5aa88468e1703b0d12c3"
+    },
+    {
+      "bytes": 4722,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/summary.json",
+      "sha256": "474caac6f8e4ce5623cdc2cb35ac534ff2c5516861d9b938676c07ee43dc55ea"
+    },
+    {
+      "bytes": 535,
+      "path": "/Users/anasqumhiyeh/lexsi-koth/evtune/merge_eval/local_results/frozen_confirmation/evaluation/merge_alpha_0.75/v8_targeted_frozen_test/plan.json",
+      "sha256": "c58dc1f25f172060fe413a7377347ecb01379ce1fdee5b383a91409ce47e1912"
+    }
+  ],
+  "hash_algorithm": "SHA-256",
+  "schema_version": 1
+}

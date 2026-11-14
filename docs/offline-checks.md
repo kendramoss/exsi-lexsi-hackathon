@@ -42,9 +42,28 @@ python -c "import jsonschema, yaml, numpy, safetensors; print('offline dependenc
 ```
 
 A suitable local wheel directory is a prerequisite, not something supplied by
-this repository. No package installation or clean-environment resolution was
-performed for this change; tests used existing environments. The portable setup
-commands and minimum-version combinations have not been clean-install tested.
+this repository.
+
+### Clean-install record
+
+Verified at commit d06b6ec in a fresh venv created without system site packages
+(`python -m venv .venv-offline-verify`, git-ignored) from Anaconda Python 3.13.9
+on macOS arm64, with `python -m pip install -r requirements-dev.txt` from the
+standard package index. Resolved versions: jsonschema 4.26.0, PyYAML 6.0.3,
+numpy 2.5.4, safetensors 0.8.0 (plus attrs 26.1.0, jsonschema-specifications
+2025.9.1, referencing 0.37.0, rpds-py 2026.9.1), with pip 25.2. This is one
+resolution on one platform, not a lockfile; minimum-version combinations and
+Windows/Linux were not tested, and no wheelhouse/air-gapped install was run.
+
+All commands below passed in that venv: the four `validate.py` runs;
+`scripts/tests` 35 tests (before adding the clean-environment guard tests);
+`demo/tests` 6 tests with 2 explicit SKIPs (raw integration,
+`EVTUNE_DEMO_RAW_ROOT` unset); `teacher/tests` 22 tests (fake client);
+merge-LoRA synthetic tensor tests 8; `public_staging/tests` 14; Node
+`merged-data.test.cjs` 4 pass. The full staging suite used this machine's
+existing raw-evidence tree through its historical `RAW_ROOT` setting, including
+bundle construction and saved-record replay. It was not a checkout-only test.
+The two demo raw integrations remained skipped, and no inference was run.
 
 ## Checks requiring only this checkout
 
@@ -57,12 +76,28 @@ python -I -B scripts/validate.py demo/data/results/final-fresh
 python -I -B scripts/validate.py --cases schemas/examples/cases.example.jsonl
 python -I -B -m unittest discover -s scripts/tests -v
 python -I -B -m unittest discover -s demo/tests -v
+python -I -B -m unittest discover -s teacher/tests -v
+python -I -B -m unittest discover -s public_staging/tests -p test_staging.py -k korean_rows -v
+python -I -B -m unittest discover -s public_staging/tests -p test_staging.py -k wrong_selected_adapter -v
 python -I -B -m unittest discover -s release/source/merge_eval/tests -p test_merge_lora.py -v
 node --test demo/tests/merged-data.test.cjs
+node --test demo/tests/check-merged-page.test.cjs
+node demo/tests/check-merged-page.mjs
 ```
 
+The selected staging checks use temporary synthetic inputs and do not require
+the author's evidence tree. The full `public_staging/tests` suite is an optional
+evidence-backed integration, not a checkout-only command.
+
 The Node checks use built-in modules only (Node 22 tested); no npm installation is
-needed. The tensor tests create tiny synthetic adapters, not copies of released
+needed. `check-merged-page.mjs` verifies the recorded merged payload and explicitly
+reports that merged browser rendering is **SKIP (not passed)**: the shipped page
+renders the historical `final-fresh` run, not a merged renderer. Set
+`REQUIRE_MERGED_BROWSER=1` to reject that skip with exit code 2. Browser coverage
+of the shipped page is `node demo/tests/check-historical-page.mjs`, which requires
+local Chrome; see [the demo test matrix](demo-test-matrix.md).
+
+The tensor tests create tiny synthetic adapters, not copies of released
 weights. Set `TMPDIR` (POSIX) or `TEMP` (Windows) to an existing scratch directory
 when needed; older tensor tests explicitly place their scratch folders beside
 their test file, so they also require a writable checkout.

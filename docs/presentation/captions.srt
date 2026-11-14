@@ -1,0 +1,51 @@
+1
+00:00:00,000 --> 00:00:03,000
+Models can give in when challenged.
+
+2
+00:00:03,000 --> 00:00:07,000
+EvidenceTune trains a small model to accept evidence-backed corrections, not pressure.
+
+3
+00:00:07,000 --> 00:00:12,000
+First, a historical comparison: plain training against EvidenceTune version six.
+
+4
+00:00:12,000 --> 00:00:19,000
+Shown an unsupported quote, plain training asked for the source 80 times out of 272.
+
+5
+00:00:19,000 --> 00:00:21,000
+EvidenceTune asked 208 times.
+
+6
+00:00:21,000 --> 00:00:26,000
+In this chosen example, the quote is about returning copies, not rights.
+
+7
+00:00:26,000 --> 00:00:28,000
+Plain training switches.
+
+8
+00:00:28,000 --> 00:00:31,000
+EvidenceTune asks for the source.
+
+9
+00:00:31,000 --> 00:00:37,000
+The released alpha point seven five merge, on the same local backend,
+
+10
+00:00:37,000 --> 00:00:47,000
+passes 222 of 240 semantic rows and 253 of 270 targeted rows, versus version seven’s 213 and 247: recorded proxy confirmations.
+
+11
+00:00:47,000 --> 00:00:50,000
+Scope: synthetic proxy tests only.
+
+12
+00:00:50,000 --> 00:00:55,000
+Teacher labels had no human audit, by team decision.
+
+13
+00:00:55,000 --> 00:01:00,000
+No safety, natural-text, Arabic, or general superiority claims.

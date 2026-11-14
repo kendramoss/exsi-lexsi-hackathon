@@ -30,7 +30,7 @@ All **1,020 frozen predictions** and metrics were independently verified. **17 t
 ## Scope
 
 - Apple MPS bf16 local inference; not directly comparable with historical Kaggle fp16/RTX runs.
-- AuditKIT produced source-model evaluations. Merged interpolation and current MPS dev/frozen and native-resolution results used custom EvidenceTune contract-v2/native scorers. Raw base Tiny Aya was not evaluated on current contract-v2 suites, so base→merged correction improvement is unmeasured.
+- AuditKIT produced source-model evaluations. Merged interpolation and current MPS dev/frozen and native-resolution results used custom EvidenceTune contract-v2/native scorers. A post-selection raw-base arm was evaluated on the same suites/backend; it is descriptive only. See `BASE-EVALUATION.md` and `UNCERTAINTY.md`.
 - Selection: `merge_eval/local_results/evaluation/selection.json` SHA-256 `e5e177ade09c53285eeb78c7a3a7cd45f47498a245fdf1c8bc416238fbd29c4b`.
 - Frozen summary: `merge_eval/local_results/frozen_confirmation/frozen_summary.json` SHA-256 `3598cf8cdfa3e0783944e0bbbcd81788ef5f15131ab8e1ee811fc63cc2184d7d`.
 - These remain contract-v2 synthetic/proxy evaluations, not independent human or broad natural-domain validation. The larger resolution evaluation has 32 non-fresh cases; the original 4-case v8 pilot was not used for selection.

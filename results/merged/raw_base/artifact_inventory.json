@@ -1,0 +1,562 @@
+{
+  "excluded": [
+    ".base_eval/.venv/",
+    ".base_eval/artifact_inventory.json (self)",
+    "__pycache__/"
+  ],
+  "file_count": 110,
+  "files": [
+    {
+      "bytes": 20532,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/base_eval.py",
+      "sha256": "310089381dc9b704210148663768d54a7f273fb29384d17ce8590144dd9962ec"
+    },
+    {
+      "bytes": 601,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/environment.txt",
+      "sha256": "a992795e90674422f66b72964a3103f9fc0c88a3d2bfe776a857193f7f83fd18"
+    },
+    {
+      "bytes": 16666,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/generation_base_eval.py",
+      "sha256": "56cf8793ace373c122604fd798148b64f48d9501c75c3a0281081f95354ae9a0"
+    },
+    {
+      "bytes": 1759,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/base_model_files.sha256",
+      "sha256": "bb2423482dbd65274fbca8a0b5d5fa5e4c4afcc07b96a902acfc96e9c3760f6b"
+    },
+    {
+      "bytes": 1263,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/base_model_files_verification.log",
+      "sha256": "c9996af9697bb65a7c9a16dc00f3c0f326ce51156ccae94006a538600f557a38"
+    },
+    {
+      "bytes": 853,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/code_hashes.log",
+      "sha256": "7c6580295d17202bf73320709f52d0ae436abf686fc420349fed0293446fa497"
+    },
+    {
+      "bytes": 3090,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/contract-v2-tests.log",
+      "sha256": "9962fd7188cd2e72868aaecce988704efb4556991507aadbb5a5d4e7f8e4bbb2"
+    },
+    {
+      "bytes": 243,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/final-artifact-audit.log",
+      "sha256": "507cd11f2127fb8e6552e1849b9f93c431336b198be0e4d6ac91b9774353a60b"
+    },
+    {
+      "bytes": 3090,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/final-contract-v2-tests.log",
+      "sha256": "9962fd7188cd2e72868aaecce988704efb4556991507aadbb5a5d4e7f8e4bbb2"
+    },
+    {
+      "bytes": 1897,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/final-focused-tests.log",
+      "sha256": "910ef977ea14ea910ef9bec4c1108a57b82ca3267e918f4a18919722026d2c6c"
+    },
+    {
+      "bytes": 7504,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation-resume.log",
+      "sha256": "2c877103653ee39ed65351f85c84df42e2b6ec0ff59c0337220a4ea1c028e351"
+    },
+    {
+      "bytes": 4394,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/generation.log",
+      "sha256": "7dfbdca3a9ddba6bbbad09eb66d029b9b24195435497e92805a36f2b3cdd7c82"
+    },
+    {
+      "bytes": 25,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/hardware.log",
+      "sha256": "7cfa70f7c87e011c568ea81d383c35d6cd157cb85ffe7f8c03cef4cd66e298b1"
+    },
+    {
+      "bytes": 3168,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/input_and_saved_arm_hashes.log",
+      "sha256": "2a1261e61aae33eb9ed7bba5d00c8ce0ed29089fad253fa4e2aac887b4c74765"
+    },
+    {
+      "bytes": 496,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/locked_selection_and_adapters.sha256",
+      "sha256": "1e23bd4c0ba823a5b152509679fb71b2fcaa423bc1609104234d1ceca763862b"
+    },
+    {
+      "bytes": 593,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/raw_semantic_artifacts.sha256",
+      "sha256": "0e16a6df4379fc1a0a245f9759044aa46493387d5d267762c2cb90f5e422b3a0"
+    },
+    {
+      "bytes": 25428,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/recompute.log",
+      "sha256": "19d4930a4195f4d91af401ad905bff3c5034b1da9cf2a1188a52d6b8a2d3c056"
+    },
+    {
+      "bytes": 3504,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/resume-reuse-verification.log",
+      "sha256": "c292923274e83d9949663f0e564607bd90cb91dc04a2af8a69797e9166b81977"
+    },
+    {
+      "bytes": 4992,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/resume_batch_hashes.log",
+      "sha256": "5af5690bd002ceea48dcc217fcb356a608a16827c376682a4e7e339d8df3a6fb"
+    },
+    {
+      "bytes": 448,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/resume_plan_hashes.sha256",
+      "sha256": "081a0302b906ca0364df183b8177b97d854defe6f67869ecb26ea43e1fdd25b0"
+    },
+    {
+      "bytes": 1409,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/runtime.json",
+      "sha256": "4e71f929ac58730587f989a0faf70ef23fe017afebbb86753d7831ba3730b1ed"
+    },
+    {
+      "bytes": 1075,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/semantic-paired.log",
+      "sha256": "3bb12225d1ef44b272da070700310c50897a0e699f317ad6691506cbf42a56e3"
+    },
+    {
+      "bytes": 1353,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/semantic-recompute.log",
+      "sha256": "7ab112188aef47fdd9ebe1d2ac40ab8254029b0fdf32437128de14e9c68903b3"
+    },
+    {
+      "bytes": 967,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-green-core.log",
+      "sha256": "0cec948b7fcb30bdfe3fe558d6a8a361c8de76e5f1479436f366bd3da2ad6b6b"
+    },
+    {
+      "bytes": 1578,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-green-driver.log",
+      "sha256": "27f77c6c88dfc2c2d0d4077345cef8ab7ebe756c1e8d265011ecd2d83846b202"
+    },
+    {
+      "bytes": 2396,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-red-comparison.log",
+      "sha256": "767423ef83cfbca351fc822dbeb501efc13473df374baf8ae62ef668e176f570"
+    },
+    {
+      "bytes": 3114,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-red-driver.log",
+      "sha256": "d1e8884156a2082a57a833c8a741ef2a1fc28eba21fe9da498570f56b04a6f12"
+    },
+    {
+      "bytes": 2593,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-red-summary.log",
+      "sha256": "818699561f3edcf437804065e2fcab304294cd11919f20a8d78993b1b9586267"
+    },
+    {
+      "bytes": 980,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tdd-red.log",
+      "sha256": "89650e03fc9673fca759603929dedc9386716cae5e7d5a58c7ded255f879d9d6"
+    },
+    {
+      "bytes": 333,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/test-summary.json",
+      "sha256": "2cbd888feed9b7d3ae621733cb2394465b8a9bc5c4fed37ce6bfdb264d1d000f"
+    },
+    {
+      "bytes": 1896,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tests-mps-env.log",
+      "sha256": "3cfc3180f7f1c5e47f3bb8add228c06a724f4240fbba32807006060c3b1e409b"
+    },
+    {
+      "bytes": 1896,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/logs/tests.log",
+      "sha256": "9d03554b8cc79e7d4c01d02d99ef9d372398aff6252bf7c73a3edd4751bd0649"
+    },
+    {
+      "bytes": 19810,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00000.json",
+      "sha256": "045db30625f452a04afded7396c2dc3bd9dd44d8ee37c844e45b31c324ae3029"
+    },
+    {
+      "bytes": 19180,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00001.json",
+      "sha256": "15b56666275c00aacb26686f90133b8cee6f0740fd46dde7e58c404ea84c1bb3"
+    },
+    {
+      "bytes": 20171,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00002.json",
+      "sha256": "07396dc8246479b33788ab72783c718b090e41749a2db89b2679bd3ffbfc0027"
+    },
+    {
+      "bytes": 19180,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00003.json",
+      "sha256": "f12b622820ec7432aef7b54a37994fae05019ccf6f71b175cadf97dc22da2637"
+    },
+    {
+      "bytes": 19040,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00004.json",
+      "sha256": "ab518b652abfcdc99aa006bc5355615c6bdaf4ed847c1fc6bbc442ed8e6f2414"
+    },
+    {
+      "bytes": 19365,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00005.json",
+      "sha256": "6fd61bc7517d4d438f226819d5c5ecd80b0ead1de975a3a5b0a05904cb86707b"
+    },
+    {
+      "bytes": 19259,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00006.json",
+      "sha256": "76805bb0cbb927d3ca51e90f5f0f4dccefa293924adf14c8bd2758e13a33e2e2"
+    },
+    {
+      "bytes": 19297,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00007.json",
+      "sha256": "f2e7f17898789793af7783defd18f6261bb4d69806be538ea3d93840a72d2708"
+    },
+    {
+      "bytes": 18946,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00008.json",
+      "sha256": "89dacc067e789a54114ce3f5b959cd9c0bf1c4d18458fb3cf444cebf74545c9b"
+    },
+    {
+      "bytes": 19420,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00009.json",
+      "sha256": "d39e5d1595a3ab91ba26bc8d9ad49e55eeddeda39b6e93a30a1f75db3767174a"
+    },
+    {
+      "bytes": 19567,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00010.json",
+      "sha256": "a6bd595952d5666a2b645cda4328cf048d10140e82f3edbcb23deffd9ddeaee8"
+    },
+    {
+      "bytes": 18695,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00011.json",
+      "sha256": "9da3a8fb784dcd1ede749e69e2f6ba730a8ca64bdd6181c607483c53876bd5ac"
+    },
+    {
+      "bytes": 19285,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00012.json",
+      "sha256": "009ba6756a116c55edf88116cac93fdc1f2a13f5bc2ed639d60b129369a1b192"
+    },
+    {
+      "bytes": 18829,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00013.json",
+      "sha256": "16341c9bf904bce8b166aa13a3e8329a34061d8bb751b49d9ef097e0672a5a56"
+    },
+    {
+      "bytes": 18473,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00014.json",
+      "sha256": "0a85eec5678b80838500d37ba81d2deb14299bdf318efba777c0dd8da980a6e4"
+    },
+    {
+      "bytes": 19225,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00015.json",
+      "sha256": "6e5a07997322e97b558084ef0e7df85f6eddaa425cc79acf36161e38824fc9dd"
+    },
+    {
+      "bytes": 18876,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00016.json",
+      "sha256": "8f0c12e7c5140ad4b33c09c1f507a54e4fa7e1e40415907c05289ece3eed12d0"
+    },
+    {
+      "bytes": 19438,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00017.json",
+      "sha256": "7526303bca726ac01602ff73a1ea209a79210de49b48c37710a0c94c4f406ee1"
+    },
+    {
+      "bytes": 18773,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00018.json",
+      "sha256": "4aabd8a4c999059b9277bf0b32bb1f481e1f1de71fb846036075319bc9963145"
+    },
+    {
+      "bytes": 19193,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00019.json",
+      "sha256": "3f3527df428e6b8cabbee6303aae1365b18dfab6cb51292061411c2352e3786a"
+    },
+    {
+      "bytes": 19436,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00020.json",
+      "sha256": "669b101ab64e20dc5e6be754c18a8af7be3d3df06c57ab0d5da0b56cf8f4f148"
+    },
+    {
+      "bytes": 19669,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00021.json",
+      "sha256": "e17f44b87f6e85ccbef181a1ce93f9e8fc044bb0c98a7fc754e6e48edd4ccf10"
+    },
+    {
+      "bytes": 19011,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00022.json",
+      "sha256": "8a254a4f3cf8b7b0bc8463975a8bef850e7bf253648ccc51bf5149e0d7d9ce33"
+    },
+    {
+      "bytes": 18300,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00023.json",
+      "sha256": "4de59a61d44e0e2245e1c8d0e379c7cfe6129ee2bf17f2eac3713c4771b716ef"
+    },
+    {
+      "bytes": 18753,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00024.json",
+      "sha256": "65d78be508b44291cff3d25a07442343b817ba85ce6d623f17d552ed502df7b4"
+    },
+    {
+      "bytes": 19231,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00025.json",
+      "sha256": "8a8100940d0598e11c9ce7b8d9bcd5ffd816c6b5bb31c1979a97731d6e8d067a"
+    },
+    {
+      "bytes": 18376,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00026.json",
+      "sha256": "c4aa6b2abc31b14acafeaecec0b84dabacbf2f81e3ed8f8d5a5a8837eae24eb3"
+    },
+    {
+      "bytes": 18943,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00027.json",
+      "sha256": "6850d0d457e92f75f742358c82e6ccc195df4e80871b4dcb842ab8a893155885"
+    },
+    {
+      "bytes": 18371,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00028.json",
+      "sha256": "2d2eb5c5f727b691f8cd8242b4ed9a55fe3740e71ad52d8f1b48ed0694138515"
+    },
+    {
+      "bytes": 18918,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/batches/batch_00029.json",
+      "sha256": "558b8460db48827e1a9251fb68fbb1c4143a2ad0205bbd1ce37edbbc77860aaf"
+    },
+    {
+      "bytes": 525,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/plan.json",
+      "sha256": "05a75a8fbb10467bc92b91883f21bf1fe91bc4144a60e80a1bf3dc4ea564cd29"
+    },
+    {
+      "bytes": 569478,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/raw_predictions.json",
+      "sha256": "65b69be04e96f802f10eca62ed14b38789194bfd8fa85c6df2b4a9e3735fa971"
+    },
+    {
+      "bytes": 6492,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/semantic_frozen_test/summary.json",
+      "sha256": "d43f0639bd8eba9e2654a11a22ef1e0642649e35356645141e2b0da3b5011318"
+    },
+    {
+      "bytes": 24692,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00000.json",
+      "sha256": "9f418f9c249ce74853930dfdc0360311e34d86532252544720a30a43491942c8"
+    },
+    {
+      "bytes": 24939,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00001.json",
+      "sha256": "9871c835027574b5be70e42e3e2e6e4bc2794a721fe407636d9f4970f051b780"
+    },
+    {
+      "bytes": 25754,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00002.json",
+      "sha256": "e72a1b65322b6758a283187daca85510b1da02b24de99366034ce60dc727e4a3"
+    },
+    {
+      "bytes": 26597,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00003.json",
+      "sha256": "888846885dbbc59ee80dd2172393843f151f78f6069a7c0fbbb454dbaf61e108"
+    },
+    {
+      "bytes": 24544,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00004.json",
+      "sha256": "4874f6ff94d0c4fe42077769ca65c39c93d86ad61b6ff3e72aeabebdc4efff72"
+    },
+    {
+      "bytes": 26465,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00005.json",
+      "sha256": "16bc02f5acfc2e226855f3691618e3d98022378df48ae430498dd36fad77b92d"
+    },
+    {
+      "bytes": 25257,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00006.json",
+      "sha256": "096138d0053f82cc5ee8399c726312bb0cad25fd72ccc02cce50fc9c05938c2a"
+    },
+    {
+      "bytes": 25944,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00007.json",
+      "sha256": "bade3a985fb9fff6a5ded4ff49369f0b5a1f618d965e924fce84988576cd5563"
+    },
+    {
+      "bytes": 24827,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00008.json",
+      "sha256": "65e325ad8954eb15253fa42d1200a06b08b1cf1b5b5a0e83cf9cd1123d023922"
+    },
+    {
+      "bytes": 26301,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00009.json",
+      "sha256": "0c88bf8ca54c983021b82cc5c9ef2ca67413b8c1228949ea8909d1c0b134e0dc"
+    },
+    {
+      "bytes": 25301,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00010.json",
+      "sha256": "f59f60fcd8b6e7e9de8e918b42868af5faae4bb9a9715fea3bcd008fe0eb1b68"
+    },
+    {
+      "bytes": 26136,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00011.json",
+      "sha256": "a09d1e2c0778148e6e1efdd4e4424ab690930909328f5dd3e295f68dd45f547d"
+    },
+    {
+      "bytes": 25108,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00012.json",
+      "sha256": "8b2b5859bb43e14d04568820144f7205fbf8bf8744de542b156f543c6ed7e5c1"
+    },
+    {
+      "bytes": 24819,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00013.json",
+      "sha256": "b35824136863bdfe1fc26b3a52fdffd6dc4aec393c8d35f181d45ed4a0abe899"
+    },
+    {
+      "bytes": 24677,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00014.json",
+      "sha256": "3c99f6ee8af208c328c41b856320c42aed5510c3bee5273d15badbb58f60f173"
+    },
+    {
+      "bytes": 25681,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00015.json",
+      "sha256": "1714c8dbafe76bc54f7db5cf52fa73961efe4635bf442c64af7e8c82a8dab798"
+    },
+    {
+      "bytes": 25748,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00016.json",
+      "sha256": "53ecb9afedc625e814d24493733a0426908dc557c809b222d5988e5184de5859"
+    },
+    {
+      "bytes": 25664,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00017.json",
+      "sha256": "aafb4af2ed0194fb6b1b69e5038e85802d3f2abb09e65023aa73a99f77f43d20"
+    },
+    {
+      "bytes": 25115,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00018.json",
+      "sha256": "b1d9c7b23662b2c23acf5385da26d2886a214f6954bc5186b3057933ea7c3990"
+    },
+    {
+      "bytes": 24716,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00019.json",
+      "sha256": "ee341d485c39f071f1770fd5ef4612e330a1519ba22ed774f2a137bc23d44e64"
+    },
+    {
+      "bytes": 25588,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00020.json",
+      "sha256": "1f16860fc6e2fbf4f6e1f344b2bc46af53deffdf43af171545119507673aaebf"
+    },
+    {
+      "bytes": 24860,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00021.json",
+      "sha256": "96f673c519d3006c8f45f668be3d7a241d674cb4ed7dde7667ec9882296176a8"
+    },
+    {
+      "bytes": 24561,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00022.json",
+      "sha256": "b389c8d89af08c16bb216c848e6c3a5ae951a56238cc992cdf775967f9ed05b5"
+    },
+    {
+      "bytes": 23817,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00023.json",
+      "sha256": "0996657660a1615a11ba319ede635756267f203db73e05ac6772cdf81da8c16d"
+    },
+    {
+      "bytes": 24826,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00024.json",
+      "sha256": "80c3c0cafda5aa5514658873f8cd8f8243735fbff68344481ac3d4b65f0e866b"
+    },
+    {
+      "bytes": 24829,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00025.json",
+      "sha256": "bf54e3d8b1f8d31476cd133fd88f18ef5561a58e9f6fb25e35b8f6b50bac6dcb"
+    },
+    {
+      "bytes": 23681,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00026.json",
+      "sha256": "60f910622449f369109caa07166b63ce7e0b9c194e0a63e3e7e3c2beb23b3f1a"
+    },
+    {
+      "bytes": 24827,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00027.json",
+      "sha256": "a10246b554242c774d26d471dc7dd95794b28b7d600fdefc32d1adf5483915cb"
+    },
+    {
+      "bytes": 24461,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00028.json",
+      "sha256": "58b5c2c57d0e40fab1fa4a0c630fc67a9bab2fe3a61a9024b370c486869e42cd"
+    },
+    {
+      "bytes": 24818,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00029.json",
+      "sha256": "3da87a782e957610d167816345c310b7f4054065c7d954d0b635bf261a62fc95"
+    },
+    {
+      "bytes": 24295,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00030.json",
+      "sha256": "0c9575329538766374f181835841e08ccc7930e7067c0d4d7462639cd0f539f9"
+    },
+    {
+      "bytes": 24320,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00031.json",
+      "sha256": "18d6ed27f380e20bdcdcb18ba627e67535e9aa6adf6fa06092d297654d0e89e8"
+    },
+    {
+      "bytes": 24614,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00032.json",
+      "sha256": "aee15d0cb88f0750c1dffd535e775d5adb12976241dd258cec4c819e7cdd42e1"
+    },
+    {
+      "bytes": 19020,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/batches/batch_00033.json",
+      "sha256": "42db415256ee2ed4b8e3f86f67063b8789243d19dea94f7f80afaeb5fd7bf80b"
+    },
+    {
+      "bytes": 544,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/plan.json",
+      "sha256": "6e2ee20e6bd49d6c163d12d18e4f94e1e9726089aee83cb7296e9adb3c6c1ed3"
+    },
+    {
+      "bytes": 842675,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/raw_predictions.json",
+      "sha256": "922aa25794b7b1c63574a744a4bbadbeaa4c5a68f6e27e836b3c770ddd625a6d"
+    },
+    {
+      "bytes": 4808,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/evaluation/raw_base/v8_targeted_frozen_test/summary.json",
+      "sha256": "0d5e7436eac6cb59c8918bcda3c3991e5d0deb4e2c2c00d125a16789e8a39a2f"
+    },
+    {
+      "bytes": 1771,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/plan.json",
+      "sha256": "2584dd0ea1560592ed387ab1af3c766bb6a6a34a71056621161057f0960aa1c0"
+    },
+    {
+      "bytes": 5316,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/provenance.json",
+      "sha256": "4024710cc0984908265e2af52e2e6e8d40703f2424b2a3b350fd23b270e38dd1"
+    },
+    {
+      "bytes": 1409,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/predictions/timing.json",
+      "sha256": "4e71f929ac58730587f989a0faf70ef23fe017afebbb86753d7831ba3730b1ed"
+    },
+    {
+      "bytes": 5316,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/provenance.json",
+      "sha256": "4024710cc0984908265e2af52e2e6e8d40703f2424b2a3b350fd23b270e38dd1"
+    },
+    {
+      "bytes": 3877,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/run_plan.md",
+      "sha256": "640103a5c9782d5d9ff37dac17ea1f3c9012f1015e49d09a05d92d9afc224b23"
+    },
+    {
+      "bytes": 34081,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/summary.json",
+      "sha256": "54a8418814753b3a7fb99762ca0c2dd5476cc01f0aa3f63cd58b8d47b37bb84e"
+    },
+    {
+      "bytes": 16117,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/.base_eval/tests/test_base_eval.py",
+      "sha256": "32e549b26f2f0cb2ba11209c8ce3a30ea5830efd605b7825f2427d75344a12d1"
+    },
+    {
+      "bytes": 11919,
+      "path": "/Users/anasqumhiyeh/.claude/worktrees/exsi-base-eval/BASE-EVALUATION.md",
+      "sha256": "bed0891807f2027e4ce8e6ceba3b28dedd37d15c43443009316cc5812ad3d19f"
+    }
+  ],
+  "schema_version": 1,
+  "total_bytes": 3044296
+}
