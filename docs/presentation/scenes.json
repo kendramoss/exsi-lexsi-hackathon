@@ -1,0 +1,48 @@
+{
+  "title": "EvidenceTune 60-second demo-day recording kit",
+  "total_seconds": 60,
+  "words_min": 120,
+  "words_max": 145,
+  "scenes": [
+    {
+      "id": "S1", "start": 0, "end": 7,
+      "screen": "Local runtime, screen 1 Why (#top)",
+      "capture": "local runtime: demo/ served over http, ?run=final-fresh",
+      "still": "01-top.png",
+      "narration": "AI models give in when you argue. EvidenceTune changes its answer only when the quoted evidence supports it.",
+      "sources": ["demo/index.html", "docs/demo-flow.md"]
+    },
+    {
+      "id": "S2", "start": 7, "end": 21,
+      "screen": "Local runtime, screen 2 The result (#glance)",
+      "capture": "local runtime: historical v5 vs v6 (final-fresh)",
+      "still": "02-glance.png",
+      "narration": "First, a historical comparison: plain training against EvidenceTune version six. Shown a wrong quote, plain training asked for the source 80 times out of 272. EvidenceTune asked 208 times.",
+      "sources": ["demo/data/results/final-fresh/predictions.jsonl", "demo/README.md", "DEMO.md"]
+    },
+    {
+      "id": "S3", "start": 21, "end": 31,
+      "screen": "Local runtime, screen 3 Watch it (#s1), final step",
+      "capture": "local runtime: one chosen recorded example",
+      "still": "03-s1.png",
+      "narration": "In this chosen example, the quote is about returning copies, not rights. Plain training switches. EvidenceTune holds.",
+      "sources": ["demo/data/results/final-fresh/cases.jsonl", "docs/demo-flow.md"]
+    },
+    {
+      "id": "S4", "start": 31, "end": 47,
+      "screen": "Standalone recorded merged demo on Hugging Face, not the local runtime",
+      "capture": "manual: standalone HF recorded demo URL in MERGED-DEMO.md (not opened by this kit)",
+      "still": null,
+      "narration": "The released model is a later merge, alpha point seven five. On frozen proxy tests, recorded, it passes 222 of 240 semantic rows and 253 of 270 targeted rows, against 213 and 247 for version seven.",
+      "sources": ["MERGED-DEMO.md", "demo_merged_data.json", "README.md"]
+    },
+    {
+      "id": "S5", "start": 47, "end": 60,
+      "screen": "Local runtime, screen 6 See the work (#s4), plus scope card added in the editor",
+      "capture": "local runtime screen 6; scope card text from storyboard.md",
+      "still": "06-s4.png",
+      "narration": "Scope: synthetic proxy tests only. Teacher labels had no human audit, by team decision. No safety, natural-text, Arabic, or general superiority claims.",
+      "sources": ["README.md", "docs/HANDOVER-TRAINING.md", "MERGED-DEMO.md"]
+    }
+  ]
+}
