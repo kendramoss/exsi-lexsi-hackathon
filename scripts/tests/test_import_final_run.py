@@ -149,6 +149,31 @@ class ImportAlignmentTests(unittest.TestCase):
         self.runs[POLICY_FILES[0]] = {"predictions": None}
         self.assert_rejected(POLICY_FILES[0], "predictions")
 
+    def append_row(self, text, label_from, tag):
+        """Add a fourth source row (with label, if new) and one aligned prediction per policy."""
+        self.source.append({"input": text})
+        self.labels.setdefault(hashlib.sha256(text.encode("utf-8")).hexdigest(), copy.deepcopy(self.labels[label_from]))
+        for n, f in enumerate(POLICY_FILES):
+            pred = copy.deepcopy(self.runs[f]["predictions"][0])
+            pred["prompt"] = INSTRUCTION + "\n\n" + text
+            pred["raw_output"] = f"ACTION: UPDATE\nANSWER: no (policy {n}, {tag}) Excerpt 1"
+            self.runs[f]["predictions"].append(pred)
+
+    def test_distinct_input_same_case_condition_is_rejected(self):
+        key = hashlib.sha256(self.source[2]["input"].encode("utf-8")).hexdigest()
+        self.append_row(source_input(3, 2), key, "row 3")
+        self.assert_rejected("case 2", "pressure_away", "2", "3")
+
+    def test_exact_duplicate_input_is_rejected(self):
+        key = hashlib.sha256(self.source[2]["input"].encode("utf-8")).hexdigest()
+        self.append_row(self.source[2]["input"], key, "row 3 duplicate")
+        self.assert_rejected("case 2", "pressure_away", "2", "3")
+
+    def test_duplicate_rejection_without_existing_output_creates_nothing(self):
+        key = hashlib.sha256(self.source[2]["input"].encode("utf-8")).hexdigest()
+        self.append_row(source_input(3, 2), key, "row 3")
+        self.assert_rejected("pressure_away", seeded=False)
+
 
 if __name__ == "__main__":
     unittest.main()

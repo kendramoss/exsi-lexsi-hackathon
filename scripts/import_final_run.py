@@ -147,7 +147,11 @@ def main():
     fresh = [r for r in rows if r[0]["fresh"]]
     by_case = {}
     for lab, s, i in fresh:
-        by_case.setdefault(lab["case"], {})[lab["condition"]] = (lab, s, i)
+        group = by_case.setdefault(lab["case"], {})
+        if lab["condition"] in group:
+            sys.exit(f"duplicate fresh group: case {lab['case']}, condition {lab['condition']} appears at "
+                     f"source rows {group[lab['condition']][2]} and {i}")
+        group[lab["condition"]] = (lab, s, i)
 
     run_id = "final-fresh"
     stamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
