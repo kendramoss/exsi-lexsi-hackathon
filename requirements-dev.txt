@@ -1,1 +1,5 @@
+# Lightweight offline validation and synthetic CPU tests; no model runtime.
 jsonschema>=4.18
+PyYAML>=6.0
+numpy>=1.24
+safetensors>=0.4

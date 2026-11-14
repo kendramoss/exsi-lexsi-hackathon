@@ -254,15 +254,26 @@ def build_staging(worktree_root: Path, raw_root: Path, output: Path) -> dict[str
             raise FileNotFoundError(f"required staging source file missing: {source_root / relative}")
         operations[destination] = (origin, relative)
 
-    def add_tree(origin: str, relative: str, destination: str, *, suffixes: set[str] | None = None) -> None:
+    def add_tree(origin: str, relative: str, destination: str, *, suffixes: set[str] | None = None,
+                 required: tuple[str, ...] = ()) -> None:
         base = (worktree_root if origin == "worktree" else raw_root) / relative
         if not base.is_dir():
             raise FileNotFoundError(f"required staging source directory missing: {base}")
-        for source in sorted(base.rglob("*")):
-            if not source.is_file() or "__pycache__" in source.parts or source.suffix == ".pyc":
-                continue
-            if suffixes is not None and source.suffix not in suffixes:
-                continue
+        if not any(base.iterdir()):
+            raise ValueError(f"no eligible files in required staging source directory: {base}")
+        for name in required:
+            if not (base / name).is_file():
+                raise FileNotFoundError(f"required staging source file missing: {base / name}")
+        sources = [source for source in sorted(base.rglob("*"))
+                   if source.is_file() and "__pycache__" not in source.parts and source.suffix != ".pyc"
+                   and (suffixes is None or source.suffix in suffixes)]
+        if not sources:
+            raise ValueError(f"no eligible files in required staging source directory: {base}")
+        eligible = {source.relative_to(base).as_posix() for source in sources}
+        for name in required:
+            if name not in eligible:
+                raise FileNotFoundError(f"required staging source file missing: {base / name}")
+        for source in sources:
             child = source.relative_to(base).as_posix()
             add(origin, f"{relative}/{child}", f"{destination}/{child}")
 
@@ -295,19 +306,56 @@ def build_staging(worktree_root: Path, raw_root: Path, output: Path) -> dict[str
         for name in ("training.json", "plan.json", "run_state.json", "arm.complete.json", "artifacts.manifest.json"):
             add("raw", f"{arm_root}/{name}", f"model_collection/{destination}/{name}")
 
-    # Dataset collection: source/label packs and exact curated training inputs.
-    for source, destination in (
-        ("semantic_contrast/packs_v2", "dataset_collection/semantic_contrast/packs_v2"),
-        ("v8_data/packs", "dataset_collection/v8_targeted/packs"),
-        ("resolution_expand/pack", "dataset_collection/resolution_expand/pack"),
+    # Declare the advertised pack inventory explicitly. A surviving script or metadata
+    # file must not let a partial pack pass. All trees are planned before any copy.
+    for source, destination, required in (
+        ("semantic_contrast/packs_v2", "dataset_collection/semantic_contrast/packs_v2", (
+            "train_source.jsonl", "train_labels.json", "dev_source.jsonl", "dev_labels.json",
+            "frozen_test_source.jsonl", "frozen_test_labels.json", "frozen_test_FREEZE.json",
+            "base_cases.jsonl", "MANIFEST.json",
+        )),
+        ("v8_data/packs", "dataset_collection/v8_targeted/packs", (
+            "train_source.jsonl", "train_labels.json", "dev_source.jsonl", "dev_labels.json",
+            "new_independent_frozen_test_source.jsonl", "new_independent_frozen_test_labels.json",
+            "new_independent_frozen_test_FREEZE.json", "base_cases.jsonl", "MANIFEST.json",
+        )),
+        ("resolution_expand/pack", "dataset_collection/resolution_expand/pack", (
+            "dev_source.jsonl", "dev_labels.json", "dev_followup_source.jsonl",
+            "dev_followup_labels.json", "native_chat.jsonl", "manifest.json",
+        )),
+        ("issue10_generate", "dataset_collection/issue10", (
+            "issue10_generated_source.jsonl", "issue10_generated_labels.json", "MANIFEST.json",
+            "base_cases.jsonl", "FRESHNESS.json", "SEMANTIC_REVIEW.json", "VALIDATION.json",
+            "REVIEW_PACKET.jsonl",
+        )),
+        ("issue8_arabic/pack", "dataset_collection/issue8_arabic/pack", (
+            "evaluation_source.jsonl", "evaluation_labels.json", "manifest.json", "FREEZE.json",
+        )),
+        ("issue8_arabic_review", "dataset_collection/issue8_arabic/review", (
+            "findings.json", "REVIEW.md",
+        )),
+        ("data_v6", "dataset_collection/historical_v6", (
+            "train_source.jsonl", "train_labels.json", "dev_source.jsonl", "dev_labels.json",
+            "devwide_source.jsonl", "devwide_labels.json", "manifest.json", "vitaminc_provenance.json",
+        )),
+        ("results/v7/evtune-next-inputs", "dataset_collection/training/v7", (
+            "input_manifest.json", "inputs/v6_semantic/curated/sft_alpaca.jsonl",
+            "inputs/v6_semantic/sft_alpaca.composition.json",
+            "inputs/v6/source.jsonl", "inputs/v6/freshness_filtered_source.jsonl",
+            "inputs/v6/curated/sft_alpaca.jsonl", "inputs/v6/curated/manifest.json",
+            "inputs/v6/curated/lexsi_provenance.json", "inputs/v6/curated/checksums.txt",
+            "inputs/semantic/curated/sft_alpaca.jsonl", "inputs/semantic/curated/manifest.json",
+            "inputs/semantic/curated/lexsi_provenance.json", "inputs/semantic/curated/checksums.txt",
+            "inputs/freshness/semantic_v2_train/before.json", "inputs/freshness/semantic_v2_train/filter.json",
+            "inputs/freshness/semantic_v2_train/after.json", "inputs/freshness/v6_train/before.json",
+            "inputs/freshness/v6_train/filter.json", "inputs/freshness/v6_train/after.json",
+        )),
+        ("results/v8/evtune-v8-inputs", "dataset_collection/training/v8", (
+            "input_manifest.json", "inputs/v8_targeted_two_turn/curated/sft_alpaca.jsonl",
+            "inputs/v8_targeted_two_turn/sft_alpaca.composition.json",
+        )),
     ):
-        add_tree("raw", source, destination)
-    add_tree("raw", "issue10_generate", "dataset_collection/issue10")
-    add_tree("raw", "issue8_arabic/pack", "dataset_collection/issue8_arabic/pack")
-    add_tree("raw", "issue8_arabic_review", "dataset_collection/issue8_arabic/review")
-    add_tree("raw", "data_v6", "dataset_collection/historical_v6")
-    add_tree("raw", "results/v7/evtune-next-inputs", "dataset_collection/training/v7")
-    add_tree("raw", "results/v8/evtune-v8-inputs", "dataset_collection/training/v8")
+        add_tree("raw", source, destination, required=required)
     add("worktree", "public_staging/DATASET-CARD.md", "dataset_collection/README.md")
 
     # Saved raw model evidence, same-run summaries, plans, and native-resolution records.

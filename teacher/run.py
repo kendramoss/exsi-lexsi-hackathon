@@ -121,7 +121,7 @@ def main(argv=None) -> int:
     ap.add_argument("--n", type=int, default=15, help="audit-sample: consensus rows to sample")
     ap.add_argument("--seed", default="teacher-audit-v1")
     ap.add_argument("--human", type=Path, help="audit-score: a kit export JSON with human annotations")
-    ap.add_argument("--kit-out", type=Path, help="audit-sample: where to write the blind audit kit (default OUT/audit)")
+    ap.add_argument("--kit-out", type=Path, help="audit-sample/audit-score: blind audit kit directory (default OUT/audit)")
     a = ap.parse_args(argv)
     kit = P.Kit.load(a.kit, a.guide)
     out = a.out
@@ -142,8 +142,8 @@ def main(argv=None) -> int:
 
     if a.command == "judge":
         rows, conflicts, *_ = build(kit, out, a.teachers)
-        judged = {j["row_id"] for j in read_jsonl(out / "judgements.jsonl")}
-        todo = {r: c for r, c in conflicts.items() if r not in judged}
+        judged = {j["row_id"]: j for j in read_jsonl(out / "judgements.jsonl") if j.get("kind") == "judge"}
+        todo = {r: c for r, c in conflicts.items() if r not in judged or not P.judgement_reusable(judged[r], c)}
         n = append_jsonl(out / "judgements.jsonl", P.judge_rows(kit, runner, todo, a.judge_model, a.effort, a.workers))
         print(f"{n} judgement(s); {len(conflicts)} conflicting row(s) in total")
         return 0
@@ -171,14 +171,32 @@ def main(argv=None) -> int:
         return 0
 
     if a.command == "audit-score":
-        export = json.loads(a.human.read_text(encoding="utf-8"))
-        if export.get("annotation_origin") != "human_attested" or not export.get("human_attestation"):
-            sys.exit("audit-score needs a human-attested export; model labels cannot audit model labels")
-        if P.looks_like_model(export.get("annotator_id", "")):
-            sys.exit(f"audit-score: annotator_id {export.get('annotator_id')!r} names a model; "
-                     "model labels cannot audit model labels")
-        items = {it["row_id"]: it for it in kit.items}
-        human = {an["row_id"]: P.validate_annotation(an, items[an["row_id"]]) for an in export["annotations"]}
+        from annotation_lib import validate_export, validate_items
+        try:
+            if a.human is None:
+                raise ValueError("--human is required")
+            export = json.loads(a.human.read_text(encoding="utf-8"))
+            audit_dir = a.kit_out or (out / "audit")
+            items = validate_items(json.loads((audit_dir / "items.json").read_text(encoding="utf-8")))
+            manifest = json.loads((audit_dir / "manifest.json").read_text(encoding="utf-8"))
+            source_items = {it["row_id"]: it for it in kit.items}
+            if (manifest.get("kind") != "blind human audit of teacher labels"
+                    or manifest.get("source_dataset_id") != kit.dataset_id
+                    or manifest.get("dataset_id") != items["dataset_id"]
+                    or items["dataset_id"] != f"{kit.dataset_id}-teacher-audit"
+                    or items["fresh"] != kit.items_doc["fresh"]
+                    or any(source_items.get(it["row_id"]) != it for it in items["items"])):
+                raise ValueError("audit kit does not match the source kit")
+            assignments = [json.loads((audit_dir / f"assignment_{letter}.json").read_text(encoding="utf-8"))
+                           for letter in ("a", "b")]
+            matching = [asg for asg in assignments if asg["assignment_id"] == export.get("assignment_id")]
+            if len(matching) != 1:
+                raise ValueError("export does not identify one generated audit assignment")
+            normalized = validate_export(export, items, matching[0])
+            P.reject_known_model_audit(normalized)
+        except (OSError, ValueError, KeyError, TypeError) as e:
+            sys.exit(f"audit-score: {e}")
+        human = {an["row_id"]: an for an in normalized["annotations"]}
         score = P.audit_score(labels, human)
         write_json(out / "audit_score.json", score)
         print(json.dumps(score, indent=2))

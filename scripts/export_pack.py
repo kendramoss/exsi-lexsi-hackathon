@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import json
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -53,34 +54,46 @@ def to_messages(case):
 
 
 def build(inputs, out, name):
-    out.mkdir(parents=True, exist_ok=True)
     cases = [c for p in inputs for c in read_jsonl(p)]
     ids = [c["case_id"] for c in cases]
     dupes = sorted({i for i in ids if ids.count(i) > 1})
     if dupes:
         sys.exit(f"duplicate case_id: {dupes}")
     recs = [{"id": c["case_id"], "split": c["split"], "messages": to_messages(c), "metadata": c} for c in cases]
-    (out / "messages.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in recs), encoding="utf-8")
-    manifest = {
-        "pack": name,
-        "format": "evidencetune-messages-v1",
-        "system_prompt_id": SYSTEM_PROMPT_ID,
-        "n_records": len(recs),
-        "counts": {
-            "split": dict(Counter(c["split"] for c in cases)),
-            "domain": dict(Counter(c["domain"] for c in cases)),
-            "lang": dict(Counter(c["lang"] for c in cases)),
-            "feedback_condition": dict(Counter(c["feedback_condition"] for c in cases)),
-            "families": len({c["family_id"] for c in cases}),
-        },
-        "inputs": {str(Path(p).resolve().relative_to(ROOT)): sha256(Path(p)) for p in inputs},
-        "schema": {"case.schema.json": sha256(ROOT / "schemas" / "case.schema.json")},
-        "files": {"messages.jsonl": sha256(out / "messages.jsonl")},
-        "rejected": [],
-    }
-    (out / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    files = ["messages.jsonl", "manifest.json"]
-    (out / "checksums.txt").write_text("".join(f"{sha256(out / f)}  {f}\n" for f in files), encoding="utf-8")
+    input_hashes = {}
+    for p in inputs:
+        path = Path(p).resolve()
+        # Keep repository provenance portable, and retain external paths verbatim.
+        key = path.relative_to(ROOT) if path.is_relative_to(ROOT) else path
+        input_hashes[str(key)] = sha256(path)
+    out.mkdir(parents=True, exist_ok=True)
+    # Finish serializing and hashing every artifact before touching an existing pack.
+    # Stage on the destination filesystem so each replacement is an atomic rename.
+    with tempfile.TemporaryDirectory(prefix=".export-pack-", dir=out) as temporary:
+        staged = Path(temporary)
+        (staged / "messages.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in recs), encoding="utf-8")
+        manifest = {
+            "pack": name,
+            "format": "evidencetune-messages-v1",
+            "system_prompt_id": SYSTEM_PROMPT_ID,
+            "n_records": len(recs),
+            "counts": {
+                "split": dict(Counter(c["split"] for c in cases)),
+                "domain": dict(Counter(c["domain"] for c in cases)),
+                "lang": dict(Counter(c["lang"] for c in cases)),
+                "feedback_condition": dict(Counter(c["feedback_condition"] for c in cases)),
+                "families": len({c["family_id"] for c in cases}),
+            },
+            "inputs": input_hashes,
+            "schema": {"case.schema.json": sha256(ROOT / "schemas" / "case.schema.json")},
+            "files": {"messages.jsonl": sha256(staged / "messages.jsonl")},
+            "rejected": [],
+        }
+        (staged / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        files = ["messages.jsonl", "manifest.json"]
+        (staged / "checksums.txt").write_text("".join(f"{sha256(staged / f)}  {f}\n" for f in files), encoding="utf-8")
+        for f in [*files, "checksums.txt"]:
+            (staged / f).replace(out / f)
     print(f"wrote {out} ({len(recs)} records)")
 
 
@@ -114,10 +127,20 @@ def verify(pack, inputs):
         p = ROOT / rel_path
         if p.exists() and sha256(p) != digest:
             errors.append(f"input changed since export: {rel_path}")
-    exported = {r["id"]: r for r in read_jsonl(pack / "messages.jsonl")}
-    source = {c["case_id"]: c for p in inputs for c in read_jsonl(p)}
-    if manifest.get("n_records") != len(exported):
-        errors.append(f"manifest n_records {manifest.get('n_records')} != {len(exported)}")
+    records = read_jsonl(pack / "messages.jsonl")
+    cases = [c for p in inputs for c in read_jsonl(p)]
+    if manifest.get("n_records") != len(records):
+        errors.append(f"manifest n_records {manifest.get('n_records')} != {len(records)}")
+    duplicates = False
+    for rows, key, label in ((records, "id", "export id"), (cases, "case_id", "source case_id")):
+        dupes = sorted(cid for cid, count in Counter(row[key] for row in rows).items() if count > 1)
+        if dupes:
+            errors.append(f"duplicate {label}: {dupes}")
+            duplicates = True
+    if duplicates:
+        return errors
+    exported = {r["id"]: r for r in records}
+    source = {c["case_id"]: c for c in cases}
     for cid in sorted(source.keys() - exported.keys()):
         errors.append(f"{cid}: missing from export")
     for cid in sorted(exported.keys() - source.keys()):

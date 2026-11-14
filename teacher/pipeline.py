@@ -352,20 +352,62 @@ def consensus(kit: Kit, records: list[dict], teachers=DEFAULT_TEACHERS, min_self
     return rows, conflicts, by_row, invalid
 
 
+def _saved_label_key(value) -> tuple | None:
+    """Normalize a serialized semantic key, never a candidate's old position."""
+    if not isinstance(value, (list, tuple)) or len(value) != len(LABEL_FIELDS):
+        return None
+    if not all(isinstance(v, str) for v in value[:-1]):
+        return None
+    if not isinstance(value[-1], (list, tuple)) or not all(isinstance(a, str) for a in value[-1]):
+        return None
+    return label_key(dict(zip(LABEL_FIELDS, value)))
+
+
+def judgement_candidate(judgement: dict, candidates: list[dict]) -> dict | None:
+    """Resolve a saved letter through its recorded key to a current candidate.
+
+    Missing/malformed bindings or a vanished key are unresolved, not permission to
+    reinterpret A/B against a rebuilt list after a teacher retry.
+    """
+    letters, keys = judgement.get("candidates"), judgement.get("candidate_keys")
+    if not isinstance(letters, list) or not isinstance(keys, list) or len(letters) != len(keys):
+        return None
+    choice = judgement.get("choice")
+    if choice == "AMBIGUOUS" or letters.count(choice) != 1:
+        return None
+    key = _saved_label_key(keys[letters.index(choice)])
+    matches = [c for c in candidates if key is not None and label_key(c["annotation"]) == key]
+    return matches[0] if len(matches) == 1 else None
+
+
+def judgement_reusable(judgement: dict, candidates: list[dict]) -> bool:
+    if judgement.get("choice") != "AMBIGUOUS":
+        return judgement_candidate(judgement, candidates) is not None
+    # An ambiguous result is final only for the same semantic candidate inventory.
+    keys = judgement.get("candidate_keys")
+    if not isinstance(keys, list):
+        return False
+    normalized = [_saved_label_key(k) for k in keys]
+    return (bool(normalized) and None not in normalized
+            and set(normalized) == {label_key(c["annotation"]) for c in candidates})
+
+
 def apply_judgements(rows: dict, conflicts: dict, judgements: list[dict]) -> None:
     by_row = {j["row_id"]: j for j in judgements if j.get("kind") == "judge"}
     for rid in conflicts:
         j = by_row.get(rid)
         row = rows[rid]
-        if j and j["choice"] != "AMBIGUOUS":
-            chosen = conflicts[rid][ord(j["choice"]) - ord("A")]
+        chosen = judgement_candidate(j, conflicts[rid]) if j else None
+        if chosen is not None:
             row.update(tier="teacher_adjudicated", annotation=chosen["annotation"],
                        judge=j["judge"], judge_rationale=j.get("rationale", ""))
             ann = chosen["annotation"]
             if ann["statement_truth"] == "UNDETERMINED" or ann["answerability"] == "UNCLEAR":
                 row["low_confidence"] = True
         else:
-            row.update(tier="needs_human", reason=row.get("reason", "") + ("; judge: ambiguous" if j else "; not judged"))
+            reason = ("; judge: ambiguous" if j and judgement_reusable(j, conflicts[rid]) else
+                      "; saved judgement unresolved; rejudge required" if j else "; not judged")
+            row.update(tier="needs_human", annotation=None, reason=row.get("reason", "") + reason)
 
 
 def agreement_report(kit: Kit, rows: dict, by_row: dict, invalid: collections.Counter, teachers=DEFAULT_TEACHERS) -> dict:
@@ -444,6 +486,32 @@ def looks_like_model(annotator_id: str) -> bool:
     """True when an annotator id names a model (e.g. the stamped AI references in annotation/ai_reference)."""
     low = (annotator_id or "").lower()
     return any(h in low for h in MODEL_ID_HINTS)
+
+
+def reject_known_model_audit(export: dict) -> None:
+    """Reject known AI identities and copied archived annotation payloads.
+
+    Historical references falsely carry human-attested metadata; preserve their
+    bytes, but do not trust that metadata. Compare full row payloads including
+    notes, not just label agreement (humans may independently agree with models).
+    This detects known copies, not proof that arbitrary new exports are human.
+    """
+    annotator = export.get("annotator_id", "")
+    if looks_like_model(annotator):
+        raise ValueError(f"annotator_id {annotator!r} names a model; model labels cannot audit model labels")
+
+    def fingerprint(annotation):
+        return json.dumps(dict(annotation, acceptable_actions=sorted(annotation["acceptable_actions"])),
+                          sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+
+    for name in ("annotator-a-complete.json", "annotator-b-complete.json"):
+        archived = json.loads((ROOT / "annotation/ai_reference" / name).read_text(encoding="utf-8"))
+        if annotator == archived["annotator_id"]:
+            raise ValueError(f"annotator_id {annotator!r} is an archived AI identity")
+        known = {an["row_id"]: fingerprint(an) for an in archived["annotations"]}
+        annotations = export["annotations"]
+        if annotations and all(known.get(an["row_id"]) == fingerprint(an) for an in annotations):
+            raise ValueError("archived AI annotation payload cannot be used as a human audit")
 
 
 def wilson(k: int, n: int, z: float = 1.96):
