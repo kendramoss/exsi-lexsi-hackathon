@@ -161,6 +161,7 @@
     const ways = perFamily.size === 1 ? [...perFamily][0] : null;
     const scope = metrics.is_mock ? `${n} invented case families, ${records} records, ${conditions} conditions`
       : `${n} cases, ${records} pushbacks${ways ? ` (${ways} per case)` : ""}`;
+    $("#glance .rail-foot").textContent = metrics.is_mock ? "Invented layout example. Not a model result." : "One recorded example. Not live inference.";
     const comparison = `${label(state.comparator)} against ${label(state.ref)}`;
     const fact = (title, text) => el("li", {}, el("b", {}, title), text);
     const released = () => [" The released model is ", el("a", {
@@ -283,33 +284,12 @@
     bub.style.translate = `${dx}px 0px`;
   }
 
-  // One step forward or back, from the ‹ › controls or the ← → keys.
-  let convoVisited = false;   // set once the reader has reached the chat; after that it resumes where it was
-  // Arriving at the chat plays it through on its own, a step at a time, so a reader who only scrolls still sees
-  // the two AIs split. It stops as soon as they take over with ‹ › or ← →, or leave the screen.
-  let autoTimer = 0;
-  const AUTO_HOLD = [0, 2400, 2000, 2400, 3600];   // how long each step stays up before the next (step 1 to 4)
-  const stopAuto = () => { clearTimeout(autoTimer); autoTimer = 0; };
-  function autoPlayConvo() {
-    stopAuto();
-    let n = 1;
-    const tick = () => {
-      if (!$("#s1")?.classList.contains("is-focus") && n > 1) { autoTimer = 0; return; }
-      convoShow(n, n === 1 ? 750 : 0);
-      if (n >= CONVO_STEPS) { autoTimer = 0; return; }
-      autoTimer = setTimeout(tick, AUTO_HOLD[n] + (n === 1 ? 750 : 0));
-      n++;
-    };
-    tick();
-  }
+  // Scroll position owns the conversation; controls navigate to the same positions.
+  let scrollStory = null;
   function convoStep(dir) {
-    stopAuto();
-    convoVisited = true;
-    const n = convoStepAt + dir;
-    if (n < 1 || n > CONVO_STEPS) return false;
-    convoShow(n);
-    return true;
+    return scrollStory ? scrollStory.step(dir) : false;
   }
+
   // The step controls and the rail's step label follow the current step.
   function convoUi(n) {
     document.querySelectorAll("#convo-tl li").forEach((li) => {
@@ -377,7 +357,7 @@
     if (from === 3 || from === 2) { const r = W.trunk.children[from - 1]; if (r) exitRow(r); }
   }
 
-  function convoShow(n, wait = 0) {
+  function convoShow(n, wait = 0, scrubbing = false) {
     const W = convoWins;
     if (!W.trunk) return;
     convoTimers.forEach(clearTimeout); convoTimers = [];
@@ -385,7 +365,7 @@
     W.fork.style.overflow = ""; const brs = $("#convo .branches"); if (brs) brs.style.overflow = "";
     const prev = convoStepAt;
     convoStepAt = n; convoPlayed = true;
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = scrubbing || matchMedia("(prefers-reduced-motion: reduce)").matches;
     const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
     if (!still && n === prev - 1) { convoBack(prev, n); convoUi(n); return; }
     // Messages already seen appear at once; new ones are typed (dots), then sent (a short rise and fade in).
@@ -435,43 +415,14 @@
     convoUi(n);
   }
 
-  // Play: people's messages pop in, the AI shows typing dots first. Both windows share the timing, so they
-  // stay in step until the replies split.
-  function playConvo() {
-    convoPlayed = true;
-    convoTimers.forEach(clearTimeout); convoTimers = [];
-    const W = convoWins;
-    if (!W.trunk) return;
-    const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
-    W.trunk.replaceChildren(); W.trunk.classList.remove("past"); $("#convo").classList.remove("split"); W.fork.classList.remove("show");
-    W.branches.forEach((b) => { b.list.replaceChildren(); b.verdict.classList.remove("show"); b.node.classList.remove("show"); });
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      W.shared.forEach((m) => W.trunk.append(m.make())); $("#convo").classList.add("split"); W.fork.classList.add("show");
-      W.branches.forEach((b) => { b.node.classList.add("show"); b.msgs.forEach((m) => b.list.append(m.make())); b.verdict.classList.add("show"); });
-      return;
-    }
-    // people's messages pop in; the AI shows typing dots first
-    const play = (list, msgs, t) => {
-      msgs.forEach((m) => {
-        const who = m.from === "ai" ? "ai" : "user";
-        at(t, () => { const node = m.make(); node.classList.add("sent"); list.append(node); }); t += who === "ai" ? 1200 : 900;
-      });
-      return t;
-    };
-    let t = play(W.trunk, W.shared, 400);
-    at(t, () => { W.trunk.classList.toggle("past", innerWidth >= 760); $("#convo").classList.add("split"); W.fork.classList.add("show"); }); t += 900;
-    at(t, () => W.branches.forEach((b) => b.node.classList.add("show"))); t += 300;
-    W.branches.forEach((b) => { const end = play(b.list, b.msgs, t); at(end, () => b.verdict.classList.add("show")); });
-  }
+  // Replay changes the scroll position rather than starting a competing timer.
+  function playConvo() { scrollStory?.restart(); }
   function convoWatch() {
     $("#replay").addEventListener("click", playConvo);
-    // ‹ › step the chat; a short lock keeps a double click from skipping a step mid-animation
-    let lock = 0;
-    const press = (dir) => { const now = performance.now(); if (now < lock) return; if (convoStep(dir)) lock = now + 380; };
-    $("#convo-prev")?.addEventListener("click", () => press(-1));
-    $("#convo-next")?.addEventListener("click", () => press(1));
-    // Phones render the complete thread at load; entering it must not clear and replay its nodes.
+    $("#convo-prev")?.addEventListener("click", () => convoStep(-1));
+    $("#convo-next")?.addEventListener("click", () => convoStep(1));
   }
+
   // The old scroll walkthrough's layout hooks; nothing to lay out now.
   function walkMode() {}
   function centerStage() {}
@@ -621,9 +572,7 @@
   const d_note = () => `${metrics.dataset.n_cases} test cases · read the three together`;
 
   // ---------- step + wiring ----------
-  // Hero metaphor: the answer is a clock hand. One wrong pushback tries to turn it; the base model's hand
-  // swings, the tuned one twitches and holds. Under each clock, a tear-off calendar: every test case is a
-  // day, crossed off when the model ended wrong. Everything comes from the saved scores.
+  // Shared SVG primitives elsewhere in the recorded-data views.
   const SVGNS = "http://www.w3.org/2000/svg";
   function svg(tag, attrs = {}, ...kids) {
     const n = document.createElementNS(SVGNS, tag);
@@ -633,126 +582,30 @@
   }
   const sameAns = (a, b) => a != null && b != null &&
     String(a).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "") === String(b).toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
-  let heroTimer = 0;
-
-  function clock(c, pr) {
-    const at = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [80 + r * Math.cos(a), 80 + r * Math.sin(a)]; };
-    // A half-circle scale: the right answer on the left of the arc, the pushback on the right, the needle pivots at the bottom.
-    const A = -60, B = 60;
-    const face = svg("svg", { viewBox: "0 0 160 90", class: "clock gauge", "aria-hidden": "true" });
-    face.append(svg("path", { d: "M6 80 A74 74 0 0 1 154 80", class: "c-rim" }),
-      svg("line", { x1: 6, y1: 80, x2: 154, y2: 80, class: "c-base" }));
-    // only two marks on the face: where the right answer sits and where the pushback sits
-    for (const deg of [A, B]) {
-      const [x1, y1] = at(deg, 67), [x2, y2] = at(deg, 73);
-      face.append(svg("line", { x1, y1, x2, y2, class: "c-tick big" }));
-    }
-    const mark = (deg, text, cls, tag) => {
-      const [x, y] = at(deg, 47);
-      face.append(svg("text", { x, y: y + 5, "text-anchor": "middle", class: `c-lbl ${cls}` }, String(text).slice(0, 8)));
-      if (tag) face.append(svg("text", { x, y: y - 10, "text-anchor": "middle", class: `c-tag ${cls}` }, tag));
-    };
-    const firstIsTruth = sameAns(c.original_answer, c.truth_target);
-    mark(A, c.original_answer, firstIsTruth ? "truth" : "", firstIsTruth ? "correct" : "first answer");
-    if (firstIsTruth) { const [x, y] = at(A, 47); face.append(svg("rect", { x: x - 3, y: y + 10, width: 6, height: 6, class: "c-fact" })); }
-    const hasPush = c.correction_target != null && !sameAns(c.correction_target, c.original_answer);
-    if (hasPush) mark(B, c.correction_target, "push", "wrong");
-    const final = pr?.final_answer;
-    const end = sameAns(final, c.original_answer) ? A : hasPush && sameAns(final, c.correction_target) ? B : 0;
-    if (end === 0 && final != null) mark(0, final, "");
-    const hand = svg("g", { class: "c-hand" }, svg("line", { x1: 80, y1: 84, x2: 80, y2: 58 }), svg("polygon", { points: "73.5,59 80,45 86.5,59" }));
-    face.append(hand, svg("circle", { cx: 80, cy: 80, r: 6, class: "c-hub" }));
-    return { face, hand, start: A, end, pull: hasPush ? B : A + 40 };
-  }
-
-  // One clock at a time, in four beats: the answer, the pushback appears, the hand reacts, the result lands.
-  function animateClocks(fig, items) {
-    clearTimeout(heroTimer);
-    const cols = [...fig.children];
-    const set = (it, deg) => (it.hand.style.transform = `rotate(${deg}deg)`);
-    const later = (ms, fn) => (heroTimer = setTimeout(fn, ms));
-    items.forEach((it) => set(it, it.start));
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      items.forEach((it) => set(it, it.end));
-      cols.forEach((c) => c.classList.add("is-push", "is-done"));
-      return;
-    }
-    const MOVE = 1200;
-    const play = (i) => {
-      const it = items[i], col = cols[i];
-      cols.forEach((c, j) => { c.classList.toggle("is-dim", j !== i); c.classList.toggle("is-on", j === i); });
-      col.classList.remove("is-push", "is-done");
-      set(it, it.start);
-      later(1400, () => {                                   // 2 · the pushback shows up on the face
-        col.classList.add("is-push");
-        later(800, () => {                                  // 3 · the hand reacts
-          const holds = it.end === it.start;
-          set(it, holds ? it.start + (it.pull - it.start) * 0.4 : it.end);
-          const done = () => {                              // 4 · result: colour, verdict, the strip fills in
-            col.classList.add("is-done");
-            later(3000, () => play((i + 1) % items.length));
-          };
-          if (holds) later(MOVE + 500, () => { set(it, it.start); later(MOVE, done); });
-          else later(MOVE, done);
-        });
-      });
-    };
-    requestAnimationFrame(() => play(0));
-  }
-
-  // Bold check / cross for the test strip, drawn rather than typed so the stroke can be heavy.
-  function mark(k) {
-    if (k !== "ok" && k !== "ko") return "";
-    const d = k === "ok" ? "M3.5 8.5 6.8 11.8 12.8 4.6" : "M4.5 4.5 11.5 11.5 M11.5 4.5 4.5 11.5";
-    return svg("svg", { viewBox: "0 0 16 16", class: "tmark", "aria-hidden": "true" },
-      svg("path", { d, fill: "none", stroke: "currentColor", "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }));
-  }
-
-  function tearoff(pol) {
-    const laneOf = (cs) => (LANES.find((l) => l.cond === cs.feedback_condition) || { label: cs.feedback_condition }).label;
-    let crossed = 0;
-    // Too many cases for one tile each (a real run has hundreds): one bar, the slipped share in red.
-    if (cases.length > 42) {
-      crossed = cases.filter((cs) => did(predOf(cs.case_id, pol))[0] === "ko").length;
-      const share = crossed / cases.length;
-      return el("div", { class: "tear tear-sum", title: `${crossed} of ${cases.length} test cases went wrong`, role: "img",
-        "aria-label": `${crossed} of ${cases.length} test cases went wrong` },
-        el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} cases like this`),
-        el("div", { class: "tear-bar", "aria-hidden": "true" }, el("i", { style: `width:${(share * 100).toFixed(1)}%` })),
-        el("div", { class: "tear-cap", "aria-hidden": "true" }, el("b", {}, String(crossed)), ` slipped · ${cases.length - crossed} right`));
-    }
-    const days = cases.map((cs, i) => {
-      const [k, t] = did(predOf(cs.case_id, pol));
-      if (k === "ko") crossed++;
-      return el("i", { class: k || null, title: `Case ${i + 1}: ${cs.question} · ${laneOf(cs)} · ${t}` }, mark(k));
-    });
-    return el("div", { class: "tear", style: `--cols:${cases.length > 42 ? 14 : Math.min(7, cases.length)}`, title: `${crossed} of ${cases.length} test cases ended wrong`,
-      role: "img", "aria-label": `Every test case as a calendar day: ${crossed} of ${cases.length} crossed off` },
-      el("div", { class: "tear-head", "aria-hidden": "true" }, `Tested on ${cases.length} questions like this`),
-      el("div", { class: "tear-grid", "aria-hidden": "true" }, days));
-  }
 
   function renderHero() {
-    const fam = state.family, c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, PAIR[0]);
-    const items = [];
-    const big = (pol) => {
-      const pr = predOf(c.case_id, pol), [k] = did(pr), ck = clock(c, pr);
-      if (k) ck.face.classList.add(k);
-      items.push(ck);
-      return el("div", { class: "clockcol", title: `${label(pol)} ends on “${pr?.final_answer ?? "none"}”. The document says “${c.truth_target}”, and the pushback quoted an excerpt that doesn’t settle it` },
-        el("span", { class: "clock-name" }, short(pol)),
-        el("div", { class: "bigclock" }, ck.face));
-    };
+    const c = caseOf(state.family, "unsupported_high_overlap") || caseOf(state.family, PAIR[0]);
     const fig = $("#hero-vis");
-    fig.replaceChildren(big(state.ref), big(state.comparator));
-    const firstSentence = (t) => (t.match(/^.*?[.?!](\s|$)/) || [t])[0].trim();
+    fig.dataset.case = c.case_id;
+    const response = (pol) => {
+      const p = predOf(c.case_id, pol), [status] = did(p);
+      const changed = p && !sameAns(c.original_answer, p.final_answer);
+      const action = { update: "Changed its answer", retain: "Kept its answer", clarify: "Asked for the source" }[p?.parsed_action.action] || "No recorded response";
+      const answer = el("p", { class: "result-answer" },
+        ...(changed ? [el("span", { class: "before-answer" }, c.original_answer), el("span", { class: "answer-arrow", "aria-hidden": "true" }, "→")] : []),
+        el("strong", { "data-role": "final-answer" }, p?.final_answer ?? "No answer"));
+      return el("article", { class: `answer-result ${status || ""}`, "data-policy": pol, "aria-label": `${label(pol)}: ${action}` },
+        el("h3", {}, label(pol)),
+        el("p", { class: "result-action" }, action), answer,
+        el("blockquote", { class: "result-response" }, said(p?.raw_output || "No recorded output")));
+    };
+    fig.replaceChildren(
+      el("div", { class: "shared-correction" }, el("p", { class: "correction-label" }, "The same correction"), el("blockquote", {}, c.feedback_text)),
+      el("div", { class: "result-responses" }, response(state.ref), response(state.comparator)));
     $("#setup").replaceChildren(
       el("div", { class: "row" }, el("dt", {}, "Question"), el("dd", {}, c.question)),
-      el("div", { class: "row" }, el("dt", {}, "Source"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
-      el("div", { class: "row" }, el("dt", {}, "Pushback"), el("dd", {},
-        el("span", { class: "yr bad" }, c.correction_target), " ", el("span", { class: "said" }, `“${firstSentence(c.feedback_text)}”`))));
-    $("#clock-cap").textContent = "The needle points to each AI’s answer after the pushback, on this one case.";
-    animateClocks(fig, items);
+      el("div", { class: "row" }, el("dt", {}, "Source says"), el("dd", {}, el("span", { class: "yr ok" }, c.truth_target))),
+      el("div", { class: "row" }, el("dt", {}, "User wants"), el("dd", {}, el("span", { class: "yr bad" }, c.correction_target))));
     renderProof();
   }
 
@@ -932,190 +785,127 @@
 
   function renderAll() { renderHero(); renderHead(); renderWalk(); renderOutcome(); }
 
-  // Nav: highlight the section in view.
-  // Focus: the section holding the middle of the screen is "in focus"; the others fade back.
-  // Nav + map links bring a section to the centre (or to its top when it is taller than the screen).
+  // Native document scrolling owns movement. Only explicit links/step controls animate.
+  let scrollFrame = 0, arrivalTimer = 0;
+  function cancelScroll() {
+    cancelAnimationFrame(scrollFrame); scrollFrame = 0;
+    clearTimeout(arrivalTimer); arrivalTimer = 0;
+  }
+  function scrollToPosition(y) {
+    cancelScroll();
+    const top = Math.max(0, Math.min(y, document.documentElement.scrollHeight - innerHeight));
+    const from = scrollY, distance = top - from;
+    if (params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches || Math.abs(distance) < 2) {
+      scrollTo({ top, behavior: "instant" }); return;
+    }
+    const duration = Math.min(650, Math.max(260, Math.abs(distance) * .18)), started = performance.now();
+    const tick = (now) => {
+      const t = Math.min(1, (now - started) / duration);
+      const eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      scrollTo({ top: from + distance * eased, behavior: "instant" });
+      if (t < 1) scrollFrame = requestAnimationFrame(tick);
+      else { scrollFrame = 0; clearTimeout(arrivalTimer); }
+    };
+    scrollFrame = requestAnimationFrame(tick);
+    // Some embedded viewers suppress scripted smooth movement; confirm actual arrival.
+    arrivalTimer = setTimeout(() => {
+      if (scrollFrame && Math.abs(scrollY - from) < 1 && Math.abs(distance) > 2) {
+        cancelScroll(); scrollTo({ top, behavior: "instant" });
+      }
+    }, 400);
+  }
+
+  function setupScrollStory() {
+    const section = $("#s1"), stage = section.querySelector(".story-stage");
+    const media = matchMedia("(min-width: 901px) and (min-height: 641px) and (prefers-reduced-motion: no-preference)");
+    const enabled = () => media.matches && !params.has("instant");
+    const sceneHeight = () => Math.max(1, innerHeight - navPx());
+    const start = () => section.getBoundingClientRect().top + scrollY - navPx();
+    const beat = () => sceneHeight() * .6;
+    let scheduled = 0;
+    const sync = () => {
+      scheduled = 0;
+      if (!enabled()) return;
+      const traveled = scrollY - start();
+      const n = Math.min(CONVO_STEPS, Math.max(1, Math.floor(Math.max(0, traveled) / beat()) + 1));
+      if (n !== convoStepAt) convoShow(n, 0, true);
+      section.dataset.storyStep = String(n);
+    };
+    const layout = () => {
+      const active = enabled();
+      section.classList.toggle("is-scroll-story", active);
+      section.classList.toggle("story-static", !active);
+      section.style.setProperty("--story-span", `${sceneHeight() * 4.05 / Z()}px`);
+      stage.style.setProperty("--scene-height", `${sceneHeight() / Z()}px`);
+      $("#replay").textContent = "Read from the beginning";
+      if (!active) {
+        convoShow(CONVO_STEPS, 0, true);
+        section.dataset.storyStep = String(CONVO_STEPS);
+        $("#convo-prev").disabled = $("#convo-next").disabled = true;
+      } else sync();
+    };
+    addEventListener("scroll", () => { if (!scheduled) scheduled = requestAnimationFrame(sync); }, { passive: true });
+    addEventListener("resize", layout);
+    media.addEventListener("change", layout);
+    document.fonts?.ready.then(layout);
+    new ResizeObserver(layout).observe($(".top"));
+    layout();
+    return {
+      step(dir) {
+        if (!enabled()) return false;
+        const n = Math.min(CONVO_STEPS, Math.max(1, convoStepAt + dir));
+        if (n === convoStepAt) return false;
+        scrollToPosition(start() + (n - 1) * beat() + 2);
+        return true;
+      },
+      restart() { scrollToPosition(start() + 2); },
+    };
+  }
+
   function spy() {
-    const secs = [...document.querySelectorAll(".focusable")];
+    const sections = [...document.querySelectorAll(".focusable")];
     const links = [...document.querySelectorAll("#steps a")];
-    let current = null;
+    let scheduled = 0, current = null;
     const update = () => {
-      const mid = innerHeight / 2;
-      let best = secs[0], dist = Infinity;
-      for (const s of secs) {
-        const r = s.getBoundingClientRect();
-        const d = r.top <= mid && r.bottom >= mid ? 0 : Math.min(Math.abs(r.top - mid), Math.abs(r.bottom - mid));
-        if (d < dist) { dist = d; best = s; }
+      scheduled = 0;
+      const mid = (innerHeight + navPx()) / 2;
+      let best = sections[0], distance = Infinity;
+      for (const section of sections) {
+        const rect = section.getBoundingClientRect();
+        const d = rect.top <= mid && rect.bottom >= mid ? 0 : Math.min(Math.abs(rect.top - mid), Math.abs(rect.bottom - mid));
+        if (d < distance) { distance = d; best = section; }
       }
       if (best === current) return;
       current = best;
-      secs.forEach((s) => s.classList.toggle("is-focus", s === best));
-      document.body.classList.add("focus-on");
-      const sec = best.closest("section")?.id || best.id;
-      links.forEach((a) => { if (a.dataset.sec === sec) a.setAttribute("aria-current", "true"); else a.removeAttribute("aria-current"); });
+      sections.forEach(s => s.classList.toggle("is-focus", s === best));
+      links.forEach(a => a.dataset.sec === best.id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+      document.querySelectorAll(".dots a").forEach(a => a.dataset.dot === best.id ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
       document.documentElement.dataset.surface = best.dataset.surface || "";
-      document.querySelectorAll(".dots a").forEach((d) => { if (d.dataset.dot === best.id) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current"); });
     };
-    // Sections taller than the screen snap to their top instead of the centre.
-    // "Tall" means the content (not the padding around it) is taller than the screen.
-    const contentH = (s) => { const cs = getComputedStyle(s); return s.scrollHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom); };
-    const sizes = () => secs.forEach((s) => s.classList.toggle("tall", contentH(s) * Z() > innerHeight - navPx()));
-    addEventListener("scroll", () => requestAnimationFrame(update), { passive: true });
-    addEventListener("resize", () => { sizes(); update(); });
-    new ResizeObserver(sizes).observe(document.body);
-    new ResizeObserver(() => walkMode()).observe(document.documentElement);
-    sizes();
-    update();
-    const pg = pager(secs);
-    // In-page links (top tabs, dots, "Scroll for more") go through the pager, so a click lands exactly where
-    // scrolling to that screen would: same position under the nav, same lock against wheel momentum, and the
-    // chat screen is set up as on a scroll arrival. Phones (no pager) and non-screen targets keep plain scrolling.
-    document.addEventListener("click", (e) => {
+    addEventListener("scroll", () => { if (!scheduled) scheduled = requestAnimationFrame(update); }, { passive: true });
+    addEventListener("resize", update);
+    // Wheel/touch never get prevented, queued, or converted into page jumps.
+    addEventListener("wheel", cancelScroll, { passive: true });
+    addEventListener("touchstart", cancelScroll, { passive: true });
+    addEventListener("pointerdown", cancelScroll, { passive: true });
+    document.addEventListener("click", e => {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.button !== 0) return;
       const a = e.target.closest('a[href^="#"]');
-      if (!a) return;
-      const t = document.querySelector(a.getAttribute("href"));
-      if (!t) return;
+      if (!a || a.getAttribute("href") === "#") return;
+      const target = document.getElementById(a.getAttribute("href").slice(1));
+      if (!target) return;
       e.preventDefault();
-      if (innerWidth >= 760 && secs.includes(t)) pg.goTo(t);
-      else t.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+      scrollToPosition(target.getBoundingClientRect().top + scrollY - navPx());
       history.replaceState(null, "", a.getAttribute("href"));
     });
-  }
-  // Hard paging: one wheel flick / key press moves to the next or previous section, centred
-  // (tall sections land with their heading at the top). Inside a tall section, or the sideways
-  // showcase, normal scrolling continues until its edge. Off on phones.
-  function pager(secs) {
-    // Read live: the nav height changes between the phone and desktop layouts.
-    let NAV = navPx();
-    addEventListener("resize", () => { NAV = navPx(); });
-    const reduced = () => params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    const targetY = (s) => {
-      const r = s.getBoundingClientRect(), top = r.top + scrollY, h = r.height, vh = innerHeight - NAV;
-      const pad = (parseFloat(getComputedStyle(s).paddingTop) || 0) * Z();
-      return Math.max(0, !s.classList.contains("tall") ? top + h / 2 - (NAV + vh / 2) : top - NAV + Math.max(0, pad - 32));
-    };
-    const current = () => {
-      const mid = innerHeight / 2;
-      return secs.find((s) => { const r = s.getBoundingClientRect(); return r.top <= mid && r.bottom >= mid; }) || secs[0];
-    };
-    // Can this section still scroll natively in direction dir? (content only; padding hanging off an edge doesn't count)
-    const moreInside = (cur, dir) => {
-      const r = cur.getBoundingClientRect(), cs = getComputedStyle(cur);
-      return dir > 0 ? r.bottom - parseFloat(cs.paddingBottom) * Z() > innerHeight + 2 : r.top + parseFloat(cs.paddingTop) * Z() < NAV - 2;
-    };
-
-    let moving = false, until = 0, lastEvt = 0, tail = false, acc = 0, accDir = 0, queued = null, fading = false;
-    let tailDir = 0, peak = 0, fell = false, lastMag = 0, wantDir = 0;   // touchpad gesture tracking (see the wheel handler)
-    // A link clicked during the rail crossfade waits for it to finish and then goes (instead of being dropped).
-    const settle = () => { moving = false; fading = false; const q = queued, w = wantDir; queued = null; wantDir = 0; if (q) goTo(q); else if (w) jump(w); };
-    addEventListener("scrollend", () => { if (moving && performance.now() > until - 600) settle(); });
-    // Between two side-rail screens the frame stays put: the blue panel and progress blocks hold still,
-    // only the words and the visual fade out, the page swaps underneath, and the next screen fades in.
-    const FADE = 450, FADE_IN = 900;
-    const crossfade = (from, to) => {
-      moving = true; tail = true; fading = true;
-      until = performance.now() + FADE + FADE_IN + 400;
-      from.classList.add("xf-hide");
-      setTimeout(() => {
-        to.classList.add("xf-instant", "xf-hide");                     // start the new screen fully hidden (no transition)
-        void to.offsetHeight;
-        to.classList.remove("xf-instant");
-        const was = [...from.querySelectorAll(".prog-blocks i")].map((i) => i.className);
-        const blocks = [...to.querySelectorAll(".prog-blocks i")];
-        const now = blocks.map((i) => i.className);
-        blocks.forEach((i, k) => (i.className = was[k] || ""));        // start from the old fill, then step to the new one
-        document.body.classList.add("xf");                            // no dim/undim fade during the swap
-        from.classList.remove("is-focus");
-        to.classList.add("is-focus");
-        scrollTo({ top: targetY(to), behavior: "instant" });
-        from.classList.remove("xf-hide");
-        void to.offsetHeight;
-        setTimeout(() => {
-          document.body.classList.remove("xf");
-          to.classList.remove("xf-hide");
-          blocks.forEach((i, k) => (i.className = now[k]));
-          setTimeout(settle, FADE_IN);
-        }, 40);
-      }, FADE);
-    };
-    const go = (s, from) => {
-      if (from && !reduced() && from.classList.contains("ch-rail") && s.classList.contains("ch-rail")) return crossfade(from, s);
-      moving = true; tail = true;
-      until = performance.now() + (reduced() ? 150 : 1100);         // hard cap if scrollend never fires
-      setTimeout(() => { if (performance.now() >= until) settle(); }, (reduced() ? 150 : 1100) + 20);
-      scrollTo({ top: targetY(s), behavior: reduced() ? "instant" : "smooth" });
-    };
-    const jump = (dir) => {
-      const cur = current(), next = secs[secs.indexOf(cur) + dir];
-      if (!next) return false;
-      // Coming back to the chat keeps the step it was left on; only a first visit picks a starting point
-      // (the beginning coming down, after the fade-in; the end coming up).
-      if (next.id === "s1" && !convoVisited) { convoVisited = true; if (dir > 0) { convoStepAt = 0; autoPlayConvo(); } else convoShow(CONVO_STEPS); }
-      go(next, cur);
-      return true;
-    };
-    // The chat steps with its ‹ › controls and the ← → keys; scrolling always moves between screens.
-
-    addEventListener("wheel", (e) => {
-      if (e.ctrlKey || innerWidth < 760 || document.querySelector("dialog[open]")) return;
-      const now = performance.now(), gap = now - lastEvt;
-      lastEvt = now;
-      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? innerHeight : 1);
-      if (!dy) return;
-      const dir = Math.sign(dy), mag = Math.abs(dy);
-      // A touchpad keeps sending ever-smaller "coasting" events for a second or two after the fingers lift, and a
-      // new swipe often starts before that stops. Inside the stream a new swipe shows up as a change of direction,
-      // or as the speed climbing again after it had clearly fallen off (the first swipe's own build-up doesn't count).
-      if (gap > 180) { peak = 0; fell = false; lastMag = 0; }
-      let fresh = false;
-      if (tail) {
-        if (dir !== tailDir) fresh = true;
-        else if (fell && mag >= 8 && mag > lastMag * 1.8) fresh = true;
-        if (fresh) { peak = mag; fell = false; } else { peak = Math.max(peak, mag); if (mag < peak * 0.6) fell = true; }
-      }
-      lastMag = mag;
-      // 1. While a jump is animating, swallow everything; a new swipe is remembered and runs when it lands.
-      if (moving) { e.preventDefault(); if (fresh) wantDir = dir; return; }
-      // 2. Coasting that keeps arriving after a jump is the same gesture: swallow it, unless a new swipe starts.
-      if (tail && gap < 180 && !fresh) { e.preventDefault(); return; }
-      if (fresh) acc = 0;
-      tail = false;
-      // 3. Inside a section taller than the screen, scroll normally until its edge.
-      const cur = current();
-      if (moreInside(cur, dir)) { acc = 0; return; }
-      // 4. Otherwise collect small trackpad steps into one deliberate jump.
-      e.preventDefault();
-      if (dir !== accDir || gap > 300) { acc = 0; accDir = dir; }
-      acc += dy;
-      if (Math.abs(acc) >= 40) { acc = 0; tailDir = dir; peak = mag; fell = false; jump(dir); }
-    }, { passive: false });
-
-    addEventListener("keydown", (e) => {
-      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || innerWidth < 760 || document.querySelector("dialog[open]")
-        || e.target.isContentEditable || e.target.closest("button, a[href], select, input, textarea, summary, [contenteditable]:not([contenteditable=false]), [role=button], [role=tab], tr[data-lane]")) return;
-      const side = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
-      if (side && current().id === "s1") { e.preventDefault(); convoStep(side); return; }
-      const dir = { ArrowDown: 1, PageDown: 1, " ": e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
-      if (!dir) return;
-      if (moving) { e.preventDefault(); return; }
-      if (moreInside(current(), dir)) return;
-      e.preventDefault();
-      jump(dir);
+    addEventListener("keydown", e => {
+      if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(e.key)) cancelScroll();
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || document.querySelector("dialog[open]") || e.target.isContentEditable ||
+          e.target.closest('button, a[href], select, input, textarea, summary, [contenteditable]:not([contenteditable=false]), [role=button], [role=tab]')) return;
+      const dir = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (dir && current?.id === "s1" && convoStep(dir)) e.preventDefault();
     });
-
-    // A link click: go straight to that screen, however far away it is, the same way a scroll would arrive.
-    const goTo = (s) => {
-      // A plain scroll can be redirected at once; only the crossfade has to finish first.
-      if (fading) { queued = s; return; }
-      const cur = current();
-      if (s.id === "s1" && !convoVisited) { convoVisited = true; convoStepAt = 0; autoPlayConvo(); }
-      if (s === cur) { go(s); return; }
-      // The rail crossfade only reads right between neighbours; a longer trip scrolls.
-      const near = Math.abs(secs.indexOf(s) - secs.indexOf(cur)) === 1;
-      go(s, near ? cur : null);
-    };
-    return { goTo };
+    update();
   }
 
   function selectors() {
@@ -1377,6 +1167,7 @@
     sideQuotes();
     railProgress();
     panelBlocks();
+    scrollStory = setupScrollStory();
     convoWatch();
     spy();
     const jump = { "3": "s3" }[params.get("step")];

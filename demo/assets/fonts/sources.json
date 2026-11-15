@@ -1,0 +1,18 @@
+[
+  {
+    "family": "IBM Plex Sans",
+    "file": "fonts/ibm-plex-sans.woff2",
+    "source": "https://fonts.gstatic.com/s/ibmplexsans/v23/zYXzKVElMYYaJe8bpLHnCwDKr932-G7dytD-Dmu1syxeKYY.woff2",
+    "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexsans/OFL.txt",
+    "sha256": "e2291e842cf5af167122a22881a740c7f2dda7716f1e8cd76680264f4a859470",
+    "bytes": 45712
+  },
+  {
+    "family": "Instrument Sans",
+    "file": "fonts/instrument-sans.woff2",
+    "source": "https://fonts.gstatic.com/s/instrumentsans/v4/pxiTypc9vsFDm051Uf6KVwgkfoSxQ0GsQv8ToedPibnr0SZe1Q.woff2",
+    "license": "https://raw.githubusercontent.com/google/fonts/main/ofl/instrumentsans/OFL.txt",
+    "sha256": "2ee17598a98d8a59e4df8152d015bec9ab8e4d5672cc0ab42bef806b568e3971",
+    "bytes": 30092
+  }
+]
