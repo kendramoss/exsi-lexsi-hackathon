@@ -12,6 +12,24 @@ short_description: When should a model accept a correction?
 
 # EvidenceTune demo
 
+### Chapter navigation and playback
+
+On a desktop with a mouse or trackpad (at least 901 × 641 CSS pixels), the default
+page moves continuously between chapters, keeping the outgoing and incoming
+sections on the same scrolling surface. A deliberate gesture advances one chapter;
+trackpad momentum is suppressed while reversals and renewed gestures remain responsive.
+Long response sections scroll normally within their boundaries, and the example
+conversation plays automatically on arrival, with typing pauses and arriving
+bubbles, while the page stays still. Pause/Play, manual step controls, and Replay
+remain available. Scrolling always leaves the chapter, even during typing;
+returning starts the conversation again. Tabs, dots, arrow keys,
+Page Up/Down, Space, Home, and End are supported.
+
+Compare the original native-scrolling journey with `?scroll=native` (or
+`?run=final-fresh&scroll=native`). Phones, short windows, reduced-motion preferences,
+and `?instant` use the readable native fallback automatically. The effect changes
+only navigation and decoration; saved responses and scores are unchanged.
+
 A static web page that replays saved model answers, in six screens, to show whether a model changes its answer for the right reason. There are no live model calls, and every number on screen is counted from the saved run.
 
 **[▶ Open it online](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** &nbsp;·&nbsp; [Step-by-step setup](../README.md#2-run-the-demo-on-your-computer) in the main README
@@ -33,7 +51,7 @@ Scroll, use the tabs at the top, or click the dots on the right. Each scroll mov
 | # | Tab | What it shows |
 |---|---|---|
 | 1 | **Why** | The question: *Does the model change its answer for the right reason?* |
-| 2 | **The result** | One wrong pushback, as two gauges: plain training switches to the wrong answer, EvidenceTune stays right. Across all 272 pushbacks that quote an excerpt that doesn't settle it, EvidenceTune asks for the source 208 times and plain training 80 (2.6× as often). |
+| 2 | **The result** | One wrong pushback, with the two exact saved responses: plain training switches to the wrong answer, EvidenceTune asks for the source. Across all 272 pushbacks that quote an excerpt that doesn't settle it, EvidenceTune asks for the source 208 times and plain training 80 (2.6× as often). |
 | 3 | **Watch it** | The same case as a chat that plays itself, up to where the two models split. Plain training switches; EvidenceTune asks what text supports the change. ‹ › or ← → step through it. |
 | 4 | **Under pressure** | What each model does with every wrong quote: kept its answer, asked for proof, or changed it. EvidenceTune asks for proof 76% of the time, up from 29%. |
 | 5 | **The test** | *Is the test fair?* One case, its four pushbacks and the right move for each, plus three facts: unseen clause types, no word tricks, 544 pushbacks scored. |
@@ -70,6 +88,7 @@ For developers: viewport units in `style.css` are written as `var(--vh)` and `va
 | `?run=mock-smoke` | An **invented** run for layout testing. A "Mock data" badge appears. Made by `scripts/make_mock_results.py`. |
 | `&family=<family_id>` | Picks the example case on screens 2, 3 and 5. By default it's the first case where plain training gives in and EvidenceTune doesn't. |
 | `&step=3` | Opens on screen 5. |
+| `&scroll=native` | Uses the original native-scroll walkthrough instead of chapter navigation and autoplay. |
 | `&instant` | Screen 4 shows both bars side by side instead of taking turns. |
 
 With "reduce motion" turned on in system settings, every animation shows its still version.

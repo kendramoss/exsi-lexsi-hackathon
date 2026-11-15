@@ -1836,7 +1836,7 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 #glance .setup dt { color: #426ba4; }
 #glance .rail-foot { color: #426ba4; }
 
-/* The chapter is a real scroll runway; the frame alone is sticky. No wheel capture. */
+/* Native mode retains its scroll runway; chapter mode overrides the height below. */
 .scroll-story { display: block; overflow: visible; height: auto; min-height: 0; padding: 0; }
 .scroll-story.is-scroll-story { height: var(--story-span); }
 .story-stage { position: sticky; top: var(--nav); height: var(--scene-height); width: 100%; min-height: 0; }
@@ -1891,4 +1891,20 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
 }
 @media (prefers-reduced-motion: reduce) {
   .scroll-story .story-stage, .scroll-story .flow * { animation: none !important; transition: none !important; }
+}
+
+/* Autoplay is one chapter. Its messages advance in time, never by scrolling. */
+html[data-chapter-scroll="on"] { overscroll-behavior-y: none; }
+html[data-chapter-scroll="on"] #s1.is-scroll-story { height: var(--chapter-scene-height); }
+html[data-chapter-scroll="on"] #s1 .story-stage { position: relative; top: 0; }
+#s1 .convo-foot { flex-wrap: wrap; }
+.scroll-story { overflow-anchor: none; }
+.flow .chat-row.arrived .bubble { animation: chat-receive 380ms cubic-bezier(.22, 1, .36, 1) both; }
+.flow .chat-row.arrived .file { animation: chat-receive 420ms 90ms cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes chat-receive {
+  from { opacity: 0; transform: translateY(12px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow .chat-row.arrived .bubble, .flow .chat-row.arrived .file, .bubble.typing i { animation: none; }
 }

@@ -1,4 +1,4 @@
-"""Playwright regressions for the approved native-scroll EvidenceTune walkthrough.
+"""Playwright regressions for chapter transitions and the native fallback.
 
 Run with an environment containing playwright and its chromium-headless-shell
 browser (or set CHROME_BIN to an allowed test browser). Uses a temporary local
@@ -56,8 +56,8 @@ class ScrollStoryTests(unittest.TestCase):
         if self.browser.is_connected():
             self.browser.close()
 
-    def load(self, run='final-fresh'):
-        self.page.goto(f'{self.origin}/?run={run}', wait_until='networkidle')
+    def load(self, run='final-fresh', scroll='native'):
+        self.page.goto(f'{self.origin}/?run={run}&scroll={scroll}', wait_until='networkidle')
         self.page.wait_for_selector('#setup .row')
         self.page.evaluate('document.fonts.ready')
 
@@ -67,6 +67,15 @@ class ScrollStoryTests(unittest.TestCase):
     def jump(self, y):
         self.page.evaluate('(y) => window.scrollTo({top:y, behavior:"instant"})', y)
         self.page.wait_for_timeout(100)  # Observe the next scroll/rAF commit, not app readiness.
+
+    def click_chat_control(self, selector):
+        # Click the actual visible control. Automatic scroll-into-view on a
+        # sticky descendant can move the virtual story runway before the click.
+        button = self.page.locator(selector)
+        expect(button).to_be_enabled()
+        box = button.bounding_box()
+        self.assertIsNotNone(box)
+        self.page.mouse.click(box['x'] + box['width'] / 2, box['y'] + box['height'] / 2)
 
     def active(self):
         return self.page.locator('#steps a[aria-current]').get_attribute('data-sec')
@@ -166,7 +175,7 @@ class ScrollStoryTests(unittest.TestCase):
     def test_controls_and_direct_navigation_are_not_scroll_traps(self):
         self.load()
         self.jump(self.position('#s1') + 1)
-        self.page.locator('#convo-next').click()
+        self.click_chat_control('#convo-next')
         self.page.wait_for_function('document.querySelector("#convo-step").textContent.includes("Step 2")')
         self.page.evaluate('document.activeElement.blur()')  # Global arrows apply outside native controls.
         self.page.keyboard.press('ArrowRight')
@@ -192,6 +201,166 @@ class ScrollStoryTests(unittest.TestCase):
                 expect(self.page.locator(selector)).to_be_visible()
             self.assertLessEqual(self.page.evaluate('document.documentElement.scrollWidth'), viewport['width'])
             self.page.screenshot(path=str(SHOTS / ('reduced-motion.png' if reduced == 'reduce' else 'mobile-transcript.png')), full_page=True)
+            self.assertFalse(self.errors)
+
+    def settle_chapter(self, expected):
+        self.page.wait_for_function('(id) => document.querySelector("#steps a[aria-current]")?.dataset.sec === id', arg=expected)
+        self.page.wait_for_function('document.documentElement.dataset.chapterTransition === "idle"')
+        self.assertEqual(self.active(), expected)
+        self.assertEqual(self.page.locator('.chapter-wipe').count(), 0)
+
+    def test_chapter_motion_is_continuous_without_queuing_trackpad_tail(self):
+        self.load(scroll='chapters')
+        self.assertEqual(self.page.locator('html').get_attribute('data-chapter-scroll'), 'on')
+        heading = self.page.locator('#glance-title').inner_text()
+        self.page.mouse.wheel(0, 120)
+        samples = []
+        for delta in (80, 45, 30, 18, 9, 4, 2, 1):
+            self.page.mouse.wheel(0, delta)
+            self.page.wait_for_timeout(55)
+            samples.append(self.page.evaluate('scrollY'))
+        self.settle_chapter('glance')
+        target = self.position('#glance')
+        self.assertGreater(len(set(samples)), 4, 'travel must visit intermediate positions')
+        self.assertTrue(any(3 < y < target - 3 for y in samples))
+        self.assertTrue(all(b >= a for a, b in zip(samples, samples[1:])))
+        self.assertLess(max(b - a for a, b in zip(samples, samples[1:])), target * .65)
+        self.assertEqual(self.page.locator('#glance').evaluate('(s) => Number(getComputedStyle(s).opacity)'), 1)
+        self.assertAlmostEqual(self.page.evaluate('scrollY'), self.position('#glance'), delta=3)
+        self.assertEqual(self.page.locator('#glance-title').inner_text(), heading)
+        self.page.wait_for_timeout(220)
+        self.page.mouse.wheel(0, -120)
+        self.settle_chapter('top')
+        self.assertLess(self.page.evaluate('scrollY'), 3)
+        self.assertFalse(self.errors)
+
+    def wait_chat(self, step, ready=True):
+        self.page.wait_for_function('(n) => document.querySelector("#convo-step").textContent === `Step ${n} of 5`', arg=step)
+        if ready:
+            self.page.wait_for_function('document.querySelector("#convo").dataset.playback === "ready"')
+
+    def pause_chat(self):
+        if self.page.locator('#convo').get_attribute('data-autoplay') == 'playing':
+            self.click_chat_control('#convo-toggle')
+
+    def test_autoplay_visits_every_beat_without_scrolling(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s1"]').click()
+        self.settle_chapter('s1')
+        y = self.page.evaluate('scrollY')
+        for step in range(1, 6):
+            self.wait_chat(step)
+            self.assertAlmostEqual(self.page.evaluate('scrollY'), y, delta=2)
+        self.assertEqual(self.page.locator('#convo').get_attribute('data-autoplay'), 'complete')
+        self.assertEqual(self.page.locator('#convo .typing-row').count(), 0)
+        self.assertEqual(self.page.locator('#convo .cw-verdict.show').count(), 2)
+        self.assertFalse(self.errors)
+
+    def test_chat_types_before_delivery_and_preserves_delivered_bubbles(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s1"]').click()
+        self.settle_chapter('s1')
+        self.wait_chat(1)
+        first = self.page.locator('#convo .trunk > .chat-row').first.element_handle()
+        expect(self.page.locator('#convo .typing-row.ai')).to_be_visible()
+        self.assertEqual(self.page.locator('#convo .trunk > .chat-row:not(.typing-row)').count(), 1)
+        self.assertTrue(self.page.locator('#convo-next').is_disabled())
+        self.wait_chat(2)
+        self.assertTrue(first.evaluate('(n) => n === document.querySelector("#convo .trunk > .chat-row")'))
+        self.assertEqual(self.page.locator('#convo .trunk > .chat-row:not(.typing-row)').count(), 2)
+        self.assertFalse(self.errors)
+
+    def test_pause_resume_and_replay_cancel_pending_autoplay(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s1"]').click()
+        self.settle_chapter('s1')
+        self.pause_chat()
+        self.wait_chat(1)
+        self.page.wait_for_timeout(2500)
+        self.assertEqual(self.chat_step(), 1)
+        self.click_chat_control('#convo-toggle')
+        expect(self.page.locator('#convo .typing-row.ai')).to_be_visible()
+        self.click_chat_control('#replay')
+        expect(self.page.locator('#convo .typing-row.user')).to_be_visible()
+        self.pause_chat()
+        self.wait_chat(1)
+        self.page.wait_for_timeout(1500)
+        self.assertEqual(self.chat_step(), 1)
+        self.assertEqual(self.page.locator('#convo .trunk > .chat-row').count(), 1)
+        self.assertEqual(self.page.locator('#convo .typing-row').count(), 0)
+        self.assertFalse(self.errors)
+
+    def test_wheel_leaves_autoplay_in_either_direction_and_reentry_restarts(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s1"]').click()
+        self.settle_chapter('s1')
+        scene = self.page.evaluate('innerHeight - document.querySelector(".top").getBoundingClientRect().height')
+        self.assertAlmostEqual(self.page.locator('#s1').bounding_box()['height'], scene, delta=3)
+        self.page.mouse.wheel(0, -120)
+        self.settle_chapter('glance')
+        self.assertEqual(self.page.locator('#convo').get_attribute('data-autoplay'), 'paused')
+        self.page.mouse.wheel(0, 120)
+        self.settle_chapter('s1')
+        self.assertEqual(self.chat_step(), 1)
+        self.page.mouse.wheel(0, 120)
+        self.settle_chapter('listen')
+        self.page.mouse.wheel(0, -120)
+        self.settle_chapter('s1')
+        self.assertEqual(self.chat_step(), 1)
+        self.assertFalse(self.errors)
+
+    def test_manual_steps_pause_autoplay_and_reverse_cleanup_is_stable(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s1"]').click()
+        self.settle_chapter('s1')
+        self.pause_chat()
+        self.wait_chat(1)
+        for step in (2, 3, 4):
+            self.click_chat_control('#convo-next')
+            self.wait_chat(step)
+        self.click_chat_control('#convo-prev')
+        self.page.wait_for_timeout(500)
+        self.assertTrue(self.page.locator('#convo-prev').is_disabled())
+        self.wait_chat(3)
+        self.assertFalse(self.page.locator('#convo').evaluate('(n) => n.classList.contains("split")'))
+        self.click_chat_control('#convo-prev')
+        self.wait_chat(2)
+        self.assertEqual(self.page.locator('#convo').get_attribute('data-autoplay'), 'paused')
+        self.assertFalse(self.errors)
+
+    def test_chapter_scroll_reads_tall_result_before_advancing(self):
+        self.page.set_viewport_size({'width': 1280, 'height': 650})
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="glance"]').click()
+        self.settle_chapter('glance')
+        start = self.page.evaluate('scrollY')
+        self.page.mouse.wheel(0, 1000)
+        self.page.wait_for_timeout(250)
+        self.assertEqual(self.active(), 'glance')
+        self.assertGreater(self.page.evaluate('scrollY'), start)
+        self.assertLessEqual(self.page.locator('#g-proof').bounding_box()['y'] + self.page.locator('#g-proof').bounding_box()['height'], 650)
+        self.page.mouse.wheel(0, 120)
+        self.settle_chapter('s1')
+
+    def test_chapter_navigation_leaves_modal_and_native_fallback_usable(self):
+        self.load(scroll='chapters')
+        self.page.locator('#steps a[data-sec="s4"]').click()
+        self.settle_chapter('s4')
+        self.page.locator('#open-all').click()
+        expect(self.page.locator('#all-dialog')).to_be_visible()
+        y = self.page.evaluate('scrollY')
+        self.page.mouse.wheel(0, 300)
+        self.assertAlmostEqual(self.page.evaluate('scrollY'), y, delta=2)
+        self.page.keyboard.press('Escape')
+        expect(self.page.locator('#all-dialog')).not_to_be_visible()
+        for viewport, reduced in (({'width': 390, 'height': 844}, 'no-preference'),
+                                  ({'width': 1440, 'height': 1000}, 'reduce')):
+            self.page.set_viewport_size(viewport)
+            self.page.emulate_media(reduced_motion=reduced)
+            self.load(scroll='chapters')
+            self.assertEqual(self.page.locator('html').get_attribute('data-chapter-scroll'), 'native')
+            self.assertEqual(self.chat_step(), 5)
+            self.assertEqual(self.page.locator('.chapter-wipe').count(), 0)
             self.assertFalse(self.errors)
 
 

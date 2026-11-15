@@ -196,6 +196,8 @@
   // Two chat windows play the same conversation; they split at the reply. Everything comes from the saved run.
   const cap = (t) => t[0].toUpperCase() + t.slice(1);
   let convoTimers = [], convoWins = [], convoPlayed = false;
+  let convoGeneration = 0, convoBusyUntil = 0;
+  let convoAutoplay = false, convoAutoTimer = 0;
   function renderWalk() {
     const fam = state.family, T = state.comparator;
     const c = caseOf(fam, "unsupported_high_overlap") || caseOf(fam, "valid_low_overlap");
@@ -256,7 +258,7 @@
       box._resize = () => { cancelAnimationFrame(rt); rt = requestAnimationFrame(() => { if (convoStepAt >= 4) centerPush(false); }); };
       new ResizeObserver(box._resize).observe(box);
     }
-    convoShow(innerWidth < 760 ? CONVO_STEPS : Math.max(1, convoStepAt));
+    convoShow(innerWidth < 760 ? CONVO_STEPS : Math.max(1, convoStepAt), 0, true);
 
     renderListen();
     renderFair();
@@ -268,8 +270,8 @@
   const CONVO_STEPS = 5;
   let convoStepAt = 0;
   // A typing bubble on the sender's side: three dots, like a real chat.
-  const typingRow = (who) => el("div", { class: `chat-row ${who} typing-row` }, el("i", { class: "av", "aria-hidden": "true" }),
-    el("div", { class: "bubbles" }, el("div", { class: `bubble ${who === "ai" ? "a" : "q"} typing`, "aria-label": "typing" }, el("i"), el("i"), el("i"))));
+  const typingRow = (who) => el("div", { class: `chat-row ${who} typing-row`, role: "status", "aria-label": who === "ai" ? "Agent is typing" : "Human is typing" }, el("i", { class: "av", "aria-hidden": "true" }),
+    el("div", { class: "bubbles" }, el("div", { class: `bubble ${who === "ai" ? "a" : "q"} typing`, "aria-hidden": "true" }, el("i"), el("i"), el("i"))));
 
   // At the split the pushback slides to the centre so the fork's stem grows straight out of it.
   function centerPush(animate) {
@@ -284,8 +286,8 @@
     bub.style.translate = `${dx}px 0px`;
   }
 
-  // Scroll position owns the conversation; controls navigate to the same positions.
-  let scrollStory = null;
+  // Chapter mode plays the conversation in time; native mode retains its runway.
+  let scrollStory = null, chapterScroll = null;
   function convoStep(dir) {
     return scrollStory ? scrollStory.step(dir) : false;
   }
@@ -301,9 +303,41 @@
     const hint = $("#convo-step");
     if (hint) hint.textContent = `Step ${n} of ${CONVO_STEPS}`;
     const prev = $("#convo-prev"), next = $("#convo-next"), dots = $("#convo-dots");
-    if (prev) prev.disabled = n <= 1;
-    if (next) next.disabled = n >= CONVO_STEPS;
+    if (prev) prev.disabled = n <= 1 || $("#convo").dataset.playback === "moving";
+    if (next) next.disabled = n >= CONVO_STEPS || performance.now() < convoBusyUntil;
+    const toggle = $("#convo-toggle");
+    toggle.hidden = !chapterScroll?.active || n >= CONVO_STEPS;
+    toggle.textContent = convoAutoplay ? "Pause" : "Play";
+    toggle.setAttribute("aria-label", convoAutoplay ? "Pause after the current message" : "Continue the conversation automatically");
+    toggle.setAttribute("aria-pressed", String(convoAutoplay));
+    $("#replay").textContent = chapterScroll?.active ? "Replay conversation" : "Read from the beginning";
     if (dots) dots.replaceChildren(...Array.from({ length: CONVO_STEPS }, (_, i) => el("i", { class: i + 1 < n ? "done" : i + 1 === n ? "on" : null })));
+  }
+
+  function stopConvoAutoplay() {
+    clearTimeout(convoAutoTimer);
+    convoAutoTimer = 0;
+    convoAutoplay = false;
+    $("#convo").dataset.autoplay = "paused";
+  }
+
+  function scheduleConvoAutoplay() {
+    clearTimeout(convoAutoTimer);
+    if (!convoAutoplay || !chapterScroll?.active) return;
+    if (convoStepAt >= CONVO_STEPS) {
+      convoAutoplay = false;
+      $("#convo").dataset.autoplay = "complete";
+      convoUi(convoStepAt);
+      return;
+    }
+    const generation = convoGeneration;
+    const pause = convoStepAt === 3 ? 1700 : convoStepAt === 4 ? 1900 : 1100;
+    convoAutoTimer = setTimeout(() => {
+      if (!convoAutoplay || generation !== convoGeneration || !chapterScroll?.active) return;
+      const rect = $("#s1").getBoundingClientRect();
+      if (rect.bottom <= navPx() || rect.top >= innerHeight) { stopConvoAutoplay(); return; }
+      scrollStory.show(convoStepAt + 1, { automatic: true });
+    }, pause);
   }
 
   // Going back plays the step in reverse instead of snapping: the newest messages close up, and leaving the
@@ -361,28 +395,66 @@
     const W = convoWins;
     if (!W.trunk) return;
     convoTimers.forEach(clearTimeout); convoTimers = [];
+    clearTimeout(convoAutoTimer);
+    const generation = ++convoGeneration;
+    convoBusyUntil = 0;
+    $("#convo").querySelectorAll(".typing-row").forEach((row) => row.remove());
     (W.backAnims || []).forEach((a) => a.cancel()); W.backAnims = [];
     W.fork.style.overflow = ""; const brs = $("#convo .branches"); if (brs) brs.style.overflow = "";
     const prev = convoStepAt;
     convoStepAt = n; convoPlayed = true;
-    const still = scrubbing || matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const at = (ms, fn) => convoTimers.push(setTimeout(fn, ms));
-    if (!still && n === prev - 1) { convoBack(prev, n); convoUi(n); return; }
-    // Messages already seen appear at once; new ones are typed (dots), then sent (a short rise and fade in).
+    const still = scrubbing || params.has("instant") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const at = (ms, fn) => convoTimers.push(setTimeout(() => { if (generation === convoGeneration) fn(); }, ms));
+    const box = $("#convo");
+    box.dataset.playback = "ready";
+    if (!still && n === prev - 1) {
+      convoBusyUntil = performance.now() + 950;
+      box.dataset.playback = "moving";
+      convoBack(prev, n);
+      at(950, () => { convoBusyUntil = 0; box.dataset.playback = "ready"; convoUi(n); scheduleConvoAutoplay(); });
+      convoUi(n);
+      return;
+    }
+    // Keep delivered DOM nodes. Only the new message gets a typing pause and
+    // arrival; earlier bubbles glide into their new positions as room opens.
+    const changeLayout = (change) => {
+      const before = new Map([...box.querySelectorAll(".bubble, .file")].map((node) => [node, node.getBoundingClientRect()]));
+      change();
+      const z = (parseFloat(getComputedStyle(box).zoom) || 1) * Z();
+      before.forEach((rect, node) => {
+        if (!node.isConnected) return;
+        const after = node.getBoundingClientRect(), dx = (rect.left - after.left) / z, dy = (rect.top - after.top) / z;
+        if (Math.abs(dx) + Math.abs(dy) < 1) return;
+        W.backAnims.push(node.animate([
+          { transform: `translate(${dx}px, ${dy}px)` }, { transform: "translate(0, 0)" },
+        ], { duration: 420, easing: "cubic-bezier(.22, 1, .36, 1)" }));
+      });
+    };
     const deliver = (list, items, t0 = 0) => {
-      list.replaceChildren();
+      const wanted = items.map(({ m, step }) => {
+        m.node ||= m.make();
+        m.node.dataset.messageStep = String(step);
+        return m.node;
+      });
+      [...list.children].filter((node) => !wanted.includes(node)).forEach((node) => node.remove());
       let t = t0;
       items.forEach(({ m, step }) => {
-        if (still || step <= prev) { list.append(m.make()); return; }
+        const node = m.node;
+        if (node.parentNode === list) return;
+        node.style.overflow = "";
+        node.classList.remove("sent", "arrived");
+        if (n < 4) node.querySelectorAll(".bubble").forEach((bubble) => { bubble.style.translate = ""; });
+        if (still || step <= prev) { list.append(node); return; }
         const who = m.from === "ai" ? "ai" : "user";
-        // no typing dots: each message pops in, a beat apart, like a chat app
-        t += step === 1 ? 300 : who === "ai" ? 700 : 450;
-        at(t, () => { const node = m.make(); node.classList.add("sent"); list.append(node); });
-        t += 200;
+        const typing = typingRow(who);
+        at(t, () => changeLayout(() => list.append(typing)));
+        t += who === "ai" ? 850 : step === 3 ? 700 : 560;
+        at(t, () => changeLayout(() => { node.classList.add("arrived"); typing.replaceWith(node); }));
+        t += 520;
       });
       return t;
     };
-    deliver(W.trunk, W.shared.slice(0, Math.min(n, 3)).map((m, i) => ({ m, step: i + 1 })), wait);
+    let pending = deliver(W.trunk, W.shared.slice(0, Math.min(n, 3)).map((m, i) => ({ m, step: i + 1 })), wait);
     const split = n >= 4;
     // Arriving at the split, play it in order instead of all at once:
     // the earlier messages fold away, then the fork draws, then the two columns rise in, then the replies pop.
@@ -399,8 +471,8 @@
     if (staged) {
       convoEl.classList.remove("split"); W.fork.classList.remove("show");
       W.branches.forEach((b) => b.node.classList.remove("show"));
-      at(500, () => { convoEl.classList.add("split"); W.fork.classList.add("show"); });
-      at(1100, () => W.branches.forEach((b) => b.node.classList.add("show")));
+      at(240, () => { convoEl.classList.add("split"); W.fork.classList.add("show"); });
+      at(520, () => W.branches.forEach((b) => b.node.classList.add("show")));
     } else {
       convoEl.classList.toggle("split", split);
       W.fork.classList.toggle("show", split);
@@ -408,11 +480,30 @@
     W.branches.forEach((b) => {
       if (!staged) b.node.classList.toggle("show", split);
       const count = n >= 5 ? b.msgs.length : split ? 1 : 0;
-      const end = deliver(b.list, b.msgs.slice(0, count).map((m, i) => ({ m, step: i === 0 ? 4 : 5 })), staged ? 1500 : 0);
+      const end = deliver(b.list, b.msgs.slice(0, count).map((m, i) => ({ m, step: i === 0 ? 4 : 5 })), staged ? 700 : 0);
+      pending = Math.max(pending, end);
       b.verdict.classList.remove("show");
       if (n >= 5) { if (still || prev >= 5) b.verdict.classList.add("show"); else at(end + 200, () => b.verdict.classList.add("show")); }
     });
+    if (!still && n === CONVO_STEPS) pending = Math.max(200, pending);
+    if (!still && pending > 0) {
+      convoBusyUntil = performance.now() + pending + 220;
+      box.dataset.playback = "typing";
+      at(pending + 220, () => { convoBusyUntil = 0; box.dataset.playback = "ready"; convoUi(n); scheduleConvoAutoplay(); });
+    } else if (!still) scheduleConvoAutoplay();
     convoUi(n);
+  }
+
+  function enterConvo(atEnd = false) {
+    stopConvoAutoplay();
+    if (atEnd) { convoShow(CONVO_STEPS, 0, true); return; }
+    // Entering/replaying starts a fresh conversation; normal steps reuse nodes.
+    convoWins.trunk.replaceChildren();
+    convoWins.branches.forEach((branch) => branch.list.replaceChildren());
+    convoStepAt = 0;
+    convoAutoplay = true;
+    $("#convo").dataset.autoplay = "playing";
+    convoShow(1);
   }
 
   // Replay changes the scroll position rather than starting a competing timer.
@@ -421,6 +512,18 @@
     $("#replay").addEventListener("click", playConvo);
     $("#convo-prev")?.addEventListener("click", () => convoStep(-1));
     $("#convo-next")?.addEventListener("click", () => convoStep(1));
+    $("#convo-toggle").addEventListener("click", () => {
+      if (convoAutoplay) stopConvoAutoplay();
+      else {
+        convoAutoplay = true;
+        $("#convo").dataset.autoplay = "playing";
+        if (performance.now() >= convoBusyUntil) scheduleConvoAutoplay();
+      }
+      convoUi(convoStepAt);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && convoAutoplay) { stopConvoAutoplay(); convoUi(convoStepAt); }
+    });
   }
 
   // The old scroll walkthrough's layout hooks; nothing to lay out now.
@@ -785,7 +888,7 @@
 
   function renderAll() { renderHero(); renderHead(); renderWalk(); renderOutcome(); }
 
-  // Native document scrolling owns movement. Only explicit links/step controls animate.
+  // Native fallback and explicit conversation controls share this position tween.
   let scrollFrame = 0, arrivalTimer = 0;
   function cancelScroll() {
     cancelAnimationFrame(scrollFrame); scrollFrame = 0;
@@ -826,6 +929,9 @@
     const sync = () => {
       scheduled = 0;
       if (!enabled()) return;
+      // Autoplay owns chapter-mode chat state. Page scrolling must never seek,
+      // pause, or rewind its messages; the native comparison retains scrubbing.
+      if (chapterScroll?.active) return;
       const traveled = scrollY - start();
       const n = Math.min(CONVO_STEPS, Math.max(1, Math.floor(Math.max(0, traveled) / beat()) + 1));
       if (n !== convoStepAt) convoShow(n, 0, true);
@@ -836,9 +942,10 @@
       section.classList.toggle("is-scroll-story", active);
       section.classList.toggle("story-static", !active);
       section.style.setProperty("--story-span", `${sceneHeight() * 4.05 / Z()}px`);
+      section.style.setProperty("--chapter-scene-height", `${sceneHeight() / Z()}px`);
       stage.style.setProperty("--scene-height", `${sceneHeight() / Z()}px`);
-      $("#replay").textContent = "Read from the beginning";
       if (!active) {
+        stopConvoAutoplay();
         convoShow(CONVO_STEPS, 0, true);
         section.dataset.storyStep = String(CONVO_STEPS);
         $("#convo-prev").disabled = $("#convo-next").disabled = true;
@@ -853,12 +960,33 @@
     return {
       step(dir) {
         if (!enabled()) return false;
+        if (chapterScroll?.active) {
+          if (performance.now() < convoBusyUntil && (dir > 0 || $("#convo").dataset.playback === "moving")) return false;
+          const n = Math.min(CONVO_STEPS, Math.max(1, convoStepAt + dir));
+          if (n === convoStepAt) return false;
+          this.show(n);
+          return true;
+        }
         const n = Math.min(CONVO_STEPS, Math.max(1, convoStepAt + dir));
         if (n === convoStepAt) return false;
         scrollToPosition(start() + (n - 1) * beat() + 2);
         return true;
       },
-      restart() { scrollToPosition(start() + 2); },
+      restart() {
+        if (chapterScroll?.active) enterConvo();
+        else scrollToPosition(start() + 2);
+      },
+      positions() { return enabled() ? Array.from({ length: CONVO_STEPS }, (_, i) => start() + i * beat() + 2) : []; },
+      show(n, { automatic = false } = {}) {
+        if (!automatic) stopConvoAutoplay();
+        section.dataset.storyStep = String(n);
+        convoShow(n);
+      },
+      enter() {
+        section.dataset.storyStep = "1";
+        enterConvo();
+      },
+      leave() { stopConvoAutoplay(); convoShow(convoStepAt, 0, true); },
     };
   }
 
@@ -884,8 +1012,9 @@
     };
     addEventListener("scroll", () => { if (!scheduled) scheduled = requestAnimationFrame(update); }, { passive: true });
     addEventListener("resize", update);
-    // Wheel/touch never get prevented, queued, or converted into page jumps.
-    addEventListener("wheel", cancelScroll, { passive: true });
+    // Native gestures may interrupt a link tween; chapter handoffs own their
+    // complete animation, including any remaining trackpad momentum.
+    addEventListener("wheel", () => { if (!chapterScroll?.active) cancelScroll(); }, { passive: true });
     addEventListener("touchstart", cancelScroll, { passive: true });
     addEventListener("pointerdown", cancelScroll, { passive: true });
     document.addEventListener("click", e => {
@@ -895,8 +1024,10 @@
       const target = document.getElementById(a.getAttribute("href").slice(1));
       if (!target) return;
       e.preventDefault();
-      scrollToPosition(target.getBoundingClientRect().top + scrollY - navPx());
-      history.replaceState(null, "", a.getAttribute("href"));
+      if (!chapterScroll?.go(target, { backwards: target.getBoundingClientRect().top < navPx(), focus: true })) {
+        scrollToPosition(target.getBoundingClientRect().top + scrollY - navPx());
+        history.replaceState(null, "", a.getAttribute("href"));
+      }
     });
     addEventListener("keydown", e => {
       if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(e.key)) cancelScroll();
@@ -1168,6 +1299,10 @@
     railProgress();
     panelBlocks();
     scrollStory = setupScrollStory();
+    chapterScroll = window.createChapterScroll({
+      sections: [...document.querySelectorAll("main > .focusable")],
+      navPx, cancelScroll, enterStory: () => scrollStory.enter(), leaveStory: () => scrollStory.leave(),
+    });
     convoWatch();
     spy();
     const jump = { "3": "s3" }[params.get("step")];
