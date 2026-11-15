@@ -1,5 +1,5 @@
 // Node 22 + local Chrome only. TMPDIR and optional screenshots must point to a local scratch directory.
-// Catches: phone chat clipping, pager stealing control keys, and historical claims leaking into mock runs.
+// Catches: phone chat clipping, scrolling stealing control keys, and historical claims leaking into mock runs.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
@@ -92,9 +92,9 @@ try {
     : { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false }, sessionId);
   let loadCount = 0;
   on("Page.loadEventFired", () => loadCount++);
-  const nav = async (run = "") => {
+  const nav = async (run = "", instant = true) => {
     const previousLoad = loadCount;
-    await call("Page.navigate", { url: `${origin}/index.html?instant${run ? `&run=${run}` : ""}` }, sessionId);
+    await call("Page.navigate", { url: `${origin}/index.html?${instant ? "instant&" : ""}${run ? `run=${run}` : ""}` }, sessionId);
     for (let i = 0; loadCount === previousLoad && i < 240; i++) await sleep(25);
     assert.ok(loadCount > previousLoad, "new document must load, not the prior page context");
     await waitFor('document.readyState === "complete" && document.querySelector("#convo.flow") && document.querySelector(".gp-claim")');
@@ -107,7 +107,7 @@ try {
   const press = async (key, code, virtualKey) => {
     await call("Input.dispatchKeyEvent", { type: "keyDown", key, code, windowsVirtualKeyCode: virtualKey, text: key === " " ? " " : key === "Enter" ? "\r" : undefined }, sessionId);
     await call("Input.dispatchKeyEvent", { type: "keyUp", key, code, windowsVirtualKeyCode: virtualKey }, sessionId);
-    await sleep(420);
+    await sleep(750); // Allow explicit navigation's bounded 650ms animation to settle.
   };
   const focused = () => evaluate('document.activeElement.id');
   const section = () => evaluate('document.querySelector("#steps [aria-current]")?.dataset.sec');
@@ -117,7 +117,12 @@ try {
   on("Fetch.requestPaused", (data, session) => {
     const local = data.request.url.startsWith(origin + "/");
     if (!local) external.push(data.request.url);
-    call(local ? "Fetch.continueRequest" : "Fetch.failRequest", local ? { requestId: data.requestId } : { requestId: data.requestId, errorReason: "BlockedByClient" }, session).catch(error => failures.push(error.message));
+    call(local ? "Fetch.continueRequest" : "Fetch.failRequest", local ? { requestId: data.requestId } : { requestId: data.requestId, errorReason: "BlockedByClient" }, session).catch(error => {
+      // Navigation can cancel an intercepted local preload before CDP resumes it.
+      // External attempts remain recorded above; never suppress their block failures.
+      if (local && error.message === '{"code":-32602,"message":"Invalid InterceptionId."}') return;
+      failures.push(error.message);
+    });
   });
   await call("Page.enable", {}, sessionId);
   await call("Runtime.enable", {}, sessionId);
@@ -139,7 +144,9 @@ try {
     }
   });
   await check("keyboard: chat controls retain native keys and focus", async () => {
-    await nav(); await go("s1");
+    await call("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "no-preference" }] }, sessionId);
+    await nav("final-fresh", false); await go("s1");
+    await waitFor('document.querySelector("#s1").classList.contains("is-scroll-story")');
     await evaluate('document.querySelector("#convo-next").focus()');
     await press(" ", "Space", 32);
     assert.equal(await evaluate('document.querySelector("#convo-step").textContent'), "Step 2 of 5");
@@ -156,7 +163,8 @@ try {
     await evaluate('document.querySelector("#convo-next").focus()'); await press("ArrowRight", "ArrowRight", 39);
     assert.equal(await evaluate('document.querySelector("#convo-step").textContent'), "Step 2 of 5", "focused controls own arrow keys too");
   });
-  await check("keyboard: editable targets and links do not trigger paging; body still pages", async () => {
+  await check("keyboard: editable targets keep focus; body retains native scrolling", async () => {
+    await call("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] }, sessionId);
     await nav(); await go("s1");
     await evaluate(`(() => { const editor = document.createElement('div'); editor.id = 'keyboard-editor'; editor.contentEditable = 'true'; editor.textContent = 'Editable'; editor.style.cssText = 'position:fixed;top:100px;left:20px;z-index:100'; document.body.append(editor); editor.focus(); })()`);
     await call("Input.dispatchKeyEvent", { type: "rawKeyDown", key: " ", code: "Space", windowsVirtualKeyCode: 32 }, sessionId);
@@ -167,8 +175,15 @@ try {
     await evaluate('document.querySelector("#steps a[data-sec=s1]").focus({preventScroll:true})');
     await press("ArrowDown", "ArrowDown", 40); assert.equal(await section(), "s1");
     await evaluate('document.activeElement.blur()'); await go("top"); await evaluate('document.activeElement.blur()');
-    await press(" ", "Space", 32); assert.equal(await section(), "glance");
-    await press("PageDown", "PageDown", 34); assert.equal(await section(), "s1");
+    const before = await evaluate('scrollY');
+    await press(" ", "Space", 32);
+    const afterSpace = await evaluate('scrollY');
+    assert.ok(afterSpace > before, "Space scrolls the document");
+    await press("PageDown", "PageDown", 34);
+    assert.ok(await evaluate('scrollY') > afterSpace, "PageDown scrolls the document");
+    await go("s1");
+    assert.equal(await evaluate('document.querySelector("#convo-step").textContent'), "Step 5 of 5", "reduced motion presents the complete transcript");
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".convo-ctl")).display'), "none");
   });
 
   for (const run of ["final-fresh", "mock-smoke"]) {

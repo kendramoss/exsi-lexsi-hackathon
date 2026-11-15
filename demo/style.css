@@ -1,3 +1,6 @@
+@font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("assets/fonts/instrument-sans.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("assets/fonts/ibm-plex-sans.woff2") format("woff2"); }
+
 /* Default 80% scale on desktop. The page is designed at 80% browser zoom, so at desktop widths it scales
    itself to 80% and looks the same at the browser's normal 100%. Viewport units are written as var(--vh) and
    var(--vw), which cancel the zoom so full-screen sections still fill the window, and the desktop breakpoints
@@ -30,9 +33,9 @@
   --mock-bg: var(--cobalt);
   --mock-ink: var(--cream);
 
-  --display: "Outfit", "Segoe UI", system-ui, sans-serif;
-  --sans: "Outfit", "Segoe UI", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --display: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: var(--sans);
   --d-size: 56px; --lead-size: 24px;
   --t-display: 400 var(--d-size)/1.06 var(--display);
   --t-h2:      400 calc(var(--d-size) * .8)/1.1 var(--display);
@@ -66,7 +69,7 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; scroll-padding-top: var(--nav); }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; scroll-padding-top: var(--nav); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { margin: 0; background: var(--bg); color: var(--ink); font: var(--t-body); -webkit-font-smoothing: antialiased; transition: background-color 500ms var(--ease), color 500ms var(--ease); }
 .top { transition: background-color 500ms var(--ease), color 500ms var(--ease), border-color 500ms var(--ease); }
@@ -1807,3 +1810,85 @@ mark.claim { text-decoration: none; background: color-mix(in srgb, var(--warn) 1
    the cards and the "See all the numbers" row (the cards' row used to stretch, so the gap ran from 9px to 549px) */
 .ch#s4 { grid-template-rows: auto auto auto; align-content: center; padding-block: calc(4 * var(--vh)); }
 #s4 .end-actions { margin-top: clamp(40px, calc(7 * var(--vh)), 72px); }
+
+/* Recorded response comparison: decisions are text, not a confidence gauge. */
+#glance { height: auto; min-height: calc(100 * var(--vh) - var(--nav)); }
+#glance .rail { padding-top: clamp(64px, calc(9 * var(--vh)), 128px); }
+#glance .rail h2 { font-size: clamp(36px, calc(3.7 * var(--vw)), 58px); line-height: 1.06; letter-spacing: -.04em; text-wrap: initial; }
+#glance .panel { padding: clamp(48px, calc(6 * var(--vh)), 88px) clamp(28px, calc(4 * var(--vw)), 72px); gap: 40px; border-radius: 40px 0 0 0; }
+#glance .answer-comparison { width: 100%; max-width: 1000px; }
+.shared-correction { padding-bottom: 32px; }
+.correction-label { margin: 0 0 14px; font: 400 15px/1.4 var(--sans); color: rgb(245 249 255 / .8); }
+.shared-correction blockquote { margin: 0; max-width: 48ch; font: 400 clamp(21px, calc(1.7 * var(--vw)), 29px)/1.45 var(--display); color: #f5f9ff; text-wrap: pretty; }
+.result-responses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; padding-block: 32px 0; border-top: 1px solid rgb(245 249 255 / .4); }
+.answer-result { min-width: 0; }
+.answer-result h3 { margin: 0 0 22px; font: 500 18px/1.3 var(--sans); color: #f5f9ff; }
+.result-action { margin: 0 0 14px; font: 400 15px/1.4 var(--sans); color: rgb(245 249 255 / .85); }
+.result-answer { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 0 0 24px; font: 400 clamp(44px, calc(4.3 * var(--vw)), 72px)/1 var(--display); letter-spacing: -.045em; }
+.result-answer strong { font-weight: 500; }
+.before-answer { color: rgb(245 249 255 / .65); }
+.answer-arrow { font-size: .7em; color: rgb(245 249 255 / .8); }
+.answer-result.ko .result-answer strong { color: #ffc2bd; }
+.answer-result.ok .result-answer strong { color: #b2f0d1; }
+.result-response { margin: 0; max-width: 34ch; font: 400 17px/1.6 var(--sans); color: #f5f9ff; text-wrap: pretty; }
+#glance .g-proof { width: 100%; max-width: 1000px; margin-top: 8px; }
+#glance .gp-claim, #glance .gp-name, #glance .gp-val, #glance .gp-foot { font-family: var(--sans); }
+#glance .setup dt { color: #426ba4; }
+#glance .rail-foot { color: #426ba4; }
+
+/* The chapter is a real scroll runway; the frame alone is sticky. No wheel capture. */
+.scroll-story { display: block; overflow: visible; height: auto; min-height: 0; padding: 0; }
+.scroll-story.is-scroll-story { height: var(--story-span); }
+.story-stage { position: sticky; top: var(--nav); height: var(--scene-height); width: 100%; min-height: 0; }
+.story-stage .rail h2 { font-family: var(--display); letter-spacing: -.035em; }
+#s1.is-scroll-story .story-stage { overflow: clip; }
+#s1.is-scroll-story .rail { justify-content: center; padding-top: 36px; padding-bottom: 36px; }
+#s1.is-scroll-story .rail h2 { margin-top: 0; }
+#s1.is-scroll-story .rail-foot { margin-top: 20px; }
+#s1.is-scroll-story #convo-step { display: block; font-family: var(--sans); color: #426ba4; }
+#s1.is-scroll-story .panel { border-radius: 40px 0 0 0; }
+#s1.is-scroll-story .convo-ctl button { min-width: 44px; min-height: 44px; }
+#s1.is-scroll-story .replay { display: inline-block; font-family: var(--sans); }
+#s1.is-scroll-story .flow .trunk > .chat-row { transition: none; }
+#s1.is-scroll-story .flow .fork, #s1.is-scroll-story .flow .branches { animation: none; }
+#s1 .convo-foot button:active, #s4 .all-btn:active { transform: scale(.96); }
+#s1.story-static .story-stage { position: static; height: auto; min-height: calc(100 * var(--vh) - var(--nav)); }
+#s1.story-static .panel { overflow: visible; }
+#s1.story-static .panel .ch-chat { height: auto; padding-block: 40px; }
+#s1.story-static .panel .ch-chat .convo.flow { height: auto; overflow: visible; mask-image: none; -webkit-mask-image: none; }
+#s1.story-static .convo.flow::before, #s1.story-static .convo.flow::after { content: none; }
+#s1.story-static .trunk.past > .chat-row { max-height: none; height: auto; opacity: 1; margin-top: 0; overflow: visible; }
+#s1.story-static .push .bubble { translate: none !important; }
+#s1.story-static .convo-ctl { display: none; }
+#s1.story-static .replay { display: inline-block; }
+#s1.story-static .fork, #s1.story-static .branches { animation: none; }
+#s1 .convo-foot { gap: 24px; }
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  #glance .panel { padding-inline: 28px; }
+  .result-responses { gap: 24px; }
+  .result-response { font-size: 16px; }
+}
+@media (max-width: 900px), (max-height: 640px) {
+  #glance { height: auto; }
+  #glance .rail { padding: 48px 24px 32px; }
+  #glance .panel { border-radius: 28px 0 0 0; padding: 36px 24px; }
+  #glance .rail h2 { font-size: 42px; }
+  .story-stage { grid-template-columns: minmax(0, 1fr); }
+  #s1 .rail { padding: 48px 24px 24px; }
+  #s1.story-static .panel .ch-chat { padding: 24px 8px; }
+  #s1.story-static .convo.flow { zoom: 1; }
+}
+@media (max-width: 540px) {
+  .result-responses { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .answer-result + .answer-result { padding-top: 28px; border-top: 1px solid rgb(245 249 255 / .4); }
+  .answer-result h3 { margin-bottom: 16px; }
+  .result-answer { font-size: 52px; margin-bottom: 18px; }
+  .result-response { font-size: 16px; max-width: none; }
+  #glance .gp-row { grid-template-columns: 1fr minmax(0, 1fr) auto; gap: 10px; }
+  #glance .gp-name { font-size: 14px; }
+  #s1.story-static .branches { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-story .story-stage, .scroll-story .flow * { animation: none !important; transition: none !important; }
+}
