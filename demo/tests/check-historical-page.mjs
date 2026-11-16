@@ -92,7 +92,7 @@ try {
     : { width: 1440, height: 1000, deviceScaleFactor: 1, mobile: false }, sessionId);
   let loadCount = 0;
   on("Page.loadEventFired", () => loadCount++);
-  const nav = async (run = "", instant = true) => {
+  const nav = async (run = "final-fresh", instant = true) => {
     const previousLoad = loadCount;
     await call("Page.navigate", { url: `${origin}/index.html?${instant ? "instant&" : ""}${run ? `run=${run}` : ""}` }, sessionId);
     for (let i = 0; loadCount === previousLoad && i < 240; i++) await sleep(25);

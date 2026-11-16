@@ -2,6 +2,20 @@
 
 The verified public recorded-only demo is https://mizore66-evidencetune-merged-demo.static.hf.space/index.html. It replays the saved payload below; it does not run a model.
 
+## Local frontend integration
+
+The default `demo/index.html` route reads the pinned `demo/data/results/merged-alpha-075/merged.json`
+payload through `merged-data.js` and `merged-app.js`. It presents v7 versus the released
+merge, all five saved conditions of the first illustration, and separate frozen
+scoreboards. It preserves the PR #37 fonts, native scrolling, reversible desktop
+story, and readable mobile/reduced-motion transcript. Explicit `?run=final-fresh`
+and `?run=mock-smoke` routes retain historical and invented evidence respectively.
+
+The illustration has matching successful task actions for both arms; it must not
+be framed as a failed baseline repaired by the merge. Earlier answers are supplied
+input context and no generated clarification follow-up is present. See
+[frontend details and test commands](demo/README.md).
+
 ## Exactly what changed
 
 - **Added `demo_merged_data.json`** for the current `merge_alpha_0.75` model (75% v7 + 25% v8). It is generated from the actual saved frozen predictions, not handwritten model responses.

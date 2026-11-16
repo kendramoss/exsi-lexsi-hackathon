@@ -4,6 +4,16 @@
 
 **[▶ Open the demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** · [Model + collection](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08) · [Model card (write-up)](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/README.md) · [Full write-up](WRITEUP.md)
 
+## Local frontend evidence
+
+The localhost frontend now defaults to the selected merged α=0.75 release, using
+`demo/data/results/merged-alpha-075/merged.json` for exact v7-versus-merged outputs
+and separate frozen semantic/targeted scoreboards. It preserves PR #37 native
+scrolling and the reversible recorded-input walkthrough. See [local setup and evidence boundaries](demo/README.md).
+Use `?run=final-fresh` for the explicitly historical v5/v6 replay and
+`?run=mock-smoke` for explicitly invented layout-testing data. Public deployment is
+separate; the historical public links below retain their explicit run parameter.
+
 ## Tracks and problem statements
 
 - **Track 2a: AI Safety and Red Teaming**
