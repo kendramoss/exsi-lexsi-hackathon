@@ -4,3 +4,4 @@
 - A conversation requires elapsed time and message continuity. Preserve delivered bubbles, show the current speaker typing, then reveal their message. Scroll position alone should not replace the transcript with successive static frames.
 - When the user wants to watch a conversation, start and pace the whole exchange on arrival. Keep page scrolling independent so playback never traps forward/back navigation.
 - Gesture suppression must distinguish an inertial tail from a fresh reversal or deliberate input; a global consumed latch without a bounded recovery can make a chapter feel stuck.
+- Evidence-source changes require a fresh narrative audit. Use exact paired records, preserve suite-specific denominators and provenance, and omit missing turns rather than invent dialogue. Current user requirements supersede prior animation choices: retain PR #37 native continuous scrolling and reversible scroll-driven playback.

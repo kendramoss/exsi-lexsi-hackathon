@@ -1,30 +1,12 @@
-// Merged-payload verification (Node 22, built-ins only, no browser).
-//
-// History: this file used to drive Chrome against demo/index.html and expect a
-// "Recorded only" badge and a five-condition inspector. The shipped page no
-// longer does that: it deliberately shows the historical final-fresh run, and
-// the merged alpha=0.75 payload is a separate format that this frontend does
-// not read (see demo/README.md). No standalone merged renderer exists in the
-// repository, so there is nothing for a browser check to drive.
-//
-// What this script does now:
-//   1. Verifies the merged payload data semantics (hashes, provenance, labels,
-//      outputs, scores) and the merged-data.js mapping.
-//   2. Confirms the absent-renderer premise: the shipped frontend does not
-//      reference the merged payload. If it ever does, this script FAILS so the
-//      browser checks get restored instead of silently staying skipped.
-//   3. Prints an explicit SKIP for the browser integration check. It is never
-//      reported as passed.
-//
-// Usage: node check-merged-page.mjs [demoRoot]
-// Exit codes: 0 data checks passed (browser check skipped, stated on stdout);
-//             1 a data/premise check failed;
-//             2 data passed but REQUIRE_MERGED_BROWSER=1 and the browser check is skipped.
-// The historical page browser suite is check-historical-page.mjs.
+// Verify pinned merged evidence and frontend wiring (Node built-ins only).
+// Actual Playwright interaction coverage: check-release-page.test.cjs.
+// Set REQUIRE_MERGED_BROWSER=1 to require that suite in this command too.
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 
 const root = resolve(process.argv[2] || new URL("..", import.meta.url).pathname);
 const require = createRequire(import.meta.url);
@@ -142,21 +124,29 @@ check("merged-data.js maps every condition/arm without altering input, output, o
   }
 });
 
-check("premise: the shipped frontend does not read the merged payload (no merged renderer)", () => {
-  for (const file of ["index.html", "app.js"]) {
-    const text = read(file).toString("utf8");
-    ok(!/merged-data\.js/.test(text), `${file} loads merged-data.js; a merged renderer now exists, restore the browser check`);
-    ok(!/merged-alpha-075|merged\.json/.test(text), `${file} references the merged payload; a merged renderer now exists, restore the browser check`);
-  }
+check("default frontend wires the merged payload and its adapter", () => {
+  const index = read("index.html").toString("utf8");
+  const renderer = read("merged-app.js").toString("utf8");
+  ok(/merged-data\.js/.test(index), "index.html must load merged-data.js");
+  ok(/merged-app\.js/.test(index), "index.html must load merged-app.js");
+  ok(/merged-alpha-075/.test(renderer) && /merged\.json/.test(renderer), "merged renderer must read the recorded release payload");
+  ok(/createMergedRun/.test(renderer), "merged renderer must use the existing verified adapter");
 });
 
 if (failures.length) {
   console.error(`\nFAILED ${failures.length} check(s), ${passed} passed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`\nPASS: ${passed} merged-payload data checks`);
-console.log("SKIP (not passed): browser rendering of the merged payload. No standalone merged renderer exists; demo/index.html shows the historical final-fresh run. Browser coverage of the shipped page is check-historical-page.mjs.");
+console.log(`\nPASS: ${passed} merged evidence and frontend wiring checks`);
 if (process.env.REQUIRE_MERGED_BROWSER === "1") {
-  console.error("REQUIRE_MERGED_BROWSER=1: the browser check was skipped, so this run is not accepted.");
-  process.exit(2);
+  const browserEnv = { ...process.env, EVTUNE_DEMO_ROOT: root };
+  // A verifier invoked by node:test must start a new test runner, not inherit
+  // its parent's child-context marker and silently skip all browser tests.
+  delete browserEnv.NODE_TEST_CONTEXT;
+  const result = spawnSync(process.execPath, ["--test", join(dirname(fileURLToPath(import.meta.url)), "check-release-page.test.cjs")], {
+    stdio: "inherit", env: browserEnv,
+  });
+  if (result.error) { console.error(result.error.message); process.exit(1); }
+  process.exit(result.status ?? 1);
 }
+console.log("Browser interactions are a separate required check: node --test demo/tests/check-release-page.test.cjs (actual Playwright). This data-only command does not claim browser coverage.");
