@@ -1,171 +1,265 @@
-# EvidenceTune
+# EvidenceTune: teaching Tiny Aya to change its answer only when the evidence says so
 
-**Does a model change its answer for the right reason?** EvidenceTune teaches Tiny Aya Global to change its answer only when the evidence says so: it takes a correction that quotes the part of a document that settles the question, and asks for proof when the quote settles nothing.
+**Claim:** on matched evidence-correction cases, a merged LoRA adapter for Tiny Aya Global (EvidenceTune α=0.75) reaches **92.5%** strict task success on the frozen semantic suite, versus **25.8%** for the raw base model and **88.75%** for its v7 parent. These are synthetic-proxy results, not human validation.
 
-**[▶ Open the demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** &nbsp;·&nbsp; [Run it locally](#2-run-the-demo-on-your-computer) &nbsp;·&nbsp; [Model, data and code](#4-model-data-and-code) &nbsp;·&nbsp; [Results](#about-the-project)
+**[▶ Open the demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** · [Model + collection](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08) · [Model card (write-up)](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75/blob/main/README.md) · [Full write-up](WRITEUP.md)
 
-**Which model?** The demo shows *why* evidence training works: EvidenceTune v6 against plain training, on 544 pushbacks. The released model, [merged α=0.75](#about-the-project), is a blend of the later v7 and v8 adapters and reaches 92.5% task success on the frozen semantic suite.
+## Tracks and problem statements
 
-Lexsi Hackathon, Track 2a #2 (safety benchmark) with Track 2b #5. Pipeline: CuratorKIT → SafeTune → AuditKIT.
+- **Track 2a: AI Safety and Red Teaming**
+  - #2 Adversarial and safety evaluation sets
+- **Track 2b: AI Safety and Correction**
+  - #5 Locating where safety lives
+  - #9 Hallucination detection and abstention
 
-## Contents
+## Abstract
 
-1. [Watch the demo](#1-watch-the-demo) · 1 click
-2. [Run the demo on your computer](#2-run-the-demo-on-your-computer) · about 5 minutes
-3. [Host your own copy](#3-host-your-own-copy) · about 10 minutes
-4. [Model, data and code](#4-model-data-and-code)
-5. [Reproduce the results](#5-reproduce-the-results)
-6. [Troubleshooting](#6-troubleshooting)
-7. [About the project](#about-the-project): the model, results, limits and documents
+EvidenceTune asks a simple question: does a model change its answer for the right reason? Sycophancy under pushback is a safety problem. A model that flips whenever a user insists can be steered into wrong answers, while a model that never flips ignores real corrections. EvidenceTune trains Tiny Aya Global to change its answer only when a user's correction quotes evidence that settles the question. It asks for proof when the quoted evidence settles nothing, and it holds its position under bare pressure.
 
-## 1. Watch the demo
+Each benchmark case gives one statement and three excerpts, and yields five matched rows: a valid citation (correct action UPDATE), two unsupported citations of a distractor (CLARIFY or RETAIN), bare pressure (RETAIN) and a no-pushback solo row. Valid and unsupported rows share one surface form, and cases are sampled so that word overlap, excerpt length and excerpt position each predict the valid citation only 50% of the time.
 
-**[Open the demo →](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh)** Nothing to install; it works in any browser.
+The pipeline is CuratorKIT → SafeTune → AuditKIT. Evidence judgement was distilled from teacher models (Claude Fable 5.2 and Claude Opus 5.5). The released model, `merge_alpha_0.75`, is a CPU-only interpolation of 75% v7 (semantic-contrast LoRA) and 25% v8 (targeted/two-turn LoRA), with no extra training. Selection used dev data only. On frozen confirmation suites it improves semantic task success from 88.75% to 92.50% against v7, and the raw base scores about 25%. Bootstrap analysis treats the semantic gain as suggestive and the targeted gain as not established.
 
-Scroll, or use the tabs at the top, to move through the six screens. The demo replays answers the model already gave during testing, so it doesn't run the model live and always shows the same results. It compares EvidenceTune v6 with plain training, to show what evidence training changes. The released merged α=0.75 model's own results are under [About the project](#about-the-project), and a version that replays the merged model is on [Hugging Face](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html).
+Limits: all labels are synthetic or proxy labels, results are not human-validated, contradiction and Arabic performance remain weak, and current scores use custom scorers rather than AuditKIT.
 
-## 2. Run the demo on your computer
+## Headline before → after
 
-You only need **Python**, which most computers already have.
+| Strict task success (frozen suites) | Raw base | v7 | **Merged α=0.75** |
+|---|---|---|---|
+| Semantic (240 rows) | 25.83% | 88.75% | **92.50%** |
+| Targeted (270 rows) | 24.07% | 91.48% | **93.70%** |
 
-**Step 1 · Open a terminal**
+The raw base number counts output-format failures, so it measures following this task contract, not general accuracy. The raw-base arm was run after model selection and is descriptive.
 
-| Windows | Mac |
-|---|---|
-| Press the **Windows key**, type `cmd`, press **Enter** | Press **Cmd + Space**, type `Terminal`, press **Enter** |
+**Base model + method in one line:** Tiny Aya Global + LoRA (r=16), trained with SafeTune PlainSFT on CuratorKIT data, with v7 and v8 interpolated at α=0.75.
 
-**Step 2 · Check Python**
+> **For judges: one minute.** Open the [demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh) (no install). It replays recorded answers from the earlier v6 adapter versus plain training on 544 pushbacks. The released merged model's own results are in the tables below and in the [recorded-only merged demo](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html). Neither demo runs a model live.
 
-```sh
-python --version
+## Problem statement and approach
+
+When a user pushes back, a model should do one of three things: **UPDATE** if the cited evidence settles the question, **CLARIFY** if the cited evidence does not settle it, and **RETAIN** if no evidence is given. Output format is `ACTION: UPDATE|CLARIFY|RETAIN`, `ANSWER: yes|no`, then one sentence. We fine-tune a LoRA adapter to follow this contract, build matched cases that defeat shortcuts, and evaluate on held-out statement templates.
+
+**Why this problem:** sycophantic answer-flipping and stubborn answer-holding are both failures. A correction contract that depends on evidence is a testable, checkable form of safe behaviour under social pressure.
+
+## Hackathon repos (kits) used
+
+| Kit | Used? | How |
+|---|---|---|
+| CuratorKIT | Yes | Produced validated data packs, checksums and provenance. |
+| AlignTune | No | |
+| AgentTune | No | |
+| SafeTune | Yes | `PlainSFTTrainer` trained v6, v7 and v8 LoRA adapters. |
+| CircuitKIT | Limited | Historical v6 compatibility smoke test and one bounded activation patch. No merged-model circuit finding. |
+| AuditKIT | Partly | Evaluated the source-model runs (v6 frozen set). Merged-model evaluation used custom EvidenceTune contract-v2 scorers, not AuditKIT. |
+
+### How the repos connect
+
+```mermaid
+flowchart LR
+  A[ContractNLI + VitaminC] --> B[CuratorKIT<br/>packs, checksums, provenance]
+  T[Teacher labels<br/>Claude Fable 5.2 + Opus 5.5] --> B
+  B --> C[SafeTune PlainSFT<br/>v7, then v8 continued]
+  C --> D[CPU interpolation<br/>75% v7 + 25% v8]
+  D --> E[Frozen evaluation<br/>custom contract-v2 scorers]
+  C --> F[AuditKIT<br/>source-model evals]
 ```
 
-Anything starting with `Python 3` works. If you get an error, try `py --version` (Windows) or `python3 --version` (Mac) and use that word instead of `python` below. If nothing works, install it from [python.org/downloads](https://www.python.org/downloads/); on Windows, tick **Add python.exe to PATH** in the installer.
+## Models and licenses
 
-**Step 3 · Download the project**
+- **Base Aya model:** Tiny Aya Global ([`CohereLabs/tiny-aya-global`](https://huggingface.co/CohereLabs/tiny-aya-global)). The adapter is released under CC BY-NC 4.0, following the base model. Not endorsed by Cohere Labs.
+- **Teacher models (for labels):** Claude Fable 5.2 and Claude Opus 5.5, run through a local headless Claude Code CLI. Labels that pass the task contract are kept, the two teachers are compared, and disagreements go to a judge model. Teacher labels carry `label_origin: teacher_*` and `human_attestation: false`, and were **not** validated against blind human labels.
+- **Judge for the v6 safety-retention check:** Aya Expanse 32B.
+- **Adapter license:** CC BY-NC 4.0 (`LICENSE-MODEL`). Original code: MIT (`LICENSE`). Dataset, prompt, base-model and Lexsi toolkit terms stay separate; see [LICENSE-DECISION.md](LICENSE-DECISION.md) and [NOTICE.md](NOTICE.md).
 
-Click the green **`<> Code`** button at the top of this page, then **Download ZIP**, and unzip it (Windows: right-click → **Extract All**; Mac: double-click). You get a folder called `exsi-lexsi-hackathon-main`. With Git, you can run `git clone https://github.com/kendramoss/exsi-lexsi-hackathon.git` instead.
+## Datasets, benchmarks and licenses
 
-**Step 4 · Go into the `demo` folder**
+### Sources
+- **ContractNLI** (Koreeda & Manning 2021), CC BY 4.0: human expert labels for the merged model's training data, via deterministic scripts.
+- **VitaminC** (Schuster et al. 2021), CC BY-SA 3.0: matched claims used in the earlier v6 data.
+- **Derived benchmark** [`Mizore66/evidencetune-bench`](https://huggingface.co/datasets/Mizore66/evidencetune-bench): CC BY-SA 3.0. Labels are dataset proxies, not independent human annotation.
+- **Merged-model data and evidence:** [`evidencetune-merged-data-alpha-0.75`](https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75) (source/label packs, training inputs, freezes, provenance). Korean raw/review rows are excluded.
 
-| Windows | Mac |
-|---|---|
-| Open the `demo` folder, click the address bar, type `cmd`, press **Enter** | Right-click the `demo` folder → **New Terminal at Folder** |
+### Train / test splits, leak check
+- **v7 training:** 3,115 freshness-filtered historical rows + 720 reviewed semantic-contrast rows = 3,835 rows. v8 continued from v7 with targeted and two-turn data.
+- **Frozen confirmation suites:** semantic 48 cases / 240 rows; targeted 54 cases / 270 rows. All 1,020 raw records were independently checked.
+- **Leak control:** evaluation uses held-out statement templates. Frozen sets are hashed (`FREEZE.json`) before evaluation, selection used dev data only, and no frozen cases were used for the merge.
+- **v6 benchmark splits (`evidencetune-bench`):** `in_domain` 2,080 train / 320 test rows (17 templates); `heldout_templates` train on 12 templates (1,060 rows contracts-only, 3,180 with VitaminC) with 5 held-out templates for dev; `final_frozen` 204 eligible cases, 136 fresh.
 
-Or type `cd` and the path, for example `cd Downloads/exsi-lexsi-hackathon-main/demo`.
+### Languages covered
+Task data is English. A small reviewed Arabic proxy (80 rows) is a weakness check, not a focus task. The over-refusal prompts are English and Italian XSTest-style prompts, and the `aya_redteaming` retention prompts are multilingual. Both are retention checks, not the focus task.
 
-**Step 5 · Start it**
+### Safety benchmarks (retention checks, not the focus task)
+- 200 public multilingual `aya_redteaming` prompts, judged by Aya Expanse 32B (v6 adapter run): harmful replies 6 for an adapter trained on in-domain data vs 10 for base.
+- 750 safe XSTest-style prompts per model, automated over-refusal proxy: merged 54/750 (7.2%), base 56/750 (7.5%), original v6 53/750 (7.1%). This is not a human refusal or answer-quality measure.
 
-```sh
-python -m http.server 8000
-```
+### CuratorKIT filtering
+CuratorKIT produced validated packs, checksums and provenance. The v7 training set uses 3,115 freshness-filtered historical rows plus 720 reviewed semantic-contrast rows. Only labels that pass the task contract are kept from the teacher runs.
 
-Leave this window open, then go to **[localhost:8000/?run=final-fresh](http://localhost:8000/?run=final-fresh)** in your browser.
+## Metrics, and why these
 
-**Step 6 · Stop it** by pressing **Ctrl + C** in the terminal.
+| Metric | Direction | Meaning |
+|---|---|---|
+| Task success (row-level) | higher | Row scored correct under the strict contract-v2 scorer, including output format. |
+| All-five-condition case success | higher | A case counts only if all five matched rows are correct. Stricter and case-level. |
+| Conditional resolution | higher | After CLARIFY, whether the dialogue resolves correctly. Denominator differs by model. |
+| Lexical traps handled | higher | Cases where the distractor overlaps the statement at least as much as the gold excerpt. |
+| Bare pressure resisted | higher | RETAIN under pressure with no evidence. |
+| Unwarranted answer changes | lower | Answer flips without valid evidence. |
+| Over-refusal proxy | lower | Safe prompts wrongly refused. |
 
-## 3. Host your own copy
+## Method / experiments
 
-The `demo` folder is a plain website with no server code, so any free static host can serve it.
+- **v6 adapter (earlier):** SafeTune `PlainSFTTrainer`, 2 epochs, LR 1e-4, batch 4, seed 0, LoRA r=16 on attention and MLP projections.
+- **v7:** SafeTune PlainSFT, 3,835 rows, seed 0, 2 epochs, LoRA rank 16, alpha 32, dropout 0.05, bias none, Kaggle fp16. Targets: `q/k/v/o_proj`, `gate/up/down_proj`.
+- **v8:** continued from v7 with targeted and two-turn data, seed 0, 2 epochs, Kaggle fp16. v8 alone regressed on the main correction benchmark and is not the released model.
+- **Merge:** elementwise float64 interpolation of v7 and v8 adapter tensors, cast once to each source dtype on CPU. No training, no frozen cases.
+- **Selection:** v7, v8 and three interpolation weights compared on dev only. Only v7 and α=0.75 passed the preregistered retention and resolution gates, and α=0.75 ranked first.
+- **Evaluation backend:** Apple MPS bf16 Transformers, greedy decoding. Do not mix with historical Kaggle fp16, RTX or vLLM numbers.
+- **Seeds:** seed 0 for training; bootstrap seed 20261111.
 
-| Host | Steps |
-|---|---|
-| **Hugging Face Space** (recommended) | Go to [huggingface.co/new-space](https://huggingface.co/new-space), choose the **Static** SDK, create it, then **Files → Add file → Upload files** and drop in everything *inside* `demo`. The Space settings are already in `demo/README.md`. |
-| **Netlify Drop** | Drag the `demo` folder onto [app.netlify.com/drop](https://app.netlify.com/drop). You get a link in seconds; no account needed to try. |
-| **GitHub Pages** | **Fork** this repo, then **Settings → Pages → Deploy from a branch → `main`, `/ (root)` → Save**. It goes live at `https://<you>.github.io/exsi-lexsi-hackathon/demo/`. |
+## Results
 
-Whichever you use, open the demo through its web address. Double-clicking `index.html` shows a blank page.
+### Dev-only selection
+| Metric | v7 | **Merged α=0.75** |
+|---|---|---|
+| Semantic task success | 94.58% | **96.25%** |
+| Targeted task success | 87.22% | **90.00%** |
+| Conditional resolution | 38/50 (76.00%) | **27/34 (79.41%)** |
+| Final dialogue task accuracy | 81.25% | **83.20%** |
 
-## 4. Model, data and code
-
-| What | Link |
-|---|---|
-| The model | [Merged α=0.75 adapter](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75) |
-| The test cases and evidence | [Merged model data and evidence](https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75) |
-| Everything together | [Hugging Face collection](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08) |
-| The write-up | [Submission draft](SUBMISSION-DRAFT.md) · [Full write-up](WRITEUP.md) |
-| The code | This repository: training, scoring and analysis, plus the demo in [`demo/`](demo/) |
-
-## 5. Reproduce the results
-
-For a deeper check, if you're comfortable with Python and a terminal:
-
-- [Release tooling](release/README.md) builds and verifies the release package.
-- The [reproduction guide](release/REPRODUCE.md) verifies the adapter, replays selection and the frozen metrics from saved records, and rebuilds the demo data. Its commands use the author's own folder paths; swap in yours.
-
-## 6. Troubleshooting
-
-| Problem | Fix |
-|---|---|
-| `python` isn't recognised | Use `py` (Windows) or `python3` (Mac), or [install Python](https://www.python.org/downloads/) |
-| A blank page | Start it with Step 5 and open the `localhost` address; don't double-click `index.html` |
-| "Address already in use" | Run `python -m http.server 8080` and open `localhost:8080/?run=final-fresh` |
-| "Could not load run" | The terminal isn't in the `demo` folder. Stop it, redo Step 4, start again |
-| The page looks too small | Your browser is zoomed out. The page scales itself, so press **Ctrl + 0** (Mac: **Cmd + 0**) |
-| Old version after an update | Hard refresh: **Ctrl + Shift + R** (Mac: **Cmd + Shift + R**) |
-| Scrolling jumps a whole screen | On purpose: each scroll moves one screen. Use the tabs or the dots to jump anywhere |
-
-## About the project
-
-**Teacher models and distillation.** EvidenceTune distills the evidence judgement of frontier teacher models into Tiny Aya. [`teacher/`](teacher/README.md) labels blind rows with Claude Fable 5.2 and Claude Opus 5.5 through a local headless Claude Code CLI (no API key), keeps only labels that pass the task contract, compares the two teachers, sends disagreements to a judge model, and reports how far the two teachers agree. Every annotation set was labelled this way; the labels are teacher-model labels and were not validated against blind human labels (the team chose not to run the human audit). Provenance stays truthful: teacher labels carry `label_origin: teacher_*` and `human_attestation: false`. The merged model's training data comes from ContractNLI's human expert labels via deterministic scripts, not from teachers; the [teacher README](teacher/README.md#what-is-and-isnt-teacher-labelled-today) lists which data is teacher-labelled.
-
-### Current merged-model submission
-
-**Selected release (10 Nov 2026): `merge_alpha_0.75`**, a CPU-only interpolation of **75% v7 semantic-contrast + 25% v8 targeted/two-turn LoRA weights**. The merge performed no additional training.
-
-Adapter SHA-256: `a329ed123fbb2da96d567492ff851b9880f71a5d59ae3be96a3ec2956f4ea335`.
-
-The repository demo replays the frozen `final-fresh` evaluation (plain training v5 vs EvidenceTune v6). The recorded-only merged α=0.75 comparison is in `demo/data/results/merged-alpha-075/merged.json` and is replayed by the [Hugging Face demo](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html). The separate historical mock (`?run=mock-smoke`) is invented, not current model evidence.
-
-#### Public artifacts
-
-- [Merged alpha=0.75 model](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75)
-- [Merged model data and evidence](https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75)
-- [Hugging Face collection](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08)
-- [Recorded-only demo](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html) — replays saved predictions; it does not run a model.
-
-#### Frozen confirmation results
-
-Selection used **dev data only**; the frozen suite was confirmation-only and did not change the selected model. Both arms below ran on the same **Apple MPS bf16 Transformers** backend.
-
-| Frozen metric | v7 | **Merged α=0.75** | Delta |
-|---|---:|---:|---:|
+### Frozen confirmation (confirmation only, not reselection)
+| Metric | v7 | **Merged α=0.75** | Delta |
+|---|---|---|---|
 | Semantic task success | 88.75% | **92.50%** | +3.75pp |
 | Targeted task success | 91.48% | **93.70%** | +2.22pp |
-| Semantic all-five-condition case success | 60.42% | **72.92%** | +12.50pp |
-| Targeted all-five-condition case success | 74.07% | **79.63%** | +5.56pp |
+| Semantic all-five case success | 60.42% | **72.92%** | +12.50pp |
+| Targeted all-five case success | 74.07% | **79.63%** | +5.56pp |
 
-Semantic evaluation contains 48 cases / 240 rows per arm; targeted evaluation contains 54 cases / 270 rows per arm. All 1,020 frozen raw records were independently checked. These are **contract-v2 synthetic construction-proxy results**, not human validation or broad natural-domain evidence.
+### Confidence intervals and significance
+10,000-replication case-cluster bootstrap, merged − v7:
+- Semantic task success: +3.75pp [95% CI +0.42, +7.50]
+- Targeted task success: +2.22pp [−0.74, +5.56]
+- Semantic all-five: +12.50pp [+2.08, +25.00], exact McNemar p = 0.0703
+- Targeted all-five: +5.56pp [−5.56, +16.67], p = 0.5078
 
-A post-selection raw-base arm was also evaluated on the same suites and backend. Raw base task success is **62/240 (25.83%) semantic** and **65/270 (24.07%) targeted**, versus merged **222/240 (92.50%)** and **253/270 (93.70%)**. Raw base has **0/48** and **0/54** all-five successes; v7 scores 213/240 and 247/270 on the same suites. These strict task metrics count output-format failures (raw base format success is 160/240 and 183/270), so they measure following this task contract, not general model accuracy. The arm was run after model selection on the already-frozen suites and is a descriptive comparison, not a same-run experiment: the saved v7 and merged predictions were not regenerated, and their historical Python/Transformers versions are not pinned, so no version-level attribution of the differences is made. See [raw-base evaluation](BASE-EVALUATION.md) for exact records and limitations.
+No multiplicity correction. Treat the semantic differences as suggestive and the targeted differences as not established. See [UNCERTAINTY.md](UNCERTAINTY.md) and [BASE-EVALUATION.md](BASE-EVALUATION.md).
 
-The [paired uncertainty analysis](UNCERTAINTY.md) uses 10,000 deterministic case-cluster bootstrap replications. Merged−v7 semantic task success is **+3.75pp [95% CI +0.42, +7.50]**; targeted task success is **+2.22pp [−0.74, +5.56]**. Case-level all-five differences are **+12.50pp [+2.08, +25.00]** semantic and **+5.56pp [−5.56, +16.67]** targeted. The task-success and all-five outcomes are different estimands (row-level versus case-level) derived from the same correlated rows, and no multiplicity correction is applied. The semantic all-five bootstrap interval also excludes zero, but the exact McNemar test on discordant cases is not conclusive (p = 0.0703125; targeted p = 0.5078125). Treat the semantic differences as suggestive and the targeted differences as not established.
+### Raw base, v7 and merged (post-selection, descriptive)
+| Strict all-five case success | Raw base | v7 | Merged α=0.75 |
+|---|---|---|---|
+| Semantic (48 cases) | 0/48 | 29/48 | 35/48 |
+| Targeted (54 cases) | 0/54 | 40/54 | 43/54 |
 
-#### Evidence and reproducibility
+Raw base format success is 160/240 (semantic) and 183/270 (targeted). The saved v7 and merged predictions were not regenerated, so no version-level attribution is made.
 
-- [Submission draft](SUBMISSION-DRAFT.md) and [full write-up](WRITEUP.md) document selection, results, negative results, and claim boundaries.
-- [Release tooling](release/README.md) and [reproduction instructions](release/REPRODUCE.md) cover package verification, saved-record replay, adapter interpolation, and demo regeneration. The supported evidence path is raw-record replay, not a promise to recover missing original selection-code bytes.
-- [Curated merged-model evidence](results/merged/) contains summaries and locked selection/confirmation metadata without raw prediction dumps.
-- [Raw-base evaluation](BASE-EVALUATION.md) and [paired uncertainty analysis](UNCERTAINTY.md) provide the additional baseline, exact denominators, discordant counts, and confidence intervals.
-- [Demo integration contract](MERGED-DEMO.md), [recorded payload](demo_merged_data.json), and [payload builder](demo/build_merged_demo.py) define the current recorded-only comparison. The [historical v6 demo](DEMO.md) is separate and must not be relabelled or mixed into the merged-model scoreboard.
+### Follow-up descriptive checks
+- 100-case authored synthetic evaluation: merged 92.0% vs v7 89.2%. Contradiction cases are weaker than entailment (87.2% vs 96.8%).
+- Reviewed Arabic proxy: both models 62/80 task successes. This does not support an Arabic improvement claim.
 
-#### Licenses and limitations
+### What didn't work
+- **DPO rejected:** dev semantic task success fell from 96.25% to 94.58%.
+- **Natural SciFact training rejected:** reviewed generations kept fundamental scope and label ambiguity.
+- **v8 alone** regressed on the main benchmark.
 
-Original EvidenceTune code is [MIT licensed](LICENSE); the merged adapter is [CC BY-NC 4.0](LICENSE-MODEL). Dataset, prompt, base-model, and Lexsi toolkit terms remain separate; see the [license decision](LICENSE-DECISION.md) and [third-party notices](NOTICE.md).
+### Sample inputs and outputs
+Each case gives a policy statement and excerpts, then a user pushback. For example, a valid citation yields `ACTION: UPDATE`, a citation of an unrelated excerpt yields `ACTION: CLARIFY`, and bare pressure yields `ACTION: RETAIN`. Full examples are in the [benchmark viewer](https://huggingface.co/datasets/Mizore66/evidencetune-bench/viewer).
 
-- Current merged/MPS scores use EvidenceTune's custom contract-v2/native scorers, **not AuditKIT**. CircuitKIT evidence is historical v6 compatibility smoke only.
-- Current Apple MPS bf16 results are not directly comparable with historical v6 Kaggle fp16/RTX/vLLM results.
-- The raw-base arm was added **post-selection** and is descriptive, not a new candidate arm. Five rows from one case are correlated, and current resolution rates have different conditional follow-up denominators.
-- Contradiction and Arabic weaknesses remain; the small Arabic proxy is not native-speaker validation. DPO and natural SciFact training were rejected. Historical v6 safety-retention results are not merged-model safety evidence.
+### Compute and cost
+Training ran on Kaggle (fp16). Evaluation ran on Apple MPS (bf16).
 
-### Project documents
+## Limitations
 
-- [Research specification](SPEC.md)
-- [Written execution plan](PLAN.md)
-- [Task backlog](BACKLOG.md)
+- Contract-v2 labels are synthetic construction proxies. Independent AI review is not human adjudication, and nothing here is validated by qualified humans.
+- English task data. Arabic and other languages are not shown to improve; the Arabic proxy is not native-speaker validated.
+- Contradiction weakness remains.
+- Current merged scores use custom scorers, not AuditKIT. CircuitKIT evidence is historical v6 smoke only.
+- Apple MPS bf16 results are not comparable with historical Kaggle fp16 / RTX / vLLM results.
+- Five rows from one case are correlated; resolution rates have different conditional denominators.
+- Historical v6 safety-retention results are not merged-model safety evidence.
+- One seed; no comparison with prompting-only baselines in the v6 card.
+- Teacher labels were not human-audited (the team chose not to run the human audit).
+- The demos replay recorded answers; they do not run the model live.
 
-#### Task categories
+### Dual-use / ethics (T2a)
+EvidenceTune is a small, narrow adapter for a correction-routing task. It is not a safety-certified or general-purpose assistant and should not be used as a factual arbiter. The matched-case design and the lexical-trap findings could in principle help someone craft citations that look supportive but are not, and the model's documented weak spots (contradiction cases, Arabic) show where it can still be misled. We release it under CC BY-NC 4.0 with these limits stated. Red-team retention checks used public prompt sets, and only counts are published; raw harmful replies are withheld. All labels are synthetic or proxy labels, so none of these results should be read as evidence of real-world safety.
 
-- **Data & Annotation** — sources, counterfactuals, independent labels, Arabic quality, and CuratorKIT.
-- **ML & Evaluation** — Aya runners, SafeTune, baselines, AuditKIT, and analysis.
-- **Frontend & Design** — demo experience, visual communication, and presentation.
+### Responsible disclosure (T2a)
+None. This work did not discover or exploit vulnerabilities in third-party systems or models, so there was nothing to disclose.
+
+## With more credits
+
+- **Planned approach:** run the human audit on teacher labels, get native-speaker adjudication for the Arabic proxy, add natural-domain (non-synthetic) evidence data, and add multiple seeds.
+- **Expected before / after:** with human-validated labels and native-speaker adjudication, we expect the gap between proxy performance and real-world performance to become measurable. We make no numeric forecast.
+
+## Artifacts
+
+- **HF models + datasets collection:** [EvidenceTune merged alpha 0.75](https://huggingface.co/collections/Mizore66/evidencetune-merged-alpha-075-6af247b1e0ea2081369d1b08)
+- **Models:** [merged α=0.75](https://huggingface.co/Mizore66/evidencetune-merged-alpha-0.75) · [earlier v6 LoRA](https://huggingface.co/Mizore66/tiny-aya-global-evidencetune-lora)
+- **Datasets:** [merged data + evidence](https://huggingface.co/datasets/Mizore66/evidencetune-merged-data-alpha-0.75) · [evidencetune-bench](https://huggingface.co/datasets/Mizore66/evidencetune-bench)
+- **GitHub repo:** this repository
+- **Demo / Space:** [browser demo](https://kendramoss.github.io/exsi-lexsi-hackathon/demo/?run=final-fresh) · [recorded-only merged demo](https://mizore66-evidencetune-merged-demo.static.hf.space/index.html)
+- **Other write-ups:** [SUBMISSION-DRAFT.md](SUBMISSION-DRAFT.md) · [WRITEUP.md](WRITEUP.md)
+
+## Documentation and reproduction
+
+**Environment:** Python 3 for the demo. Reproduction uses the release tooling; the reproduction guide's commands use the author's own folder paths, so swap in yours.
+
+**Reproduce the results:** see [release/README.md](release/README.md) (builds and verifies the release package) and [release/REPRODUCE.md](release/REPRODUCE.md) (verifies the adapter, replays selection and the frozen metrics from saved records, and rebuilds the demo data). The supported evidence path is raw-record replay.
+
+### Repo layout
+
+| Folder / file | What it is |
+|---|---|
+| `demo/` | The static browser demo (plain website, no server code). |
+| `teacher/` | Teacher labelling, agreement and judge scripts ([README](teacher/README.md)). |
+| `release/` | Release tooling and reproduction guide. |
+| `results/` | Curated results, including `results/merged`. |
+| `analysis/` | Analysis scripts: shortcut audit, template control, paired uncertainty (bootstrap) and raw-base evaluation. |
+| `data/` | Data builders and curation scripts, authored families, benchmark splits with leakage and shortcut checks, and export packs (messages, manifest, checksums). |
+| `docs/` | Annotation guide, handover and verification notes, offline checks, demo flow and test matrix, and presentation material (script, storyboard, captions, pipeline diagram). |
+| `jobs/` | Training job scripts (`hf_job*.py`) with pinned dependencies, up to the v6 adapter. |
+| `public_staging/` | Builder for the local staging tree of the public Hugging Face artifacts (model, dataset/evidence bundle, code, licenses, hashes). It does not upload anything itself. |
+| `schemas/` | JSON Schemas for cases, predictions/run records, actions and metrics. |
+| `scripts/` | Utilities to build and check benchmark cases, lexical and pair-balance checks, annotation agreement, pack export, final-run import, and their tests. |
+| `tasks/` | Working notes: task checklist and interaction lessons from building the demo. |
+| `design/logo-options/` | Logo design options (SVG/PNG) for the project. |
+| `arabic_annotation/`, `annotation/`, `natural_annotation/` | Annotation work. |
+| `local_mps/` | Apple MPS evaluation runs. |
+| `SPEC.md`, `PLAN.md`, `BACKLOG.md` | Research specification, execution plan, task backlog. |
+| `UNCERTAINTY.md`, `BASE-EVALUATION.md` | Paired bootstrap analysis and raw-base evaluation. |
+| `LICENSE`, `LICENSE-MODEL`, `LICENSE-DECISION.md`, `NOTICE.md` | Licensing. |
+
+### Run the demo on your computer
+1. Install Python 3 (check with `python --version`; on Windows try `py`, on Mac `python3`).
+2. Download the repo (**Code → Download ZIP**) or `git clone https://github.com/kendramoss/exsi-lexsi-hackathon.git`.
+3. Open a terminal in the `demo` folder.
+4. Run `python -m http.server 8000` and open <http://localhost:8000/?run=final-fresh>. Stop with Ctrl + C.
+
+Open the demo through its web address. Double-clicking `index.html` shows a blank page.
+
+### Host your own copy
+The `demo` folder is a plain static site. Options: a Hugging Face **Static** Space (upload everything inside `demo`, settings are in `demo/README.md`), Netlify Drop, or GitHub Pages (fork, then Settings → Pages → `main`, `/ (root)`; it serves at `https://<you>.github.io/exsi-lexsi-hackathon/demo/`).
+
+### Troubleshooting
+| Problem | Fix |
+|---|---|
+| `python` isn't recognised | Use `py` (Windows) or `python3` (Mac), or install Python. |
+| Blank page | Start the server and open the `localhost` address. |
+| "Address already in use" | Use `python -m http.server 8080` and `localhost:8080/?run=final-fresh`. |
+| "Could not load run" | The terminal isn't in the `demo` folder. |
+| Old version after an update | Hard refresh: Ctrl + Shift + R (Mac: Cmd + Shift + R). |
+
+### Declaration of work done outside the hackathon
+None.
+
+## Team
+
+- **Teammates tagged:** [kendramoss](https://github.com/kendramoss), [Mizore66](https://huggingface.co/Mizore66) (Hugging Face), [Kaiz404](https://github.com/Kaiz404)
+- **Acknowledgements:** ContractNLI, VitaminC, Cohere Labs (Tiny Aya), Lexsi toolkits.
+- **LLM usage statement:** teacher labels were produced with Claude models (see above). This README was drafted with Claude and reviewed and edited by the team.
+
+## References
+
+- Koreeda & Manning (2021). ContractNLI.
+- Schuster et al. (2021). VitaminC.
+- Cohere Labs. Tiny Aya Global.
